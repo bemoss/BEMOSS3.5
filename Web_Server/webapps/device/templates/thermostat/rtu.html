@@ -1,0 +1,382 @@
+ <!--
+ Copyright (c) 2016, Virginia Tech
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+  following conditions are met:
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the authors and should not be
+ interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+ This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+ United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+ nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+ express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+ any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+ privately owned rights.
+
+ Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+ otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+ Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+ expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+ VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+ under Contract DE-EE0006352
+
+ #__author__ = "BEMOSS Team"
+ #__credits__ = ""
+ #__version__ = "3.5"
+ #__maintainer__ = "BEMOSS Team"
+ #__email__ = "aribemoss@gmail.com"
+ #__website__ = "www.bemoss.org"
+ #__created__ = "2014-09-12 12:04:50"
+ #__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+{% load user_role %}
+
+<!DOCTYPE html>
+<html>
+<head>
+
+
+<title>BEMOSS - RTU</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+<link href="/static/weathericons/css/weather-icons.css" rel="stylesheet" media="screen">
+    <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/style/dashboard.css" rel="stylesheet">
+<link href="/static/assets/jquery-easy-pie-chart/jquery.easy-pie-chart.css" rel="stylesheet" type="text/css" media="screen"/>
+
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+<link href="/static/css/jquery-ui.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" type="text/css" href="/static/assets/slider_enhancer/jquery-ui-slider-pips.css">
+<!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+    <script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+<style>
+    .slider {
+        margin: 10px;
+    }
+    .ui-slider-horizontal {
+        width: 90%;
+    }
+    .ui-slider .ui-slider-handle {
+        cursor: default;
+        height: 1.2em;
+        position: absolute;
+        width: 1.0em;
+        z-index: 2;
+    }
+</style>
+<script>
+    var zone = {{ device_info.node.node_id }};
+    var heating = {{ device_data.data|get_item_in_dict:'heating_level' }};
+    var outside_damper = {{ device_data.data|get_item_in_dict:'outside_damper_position' }};
+    var bypass_damper = {{ device_data.data|get_item_in_dict:'bypass_damper_position' }};
+    var fan_state = "{{ device_data.data|get_item_in_dict:'fan_state' }}";
+    var cooling_status = "{{ device_data.data|get_item_in_dict:'cooling_status' }}";
+    var device_info = "{{device_zone}}/rtu/{{agent_id}}";
+    var firstname = "{{ request.user.first_name }}";
+    var lastname = "{{ request.user.last_name }}";
+
+    var agent_id = "{{ device_data.agent_id }}";
+    var device_data = jQuery.parseJSON('{{ device_data|device_data_jsonify}}');
+    var device_data = jQuery.parseJSON('{{ device_data|device_data_jsonify}}');
+    {% if request.user|has_group:'Tenant' %}
+var role = 'tenant';
+{% else  %}
+var role ='admin';
+{% endif %}
+    {% ifnotequal request.user.get_profile.zone.zone_id None %}
+    var uzone = {{ request.user.get_profile.zone.zone_id }};
+    {% else  %}
+    var uzone = 9999;
+    {% endifnotequal %}
+</script>
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+{% include 'common/side_nav.html' %}
+  <div class="page-content">
+  	<form action="" method="post">
+  	{% csrf_token %}
+    <div class="content container">
+        <div class="row">
+        <div class="col-lg-12">
+          <h2 class="page-title">{{device_info.node.node_name}} : {{device_info.nickname}} </h2>
+        </div>
+      </div>
+        <div class="row">
+            <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Outside Air Temperature</div>
+              <div class="stats-body-alt">
+                  {% if device_data.data|get_item_in_dict:'outside_temperature' == None %}
+                <div class="text-center"><span class="h1" id="outside_temp">N/A</span><span class="h1"></span></div>
+               {% else %}
+              <div class="text-center"><span class="h1" id="outside_temp">{{ device_data.data|get_item_in_dict:'outside_temperature' }}</span><span class="h1">&deg;F</span></div>
+               {% endif %}
+
+
+
+              </div>
+              </a> </div>
+            <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Supply Temperature</div>
+              <div class="stats-body-alt">
+                  {% if device_data.data|get_item_in_dict:'supply_temperature' == None %}
+                  <div class="text-center"><span class="h1" id="supply_temp">N/A</span>
+                      <span class="h1"></span></div>
+                   {% else %}
+                  <div class="text-center"><span class="h1" id="supply_temp">{{ device_data.data|get_item_in_dict:'supply_temperature' }}</span>
+                      <span class="h1">&deg;F</span></div>
+ {% endif %}
+
+                    </div>
+              </a></div>
+             <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Return Temperature</div>
+              <div class="stats-body-alt">{% if device_data.data|get_item_in_dict:'return_temperature' == None %}
+                  <div class="text-center"><span class="h1" id="return_temp">N/A</span>
+                    <span class="h1"></span></div>
+
+                  {% else %}
+                  <div class="text-center"><span class="h1" id="return_temp">{{ device_data.data|get_item_in_dict:'return_temperature' }}</span>
+                    <span class="h1">&deg;F</span></div>{% endif %}
+              </div>
+              </a> </div>
+            <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Pressure</div>
+              <div class="stats-body-alt">
+                <div class="text-center"><span class="h1" id="pressure">{{ device_data.data|get_item_in_dict:'pressure' }}</span>
+                    <span class="h2"> in H2O</span></div>
+
+               </div>
+
+              </a> </div>
+
+              </a> </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Heat SetPoint</div>
+              <div class="stats-body-alt">
+                <div class="text-center">
+                    <span class="h1" id="heat_setpoint">{{ device_data.data|get_item_in_dict:'heat_setpoint' }}</span><span class="h1">&deg;F</span>
+                    <button class="btn btn-warning" id="heatplus" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">+</span></button>
+                    <button class="btn btn-info" id="heatminus" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">-</span></button>
+                </div>
+                </div>
+              </a> </div>
+            <div class="col-md-4 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Cool SetPoint</div>
+              <div class="stats-body-alt">
+                <div class="text-center">
+                    <span class="h1" id="cool_setpoint">{{ device_data.data|get_item_in_dict:'cool_setpoint' }}</span><span class="h1">&deg;F</span>
+                    <button class="btn btn-warning" id="coolplus" type="button"
+                            {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}><span class="h4">
+                            +</span></button>
+                    <button class="btn btn-info" id="coolminus" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">-</span></button>
+                </div>
+                </div>
+              </a> </div>
+            <div class="col-md-4 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Fan</div>
+              <div class="stats-body-alt">
+                <div class="text-center">
+                {% ifequal device_data.data|get_item_in_dict:'fan_state' 'ON' %}
+                  <div class="text-center">
+                    <button class="btn btn-success" id="on_fan" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">ON</span></button>
+                    <button class="btn btn-default" id="off_fan" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">OFF</span></button>
+                  </div>
+                {% else %}
+                  <div class="text-center">
+                    <button class="btn btn-default" id="on_fan" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">ON</span></button>
+                    <button class="btn btn-success" id="off_fan" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">OFF</span></button>
+                  </div>
+                {% endifequal %}
+                </div>
+                </div>
+              </a> </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-xs-12 col-sm-6">
+                <div  class="stats-container">
+              <div class="stats-heading">Cooling</div>
+              <div class="stats-body-alt">
+                <div class="text-center">
+                    <div class="btn-group btn-input clearfix">
+                         <button type="button"
+                                  {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}
+                                 id="drop_coolmode" class="btn btn-default dropdown-toggle form-control" data-toggle="dropdown">
+                           <span data-bind="label" id="coolmode">{{ device_data.data|get_item_in_dict:'cooling_mode' }}</span>&nbsp;<span class="caret"></span>
+                         </button>
+                         <ul class="dropdown-menu" role="menu">
+                             <li><a href="#" id="NONE">None</a></li>
+                             <li><a href="#" id="STG1">Stage 1 Cooling</a></li>
+                             <li><a href="#" id="STG2">Stage 2 Cooling</a></li>
+                             <li><a href="#" id="STG3">Stage 3 Cooling</a></li>
+                             <li><a href="#" id="STG4">Stage 4 Cooling</a></li>
+                         </ul>
+
+                     </div>
+
+                </div>
+                </div>
+              </div> </div>
+               <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container" >
+              <div class="stats-heading">Cooling Status</div>
+              <div class="stats-body-alt" id="actt">
+                  {% ifequal device_data.data|get_item_in_dict:'cooling_status' 'ON' %}
+                  <div class="text-center">
+                    <button class="btn btn-success" id="on_cool" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">ON</span></button>
+                    <button class="btn btn-default" id="off_cool" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">OFF</span></button>
+                  </div>
+                  {% else %}
+                  <div class="text-center">
+                    <button class="btn btn-default" id="on_cool" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">ON</span></button>
+                    <button class="btn btn-success" id="off_cool" type="button"
+                             {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+                            <span class="h4">OFF</span></button>
+                  </div>
+                  {% endifequal %}
+               </div>
+              </a> </div>
+            <div class="col-md-5 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Heating</div>
+              <div class="stats-body-alt"  id="dispp">
+                <div class="text-center" style="margin-top: 10px;">
+                 <h5> <div class="slider" id="heating"></div></h5>
+                </div>
+                <div class="text-center" style="margin-top: 15px;">
+                <h5>Heating Level: <span id="heating_level">{{ device_data.data|get_item_in_dict:'heating_level' }}</span>%</h5>
+                </div>
+                </div>
+              </a> </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Outside Air Damper Position</div>
+              <div class="stats-body-alt" >
+                <div class="text-center" style="margin-top: 10px;">
+                 <h5> <div class="slider" id="outside_damper"></div></h5>
+                </div>
+                <div class="text-center" style="margin-top: 15px;">
+                <h5>Outside Air Damper Position: <span id="outside_damper_val">{{ device_data.data|get_item_in_dict:'outside_damper_position' }}</span>%</h5>
+                </div>
+                </div>
+              </a> </div>
+            <div class="col-md-6 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Bypass Damper Position</div>
+              <div class="stats-body-alt" >
+                <div class="text-center" style="margin-top: 10px;">
+                 <h5> <div class="slider" id="bypass_damper"></div></h5>
+                </div>
+                <div class="text-center" style="margin-top: 15px;">
+                <h5>Bypass Damper Position: <span id="bypass_damper_val">{{ device_data.data|get_item_in_dict:'bypass_damper_position' }}</span>%</h5>
+                </div>
+                </div>
+              </a> </div>
+        </div>
+        <div class="row">
+            <div class="text-center">
+                  {% if request.user|has_group:'Admin' or  request.user|has_group:'Zone Manager'  %}
+
+                    <button type="button" class="btn btn-default" id="submit_rtu_data"><i class="icon-ok"></i>Submit All Changes</button>
+                 {% endif %}
+                    <a href={% url 'charts-view-device-chart' device_data.agent.mac_address %}>
+                        <button type="button" class="btn btn-default btn-danger" ><i class="icon-bar-chart"></i> View Past Usage and Set Points</button>
+                    </a>
+
+
+            </div>
+        </div>
+
+
+	</form>
+    </div></div>
+  </div>
+
+
+<div class="bottom-nav footer"> <span class="h6"> 2013-2017 &copy; Building Energy Management Open Source Software. </span><br/></div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script src="/static/js/select-checkbox.js"></script>
+<script src="/static/js/to-do-admin.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/ui/jquery-ui.js"></script>
+<script src="/static/assets/slider_enhancer/jquery-ui-slider-pips.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+          <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+          <script class="include" type="text/javascript" src="/static/app_js/rtu.js"></script>
+          <script type="text/javascript" src="/static/app_js/make_current.js"></script>
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+</body>
+</html>

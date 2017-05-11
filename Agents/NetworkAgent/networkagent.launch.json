@@ -1,0 +1,7 @@
+{
+    "agent": {
+        "exec": "networkagent-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
+    },
+    "agent_id": "networkagent",
+    "message": "hello"    
+}

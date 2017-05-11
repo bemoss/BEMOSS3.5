@@ -1,0 +1,8 @@
+{
+    "agent": {
+        "exec": "applauncheragent-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
+    },
+    "agent_id": "applauncher1",
+    "type": "applauncher",
+    "message": "hello"    
+}

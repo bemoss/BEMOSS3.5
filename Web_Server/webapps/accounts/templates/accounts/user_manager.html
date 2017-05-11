@@ -1,0 +1,289 @@
+<!--
+Copyright (c) 2016, Virginia Tech
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+ following conditions are met:
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The views and conclusions contained in the software and documentation are those of the authors and should not be
+interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+privately owned rights.
+
+Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+under Contract DE-EE0006352
+
+#__author__ = "BEMOSS Team"
+#__credits__ = ""
+#__version__ = "2.0"
+#__maintainer__ = "BEMOSS Team"
+#__email__ = "aribemoss@gmail.com"
+#__website__ = "www.bemoss.org"
+#__created__ = "2014-09-12 12:04:50"
+#__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load timedelta %}
+{% load device_count_in_zone %}
+{% load check_false %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Manager</title>
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+    <link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/fam-icons/fam-icons.css">
+    <link href="/static/style/style.css" rel="stylesheet">
+    <link href="/static/css/alerts.css" rel="stylesheet">
+    <link href="/static/css/demo_page.css" rel="stylesheet">
+    <link href="/static/css/demo_table.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+       <script src="../../assets/js/html5shiv.js"></script>
+       <script src="../../assets/js/respond.min.js"></script>
+<![endif]-->
+
+    <!-- Notify CSS -->
+    <link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+    <script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+    <script type="text/javascript" src="/static/app_js/make_current.js"></script>
+    <!--[if IE]><script type="text/javascript" src="/static/assets/jqueryknobdial/excanvas.js"></script><![endif]-->
+
+</head>
+<body>
+<script>
+    var url_approve_users = "{% url 'account-approve-users' %}";
+    var url_delete_users = "{% url 'account-delete-user' %}";
+    var url_modify_user_permissions = "{% url 'account-modify-user-permissions' %}"
+
+</script>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+    {% include 'common/side_nav.html' %}
+    <div class="page-content" id="dashboard_content">
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="content container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h2 class="page-title">Manage Users</h2>
+                    </div>
+                </div>
+                {% for iteration in 2|times %}
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="widget">
+                            <div class="widget-header"><i class="icon-group"></i>
+                                <h3>{% cycle 'Active User Registration Requests' 'BEMOSS users' %}</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="example_alt_pagination">
+                                    <div id="container">
+                                        <div class="full_width big"></div>
+                                        <div id="demo">
+                                            <table cellpadding="0" cellspacing="0" border="0" class="display"
+                                                   id={% cycle "newusrs_tbl" "allusrs_tbl" %}>
+                                                <thead>
+                                                <tr>
+                                                    <th class="col-md-2">ID</th>
+                                                    <th class="col-md-2">Name</th>
+                                                    <th class="col-md-2">Email</th>
+                                                    <th class="col-md-2">Role</th>
+                                                    <th class="col-md-2">Zone</th>
+                                                    <th class="col-md-2">{% cycle 'Request Date' 'joined Date' %}</th>
+                                                    {% ifequal iteration 2 %}<th class="col-md-2">Last Login</th>{% endifequal %}
+                                                    <th class="col-md-1">{% cycle 'Approve' 'Delete'%}</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for usr in users %}
+                                                    {% if iteration == 2 and usr.is_active or iteration == 1 and not usr.is_active %}
+                                                        <tr  {% if usr.is_superuser or usr.groups.all.0.id == 1 %}
+                                                            class="gradeA"
+                                                        {% elif usr.groups.all.0.id == 2 %}
+                                                            class="gradeC"
+                                                        {% elif usr.groups.all.0.id == 3 %}
+                                                            class="gradeX"
+                                                        {% endif %}>
+                                                            <td id="userid" width="4%">{{ usr.id }}</td>
+                                                            <td>{{ usr.first_name }} {{ usr.last_name }}</td>
+                                                            <td>{{ usr.email }}</td>
+                                                            <td>
+                                                                <div class="btn-group btn-input clearfix">
+                                                                    <button type="button" id="drop_role-{{ usr.id }}"
+                                                                            class="btn btn-xs btn-default dropdown-toggle form-control"
+                                                                            data-toggle="dropdown">
+                                                                           <span data-bind="label" id="role-{{ usr.id }}">{% if usr.is_superuser %} superuser {% else %}
+                                                                               {{ usr.groups.all.0.name }}
+
+                                                                           {% endif %}</span>&nbsp;<span class="caret"></span>
+                                                                    </button>
+                                                                    {% if not usr.is_superuser %}
+                                                                        <ul class="dropdown-menu" role="menu">
+                                                                            {% for grp in groups %}
+                                                                                <li><a href="#"
+                                                                                       id="{{ grp.name|lower|cut:" " }}-{{ usr.id }}">{{ grp.name }}</a>
+                                                                                </li>
+                                                                            {% endfor %}
+                                                                        </ul>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="btn-group btn-sm btn-input clearfix">
+                                                                    <button type="button" id="zone-{{ usr.id }}"
+                                                                            class="btn btn-xs btn-default dropdown-toggle form-control"
+                                                                            data-toggle="dropdown">
+                                                                           <span data-bind="label" id="zone-{{ usr.id }}">{% if usr.is_superuser or usr.groups.all.0.name|lower == 'admin' %} all {% else %}
+                                                                               {%  for node in usr.userprofile.nodes.all %}
+                                                                               {{ node.node_name }}
+                                                                               {% endfor %}
+
+                                                                           {% endif %}</span>&nbsp;<span class="caret"></span>
+                                                                    </button>
+                                                                    {% if not usr.is_superuser and usr.groups.all.0.name|lower != 'admin'%}
+                                                                        <ul class="dropdown-menu" role="menu">
+                                                                            <li><a href="#"
+                                                                                       id="all">all</a>
+                                                                                </li>
+                                                                            {% for node_id in node_names %}
+                                                                                <li><a href="#"
+                                                                                       id="{{ node_names|lookup:node_id }}">{{  node_names|lookup:node_id }}</a>
+                                                                                </li>
+                                                                            {% endfor %}
+                                                                        </ul>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </td>
+
+                                                            <td>{% cycle usr.userregistrationrequests.request_date|as_local_time usr.date_joined|as_local_time %}</td>
+                                                            {% if iteration == 1 %}
+                                                            <td class="text-center"><input type="checkbox" value=""
+                                                                                           required=""
+                                                                                           id="approve_{{ usr.id }}"
+                                                                                           name="approve_users"></td>
+                                                            {% else %}
+                                                                <td>{{ usr.last_login }}</td>
+
+                                                            <td class="text-center">
+
+                                                                <button class="btn btn-sm btn-warning delete_user"
+                                                                        id="del_{{ usr.id }}"
+
+                                                                        {% if usr.is_superuser or usr == request.user %}
+                                                                        disabled
+                                                                        {% endif %}>
+                                                                    Delete User
+                                                                </button>
+                                                            </td>
+                                                            {% endif %}
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                </tbody>
+                                                <tfoot>
+                                                <tr>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                    {% if iteration == 2 %}<th></th>{% endif %}
+                                                </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br/>
+                                <div class="row">
+                                    <div class="col-lg-offset-4">
+                                        <div class="text-center">
+                                            <button class="btn btn-primary" id={% cycle "approve_users" "modify_roles" %} type="submit">{% cycle  "Activate New Users" "Modify Users"%}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software.</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script type="text/javascript" language="javascript" src="/static/js/jquery.js"></script>
+<script type="text/javascript" language="javascript" src="/static/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function () {
+        $('#newusrs_tbl').dataTable({
+            "sPaginationType": "full_numbers",
+            "oLanguage": {
+                "sEmptyTable": "All users active."
+            }
+        });
+        $('#allusrs_tbl').dataTable({
+            "sPaginationType": "full_numbers",
+            "oLanguage": {
+                "sEmptyTable": "No users!"
+            }
+        });
+    });
+</script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+<script type="text/javascript" src="/static/app_js/make_current.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/user_manager.js"></script>
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+</body>
+</html>

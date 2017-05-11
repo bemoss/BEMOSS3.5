@@ -1,0 +1,10 @@
+c4 applauncheragent-0.1     applauncheragent     running [25326]
+06 approvalhelperagent-0.1  approvalhelperagent       0
+4a devicediscoveryagent-0.1 devicediscoveryagent running [25316]
+ca iebsubscriberagent-0.1   iebsubscriberagent   running [25336]
+ec launcheragent-0.1        launcheragent              
+33 multibuildingagent-0.1   multibuildingagent   running [25355]
+9e networkagent-0.1         networkagent              0
+5a openadragent-0.1         openadragent              1
+3b testdragent-0.1          testdragent          running [25388]
+41 thermostatagent-0.1      1THBGQKEKRXBGFV         -15

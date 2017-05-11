@@ -1,0 +1,230 @@
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>BEMOSS Charts and Statistics</title>
+<!--
+
+# Authors: BEMOSS Team
+# Version: 2.0
+# Email: aribemoss@gmail.com
+# Created: "2014-10-13 18:45:40"
+# Updated: "2015-02-13 15:06:41"
+
+
+Copyright © 2014 by Virginia Polytechnic Institute and State University
+All rights reserved
+
+Virginia Polytechnic Institute and State University (Virginia Tech) owns the copyright for the BEMOSS software and its
+associated documentation ("Software") and retains rights to grant research rights under patents related to
+the BEMOSS software to other academic institutions or non-profit research institutions.
+You should carefully read the following terms and conditions before using this software.
+Your use of this Software indicates your acceptance of this license agreement and all terms and conditions.
+
+You are hereby licensed to use the Software for Non-Commercial Purpose only.  Non-Commercial Purpose means the
+use of the Software solely for research.  Non-Commercial Purpose excludes, without limitation, any use of
+the Software, as part of, or in any way in connection with a product or service which is sold, offered for sale,
+licensed, leased, loaned, or rented.  Permission to use, copy, modify, and distribute this compilation
+for Non-Commercial Purpose to other academic institutions or non-profit research institutions is hereby granted
+without fee, subject to the following terms of this license.
+
+Commercial Use: If you desire to use the software for profit-making or commercial purposes,
+you agree to negotiate in good faith a license with Virginia Tech prior to such profit-making or commercial use.
+Virginia Tech shall have no obligation to grant such license to you, and may grant exclusive or non-exclusive
+licenses to others. You may contact the following by email to discuss commercial use:: vtippatents@vtip.org
+
+Limitation of Liability: IN NO EVENT WILL VIRGINIA TECH, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR REDISTRIBUTE
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO
+LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE
+OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF VIRGINIA TECH OR OTHER PARTY HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGES.
+
+For full terms and conditions, please visit https://bitbucket.org/bemoss/bemoss_os.
+
+Address all correspondence regarding this license to Virginia Tech's electronic mail address:: vtippatents@vtip.org
+
+
+    -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+<link href="/static/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" media="screen">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/style/dashboard.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/static/dtpicker/bootstrap-datetimepicker.min.css" />
+<link rel="stylesheet" type="text/css" href="/static/style/jquery.jqplot.min.css" />
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+<style>
+    .icon-chevron-up {color:black;}
+    .icon-chevron-down {color:black;}
+    .fa-calendar {color:black;}
+    .fa-clock-o{color:black;}
+    .jqplot-table-legend {background-color: rgb(60, 38, 38); background-color: rgba(60, 38, 38, 0.6);}
+</style>
+
+<script>
+var _status = [];
+_status = {{ illumination|safe }};
+var mac = "{{ mac }}";
+</script>
+
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+{% include 'common/side_nav.html' %}
+  <div class="page-content">
+    <div class="content container">
+        <form id="target" action="../" method="post">{% csrf_token %}
+      <div class="row">
+        <div class="col-md-12">
+          <h2 class="page-title">{{ nickname }} Statistics</h2>
+        </div>
+      </div>
+      <div class="row">
+      <div class="col-lg-9">
+          <div class="widget">
+            <div class="widget-header"> <div class="text-center"><i class="icon-tasks"></i>
+              <h3>{{ node_name }} : {{ nickname }}</h3></div>
+            </div>
+            <div class="widget-content">
+              <div id="chart100" style="width:100%; height:350px"></div>
+            </div>
+          </div>
+      </div>
+          <div class="col-lg-3">
+            <div class="widget">
+            <div class="widget-header"> <div class="text-center">
+              <h4>Data points</h4></div>
+            </div>
+            <div class="widget-content">
+                <div class="control-group">
+                    <div class="controls span2">
+                        <label class="checkbox">
+                            <input type="checkbox" id="brightness" value="Brightness"> Light Intensity
+                        </label>
+                    </div>
+                </div><br/>
+                <div class="form-group text-center">
+                        <button class="btn btn-info" id="stack_chart" >Stack Them on the Chart</button>
+                </div>
+            </div>
+          </div>
+
+          </div>
+      </div>
+        <div class ="row">
+        <div class='col-sm-3'>
+            <div class="form-group">
+                <div class='input-group date' id='from_'>
+                    From: <input type='text' id="from_date" class="form-control" data-date-format="YYYY/MM/DD HH:mm"/>
+                    <span class="input-group-addon"><i class="icon icon-calendar"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class='col-sm-3'>
+            <div class="form-group">
+                <div class='input-group date' id='to_'>
+                    To: <input type='text' id="to_date" class="form-control" data-date-format="YYYY/MM/DD HH:mm"/>
+                    <span class="input-group-addon"><i class="icon icon-calendar"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class='col-sm-3'>
+            <div class="form-group">
+                <button class="btn btn-info" id="get_stat" style="width:60%;">Get Statistics</button>
+            </div>
+        </div>
+        <div class='col-sm-3'>
+            <div class="form-group">
+                 <button id="export_data" class="btn btn-success" >Export Data to Spreadsheet</button>
+            </div>
+        </div>
+        </div>
+            </form>
+    </div>
+  </div>
+</div>
+<div class="bottom-nav footer"> 2013 - 2015 &copy; Building Energy Management Open Source Software.  </div>
+
+
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery191.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery.jqplot.min.js"></script>
+
+
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+<!-- Additional plugins go here -->
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.barRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.highlighter.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.cursor.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.pointLabels.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.dateAxisRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.logAxisRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.canvasTextRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.canvasAxisTickRenderer.min.js"></script>
+<script class="include" language="javascript" type="text/javascript" src="/static/javascript/jqplot.categoryAxisRenderer.min.js"></script>
+<script type="text/javascript" src="/static/javascript/jqplot.canvasAxisLabelRenderer.min.js"></script>
+<script type="text/javascript" src="/static/javascript/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="/static/javascript/jqplot.canvasOverlay.min.js"></script>
+
+<!-- Bootstrap Datetime picker -->
+<script class="include" type="text/javascript" src="/static/dtpicker/bootstrap.min.js"></script>
+<script class="include" type="text/javascript" src="/static/dtpicker/moment.min.js"></script>
+<script class="include" type="text/javascript" src="/static/dtpicker/bootstrap-datetimepicker.min.js"></script>
+
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+          <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/charts/charts_lt_sensor.js"></script>
+          <script type="text/javascript" src="/static/app_js/make_current.js"></script>
+<!-- End additional plugins -->
+ <script type="text/javascript">
+            $(function () {
+                $('#from_').datetimepicker({
+                    icons: {
+                        time: "fa fa-clock-o",
+                        date: "fa fa-calendar",
+                        up: "icon icon-chevron-up",
+                        down: "icon icon-chevron-down"
+                    }
+                });
+                $('#to_').datetimepicker({
+                    icons: {
+                        time: "fa fa-clock-o",
+                        date: "fa fa-calendar",
+                        up: "icon icon-chevron-up",
+                        down: "icon icon-chevron-down"
+                    }
+                });
+            });
+        </script>
+
+
+</body>
+</html>

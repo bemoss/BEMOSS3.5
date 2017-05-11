@@ -1,0 +1,4 @@
+;Device   MAC (hex)            SNET  SADR (hex)           APDU
+;-------- -------------------- ----- -------------------- ----
+;
+; Total Devices: 0

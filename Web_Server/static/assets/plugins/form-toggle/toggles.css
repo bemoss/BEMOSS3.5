@@ -1,0 +1,54 @@
+.toggle-slide {
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  direction: ltr;
+}
+.toggle-slide .toggle-on,.toggle-slide .toggle-off,.toggle-slide .toggle-blob {
+    float: left;
+}
+.toggle-slide .toggle-blob {
+    position: relative;
+    z-index: 99;
+    cursor: pointer;
+}
+
+/* The Red Team */
+
+.toggle-slide {
+
+}
+  .toggle-slide .toggle-on, .toggle-slide .toggle-off {
+    -moz-transition: all 0.1s ease-out;
+    -webkit-transition: all 0.1s ease-out;
+    -o-transition: all 0.1s ease-out;
+    transition: all 0.1s ease-out;
+    color: white;
+    font-size: 11px;
+  }
+
+  .toggle-slide .toggle-off,.toggle-slide .toggle-off.active {
+    background: #81858c;
+  }
+  .toggle-slide .toggle-on,.toggle-slide .toggle-on.active {
+    background: #2965cc;
+  }
+  .toggle-select .toggle-off, .toggle-select .toggle-on {
+    background: none;
+  }
+  .toggle-slide .toggle-blob {
+    background: #fff;
+  }
+
+.toggle-slide .toggle-blob {
+  border: 1px solid #81858c;
+}
+
+.toggle-slide.active .toggle-blob {
+  border: 1px solid #2965cc;
+}

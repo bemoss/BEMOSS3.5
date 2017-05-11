@@ -1,0 +1,66 @@
+Device number,Model Name,Reference Point Name,Units,Unit Details,BACnet Object Type,Property,Writable,Index,Write Priority,Notes
+1,LMLS-400,ILLUMINATION,footCandles,,analogInput,presentValue,TRUE,4001,,LMLS-400
+2,LMLS-400,ILLUMINATION,footCandles,,analogInput,presentValue,TRUE,4002,,LMLS-400
+3,LMRC-212,DIMMER,percent,(default 0.0),analogOutput,presentValue,TRUE,1,,Load 1
+3,LMRC-212,VOLTAGE,volts,,analogValue,presentValue,TRUE,401,,Loads Voltage
+4,LMRC-212,DIMMER,percent,(default 0.0),analogOutput,presentValue,TRUE,2,,Load 2
+4,LMRC-212,VOLTAGE,volts,,analogValue,presentValue,TRUE,402,,Loads Voltage
+5,LMRC-212,DIMMER,percent,(default 0.0),analogOutput,presentValue,TRUE,3,,Load 3
+6,LMRC-212,DIMMER,percent,(default 0.0),analogOutput,presentValue,TRUE,4,,Load 4
+7,LMPL-201,RELAY,Enum,0-1 (default 0),binaryOutput,presentValue,TRUE,5,,Load 5
+,,WATTAGE-1,watts,,analogValue,presentValue,TRUE,1,,
+,,WATTAGE-2,watts,,analogValue,presentValue,TRUE,2,,
+,,WATTAGE-3,watts,,analogValue,presentValue,TRUE,3,,
+,,VOLTAGE-1,volts,,analogValue,presentValue,TRUE,401,,Loads Voltage
+,,VOLTAGE-2,volts,,analogValue,presentValue,TRUE,402,,Loads Voltage
+,,VOLTAGE-3,volts,,analogValue,presentValue,TRUE,403,,Loads Voltage
+,,CURRENT-1,amperes,,analogValue,presentValue,TRUE,501,,Loads Current
+,,CURRENT-2,amperes,,analogValue,presentValue,TRUE,502,,Loads Current
+,,CURRENT-3,amperes,,analogValue,presentValue,TRUE,503,,Loads Current
+,,LOAD SHED LEVEL-1,percent,,analogValue,presentValue,TRUE,601,,Loads Shed Level
+,,LOAD SHED LEVEL-2,percent,,analogValue,presentValue,TRUE,602,,Loads Shed Level
+,,LOAD SHED LEVEL-3,percent,,analogValue,presentValue,TRUE,603,,Loads Shed Level
+,,LOAD SHED LEVEL-4,percent,,analogValue,presentValue,TRUE,604,,Loads Shed Level
+,,LOAD SHED LEVEL-5,percent,,analogValue,presentValue,TRUE,605,,Loads Shed Level
+,,MS/TP MAC,noUnits,,analogValue,presentValue,TRUE,901,,MS/TP MAC Address
+,,MS/TP BAUD,noUnits,,analogValue,presentValue,TRUE,902,,MS/TP Baud Rate
+,,ROOM SIZE,squareFeet,,analogValue,presentValue,TRUE,903,,Room Size
+,,TOTAL ROOM WATTAGE,watts,,analogValue,presentValue,TRUE,904,,Room Power
+,,ROOM WATTS PER SQFT,wattsPerSquareFoot,,analogValue,presentValue,TRUE,905,,Room Power Density
+,,TOTAL PLUGLOAD WATTAGE,watts,,analogValue,presentValue,TRUE,906,,Room Plug Power
+,,OpenADR MEDIUM WATTS,watts,,analogValue,presentValue,TRUE,907,,OpenADR Medium - Room Target Watts
+,,OpenADR HIGH WATTS,watts,,analogValue,presentValue,TRUE,908,,OpenADR High - Room Target Watts
+,,OpenADR SPECIAL WATTS,watts,,analogValue,presentValue,TRUE,909,,OpenADR Special - Room Target Watts
+,,OpenADR THRESHOLD WATTS,watts,,analogValue,presentValue,TRUE,910,,OpenADR - Increase Wattage Threshold
+,,ROOM RELIABILITY POLLING INTERVAL,minutes,,analogValue,presentValue,TRUE,911,,Room Reliability Polling Interval
+,,MS/TP NODE COUNT,noUnits,,analogValue,presentValue,TRUE,999,,Number of MS/TP Master Nodes
+,,DAYLIGHT FADE RATE-1,percentPerSecond,,analogValue,presentValue,TRUE,4101,,Daylight Fade Rate Up
+,,DAYLIGHT FADE RATE-2,percentPerSecond,,analogValue,presentValue,TRUE,4102,,Daylight Fade Rate Up
+,,DAYLIGHT DAY SETPOINT-1,footCandles,,analogValue,presentValue,TRUE,4201,,Daylight Day Set-point
+,,DAYLIGHT DAY SETPOINT-2,footCandles,,analogValue,presentValue,TRUE,4202,,Daylight Day Set-point
+,,DAYLIGHT NIGHT SETPOINT-1,footCandles,,analogValue,presentValue,TRUE,4301,,Daylight Night Set-point
+,,DAYLIGHT NIGHT SETPOINT-2,footCandles,,analogValue,presentValue,TRUE,4302,,Daylight Night Set-point
+,,DAYLIGHT OFF DELAY-1,minutes,,analogValue,presentValue,TRUE,4401,,Daylight Off Set-point Delay
+,,DAYLIGHT OFF DELAY-2,minutes,,analogValue,presentValue,TRUE,4402,,Daylight Off Set-point Delay
+,,DAYLIGHT ON SETPOINT-1,footCandles,,analogValue,presentValue,TRUE,4501,,Daylight On Set-point
+,,DAYLIGHT ON SETPOINT-2,footCandles,,analogValue,presentValue,TRUE,4502,,Daylight On Set-point
+,,DAYLIGHT OFF SETPOINT-1,footCandles,,analogValue,presentValue,TRUE,4601,,Daylight Off Set-point
+,,DAYLIGHT OFF SETPOINT-2,footCandles,,analogValue,presentValue,TRUE,4602,,Daylight Off Set-point
+,,RELAY-1,Enum,0-1 (default 0),binaryOutput,presentValue,TRUE,1,,Load 1
+,,RELAY-2,Enum,0-1 (default 0),binaryOutput,presentValue,TRUE,2,,Load 2
+,,RELAY-3,Enum,0-1 (default 0),binaryOutput,presentValue,TRUE,3,,Load 3
+,,RELAY-4,Enum,0-1 (default 0),binaryOutput,presentValue,TRUE,4,,Load 4
+,,RELAY-5,Enum,0-1 (default 0),binaryOutput,presentValue,TRUE,5,,Load 5
+,,NORMAL/AFTER HOURS,Enum,0-1 (default []),binaryValue,presentValue,TRUE,1,,Normal/After Hours
+,,SWITCH LOCK CONTROL,Enum,0-1 (default []),binaryValue,presentValue,TRUE,2,,Switch Keylock Control
+,,ROOM OCCUPANCY STATUS,Enum,0-1 (default []),binaryValue,presentValue,TRUE,3,,Room Occupancy derived from Occupancy Sensors
+,,ROOM FORCE ON,Enum,0-1 (default []),binaryValue,presentValue,TRUE,4,,Force room to full ON at high priority
+,,ROOM FORCE OFF,Enum,0-1 (default []),binaryValue,presentValue,TRUE,5,,Force room to full OFF at high priority
+,,SCENE-CONTROL,State,State count: 17 (default []),multiStateValue,presentValue,TRUE,1,,"1=SCENE-2, 2=SCENE-3, 3=SCENE-4, 4=SCENE-5, 5=SCENE-6, 6=SCENE-7, 7=SCENE-8, 8=SCENE-9, 9=SCENE-10, 10=SCENE-11, 11=SCENE-12, 12=SCENE-13, 13=SCENE-14, 14=SCENE-15, 15=SCENE-16, 16=SCENE-UNDEFINED"
+,,LOAD-SHED-CONTROL,State,State count: 3 (default []),multiStateValue,presentValue,TRUE,2,,"1=Load Shed Override Allowed, 2=Load Shed Override Forbidden"
+,,DEMAND-RESPONSE-CONTROL,State,State count: 4 (default []),multiStateValue,presentValue,TRUE,3,,"1=Medium, 2=High, 3=Special"
+,,DEMAND-RESPONSE-SHED-MODE,State,State count: 3 (default []),multiStateValue,presentValue,TRUE,4,,"1=Load Shed Override Allowed, 2=Load Shed Override Forbidden"
+,,DAYLIGHT OPERATING MODE-1,State,State count: 4 (default []),multiStateValue,presentValue,TRUE,4001,,"1=Bi-Level Mode, 2=Tri-Level Mode, 3=Dimming Mode"
+,,DAYLIGHT OPERATING MODE-2,State,State count: 4 (default []),multiStateValue,presentValue,TRUE,4002,,"1=Bi-Level Mode, 2=Tri-Level Mode, 3=Dimming Mode"
+,,DAYLIGHT OFF MULTIPLIER-1,State,State count: 4 (default []),multiStateValue,presentValue,TRUE,4101,,"1=1.50x, 2=1.75x, 3=2.00x"
+,,DAYLIGHT OFF MULTIPLIER-2,State,State count: 4 (default []),multiStateValue,presentValue,TRUE,4102,,"1=1.50x, 2=1.75x, 3=2.00x"

@@ -1,0 +1,1013 @@
+ <!--
+ Copyright (c) 2016, Virginia Tech
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+  following conditions are met:
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the authors and should not be
+ interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+ This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+ United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+ nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+ express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+ any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+ privately owned rights.
+
+ Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+ otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+ Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+ expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+ VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+ under Contract DE-EE0006352
+
+ #__author__ = "BEMOSS Team"
+ #__credits__ = ""
+ #__version__ = "2.0"
+ #__maintainer__ = "BEMOSS Team"
+ #__email__ = "aribemoss@gmail.com"
+ #__website__ = "www.bemoss.org"
+ #__created__ = "2014-09-12 12:04:50"
+ #__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load time_converter %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet"
+	media="screen">
+    <link href="/static/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" media="screen">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/style/dashboard.css" rel="stylesheet">
+<link href="/static/assets/wizard-css/wizard_progress.css"
+	rel="stylesheet">
+    <link href="/static/css/jquery-ui.css" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="/static/assets/slider_enhancer/jquery-ui-slider-pips.css">
+    <link rel="stylesheet" href="/static/assets/colorpicker/css/colpick.css" type="text/css"/>
+    <!--Bootstrap datetimepicker addon -->
+<link rel="stylesheet" type="text/css" href="/static/assets/timepicker/jquery.timepicker.css" />
+    <!-- end Bootstrap Datetimepicker addon -->
+
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+    <script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+
+<style>
+    .color-box {
+	float:center;
+	width:30%;
+	height:25px;
+	margin-left: 3%;
+	margin-top: 4%;
+	border: 1px solid white;
+}
+    .slider {
+    float: left;
+    clear: left;
+    width: 200px;
+    margin-left: -10%;
+    margin-right: 5%;
+	margin-top: 5%;
+
+    background: #5e9ae2; /* Old browsers */
+	background: -moz-linear-gradient(left, #000000 0%, #ffffff 100%) !important; /* FireFox 3.6+ */
+	background: -webkit-gradient(linear, left top, right top, color-stop(0%,#000000), color-stop(100%,#ffffff)); /* Chrome, Safari 4+ */
+	background: -webkit-linear-gradient(left, #000000 0%,#ffffff 100%); /* Chrome 10+, Safari 5.1+ */
+	background: -o-linear-gradient(left, #000000 0%,#ffffff 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(left, #000000 0%,#ffffff 100%); /* IE 10+ */
+	background: linear-gradient(left,#000000 0%,#ffffff 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#ffffff',GradientType=1 ); /* IE 6-9 */
+  }
+</style>
+<script>
+    var disabled_ranges = {{ disabled_ranges|safe }};
+    var device_info = "{{device_zone}}/lighting/{{ device_id }}";
+    var firstname = "{{ request.user.first_name }}";
+    var lastname = "{{ request.user.last_name }}";
+    var user = firstname.concat('_').concat(lastname);
+    var active_schedule = {{ active_schedule|safe }};
+    var schedule_data = {{ schedule|safe }};
+    var device_type_id = "{{ type }}";
+    var agent_id = "{{ device_id }}";
+    var sch_socket = "/socket_lighting_scheduler";
+    var url_schedule_submit = "{% url 'update-device-schedule' %}";
+
+</script>
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+	<div class="wrapper">
+{% include 'common/side_nav.html' %}
+		<div class="page-content">
+			<div class="content container">
+			<div class="row">
+				<div class="col-lg-8">
+					<h2 class="page-title">{{zone_nickname}} : {{device_nickname}} <small>Schedule</small> </h2>
+				</div>
+			</div>
+            <div class="row">
+                <div class="col-lg-6" >
+          <div class="widget">
+            <div class="widget-header"> <i class="icon-check"></i>
+              <h3>Activate Schedules </h3>
+            </div>
+            <div class="widget-content" id="actt">
+              <ul class="to-do-list ui-sortable" id="sortable-todo">
+                <li class="clearfix"> <span class="drag-marker"> <i></i> </span>
+                  <div class="todo-check pull-left">
+                    <input type="checkbox" value="None" id="everyday_check">
+                    <label for="everyday_check"></label>
+                  </div>
+                  <p class="todo-title"> Daily </p></li>
+
+                <li class="clearfix"> <span class="drag-marker"> <i></i> </span>
+                  <div class="todo-check pull-left">
+                    <input type="checkbox" value="None" id="holiday_check">
+                    <label for="holiday_check"></label>
+                  </div>
+                  <p class="todo-title"> Holiday </p>
+                </li>
+              </ul>
+              <div class="todo-action-bar">
+                <!--row start-->
+                <div class="row">
+                  <div class="text-center">
+                    <button type="submit" class="btn btn-default" id="activate_schedules"><i class="icon-ok"></i> Activate Scheduler</button>
+                  </div>
+                </div>
+                <!--row end-->
+              </div>
+            </div>
+          </div>
+        </div>
+               <div class="col-lg-6">
+          <div class="widget" >
+            <div class="widget-header"> <i class="icon-bookmark"></i>
+              <h3>Currently Active Schedules</h3>
+            </div>
+            <!-- /widget-header -->
+            <div class="widget-content" id="dispp">
+
+              <div class="shortcuts" id="currently_active_sch">
+                  {% for schedule in active_schedule %}
+                  <a class="shortcut" style="height:120%;">
+                      <br/><i class="shortcut-icon icon-list-alt"></i> <br/><br/>
+                      <span class="shortcut-label">
+                          {% ifequal schedule 'everyday' %}
+                              Daily
+                          {% else %}
+                          {{ schedule|title }}
+                          {% endifequal %}</span> </a>
+                  {% endfor %}
+               </div>
+
+              <!-- /shortcuts -->
+            </div>
+            <!-- /widget-content -->
+          </div>
+        </div>
+            </div>
+			<div class="row">
+				<div class="col-lg-12">
+				<div class="widget">
+				<div class="widget-header">
+					<i class="icon-arrow-down"></i>
+					<h3>Set Schedule</h3>
+				</div>
+				<div class="widget-content">
+
+              <ul class="nav nav-tabs" id="myTab">
+                <li class="active"><a data-toggle="tab" href="#everyday_sch">Daily Scheduler</a></li>
+                <li class=""><a data-toggle="tab" href="#holiday_sch">Holiday Scheduler</a></li>
+              </ul>
+              <div class="tab-content" id="myTabContent">
+                <div id="everyday_sch" class="tab-pane fade active in dis_sch">
+               <form method="POST" action="" class="form-horizontal form-condensed">{% csrf_token %}
+              <div id="wizard">
+                <div id="rootwizard">
+                  <div class="navbar">
+                    <div class="navbar-inner">
+                      <div class="container">
+                        <ul class="nav">
+                          <li class="active" id="mon_sch"><a href="#everydayy_0_monday" data-toggle="tab">Monday</a></li>
+						  <li class="" id="tue_sch"><a href="#everydayy_1_tuesday" data-toggle="tab">Tuesday</a></li>
+						  <li class="" id="wed_sch"><a href="#everydayy_2_wednesday" data-toggle="tab">Wednesday</a></li>
+						  <li class="" id="thu_sch"><a href="#everydayy_3_thursday" data-toggle="tab">Thursday</a></li>
+						  <li class="" id="fri_sch"><a href="#everydayy_4_friday" data-toggle="tab">Friday</a></li>
+						  <li class="" id="sat_sch"><a href="#everydayy_5_saturday" data-toggle="tab">Saturday</a></li>
+						  <li class="" id="sun_sch"><a href="#everydayy_6_sunday" data-toggle="tab">Sunday</a></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-content">
+                  <br/>
+                    <div class="tab-pane active" id="everydayy_0_monday">
+                     <form method="POST" action="" class="form-horizontal form-condensed">
+                     <div class="row">
+                     <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Monday Schedule</h3>
+					</div>
+					<div class="widget-content" id="monday">
+				      <table class="table table-responsive" id="monday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.monday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_monday_schedule_{{ sch.id }}" name="nickname_monday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_monday_schedule_{{ sch.id }}" id="tp_monday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                    {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_monday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_monday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                    {% ifequal sch.status 'ON' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_monday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_monday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_monday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_monday_schedule_{{ sch.id }}" readonly value="{{ sch.brightness }}%" style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_monday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_monday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_monday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekday" id="apply_all_weekday"><i class="icon-table"></i> Apply Changes to All Weekdays</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+                     <div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                    <div class="tab-pane" id="everydayy_1_tuesday">
+                      <form action="#" id="validate-1" class="form-horizontal row-border" novalidate>
+					<div class="row">
+                    <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Tuesday Schedule</h3>
+					</div>
+					<div class="widget-content" id="tuesday">
+				      <table class="table table-responsive" id="tuesday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.tuesday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_tuesday_schedule_{{ sch.id }}" name="nickname_tuesday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_tuesday_schedule_{{ sch.id }}" id="tp_tuesday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                    {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_tuesday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_tuesday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                {% ifequal sch.status 'ON' %}
+                                <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_tuesday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_tuesday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_tuesday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_tuesday_schedule_{{ sch.id }}" value="{{ sch.brightness }}%" readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_tuesday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_tuesday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_tuesday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekday" id="apply_all_weekday"><i class="icon-table"></i> Apply Changes to All Weekdays</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					<div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                    <div class="tab-pane" id="everydayy_2_wednesday">
+                      <form action="#" id="validate-3" class="form-horizontal row-border" novalidate>
+					<div class="row">
+                    <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Wednesday Schedule</h3>
+					</div>
+					<div class="widget-content" id="wednesday">
+				      <table class="table table-responsive" id="wednesday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.wednesday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_wednesday_schedule_{{ sch.id }}" name="nickname_wednesday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_wednesday_schedule_{{ sch.id }}" id="tp_wednesday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                    {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_wednesday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_wednesday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                    {% ifequal sch.status 'ON' %}
+                                <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_wednesday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_wednesday_schedule_{{ sch.id }}"> ON </button></span>
+                                {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_wednesday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_wednesday_schedule_{{ sch.id }}"  value="{{ sch.brightness }}%" readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_wednesday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_wednesday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_wednesday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekday" id="apply_all_weekday"><i class="icon-table"></i> Apply Changes to All Weekdays</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					<div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                    <div class="tab-pane" id="everydayy_3_thursday">
+                      <form action="#" id="validate-2" class="form-horizontal row-border" novalidate>
+					<div class="row">
+                    <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Thursday Schedule</h3>
+					</div>
+					<div class="widget-content" id="thursday">
+				          <table class="table table-responsive" id="thursday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.thursday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_thursday_schedule_{{ sch.id }}" name="nickname_thursday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_thursday_schedule_{{ sch.id }}" id="tp_thursday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                    {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_thursday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_thursday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                {% ifequal sch.status 'ON' %}
+                                <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_thursday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_thursday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_thursday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_thursday_schedule_{{ sch.id }}"  value="{{ sch.brightness }}%" readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_thursday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_thursday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_thursday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekday" id="apply_all_weekday"><i class="icon-table"></i> Apply Changes to All Weekdays</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					<div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                    <div class="tab-pane" id="everydayy_4_friday">
+                      <form action="#" id="validate-2" class="form-horizontal row-border" novalidate>
+					<div class="row">
+                    <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Friday Schedule</h3>
+					</div>
+					<div class="widget-content" id="friday">
+				       <table class="table table-responsive" id="friday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.friday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_friday_schedule_{{ sch.id }}" name="nickname_friday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_friday_schedule_{{ sch.id }}" id="tp_friday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                    {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_friday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_friday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                {% ifequal sch.status 'ON' %}
+                                <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_friday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_friday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_friday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_friday_schedule_{{ sch.id }}" value="{{ sch.brightness }}%"  readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_friday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_friday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_friday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekday" id="apply_all_weekday"><i class="icon-table"></i> Apply Changes to All Weekdays</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					<div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                   <div class="tab-pane" id="everydayy_5_saturday">
+                      <form action="#" id="validate-2" class="form-horizontal row-border" novalidate>
+					<div class="row">
+                    <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Saturday Schedule</h3>
+					</div>
+					<div class="widget-content" id="saturday">
+				      <table class="table table-responsive" id="saturday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.saturday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_saturday_schedule_{{ sch.id }}" name="nickname_saturday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_saturday_schedule_{{ sch.id }}" id="tp_saturday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                     {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_saturday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_saturday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                 {% ifequal sch.status 'ON' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_saturday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_saturday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_saturday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_saturday_schedule_{{ sch.id }}"  value="{{ sch.brightness }}%" readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_saturday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_saturday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_saturday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekend" id="apply_all_weekend"><i class="icon-table"></i> Apply Changes to All Weekend Days</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					<div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                    <div class="tab-pane" id="everydayy_6_sunday">
+                      <form action="#" id="validate-2" class="form-horizontal row-border" novalidate>
+					<div class="row">
+                    <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Sunday Schedule</h3>
+					</div>
+					<div class="widget-content" id="sunday">
+				      <table class="table table-responsive" id="sunday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.everyday|length 7 %}
+
+                          {% for sch in schedule.everyday.sunday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_sunday_schedule_{{ sch.id }}" name="nickname_sunday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_sunday_schedule_{{ sch.id }}" id="tp_sunday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                    {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_sunday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_sunday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                {% ifequal sch.status 'ON' %}
+                                <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_sunday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_sunday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_sunday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_sunday_schedule_{{ sch.id }}"  value="{{ sch.brightness }}%" readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_sunday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_sunday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_sunday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                    <br>
+                    <div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-danger apply_weekend" id="apply_all_weekend"><i class="icon-table"></i> Apply Changes to All Weekend Days</button>
+
+	                		<button type="button" class="btn btn-success apply_allday" id="apply_all_day"><i class="icon-table"></i> Apply Changes to All Days</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					<div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-actions">
+                  <div class="text-center">
+                      <button class="btn btn-primary individual" type="submit" id="submit_everyday">Save Daily Schedule Changes</button>
+                {% if request.user.get_profile.group.name|lower == 'admin' %}
+                      <a class="btn btn-primary" href="/report_ltschd/{{ mac_address }}" id="report_everyday">Export to Spreadsheet</a></div>
+                 {% endif %}
+                </div>
+
+				</form>
+                </div>
+
+                <div id="holiday_sch" class="tab-pane fade dis_sch">
+                <form method="POST" action="" class="form-horizontal form-condensed">{% csrf_token %}
+              <div id="wizard">
+                <div id="rootwizard">
+                  <div class="navbar">
+                    <div class="navbar-inner">
+                      <div class="container">
+                        <ul class="nav">
+                          <li class="active"><a href="#holiday_0_holiday" data-toggle="tab">Holiday Schedule</a></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-content">
+                  <br/>
+                    <div class="tab-pane active" id="holiday_0_holiday">
+                     <form method="POST" action="" class="form-horizontal form-condensed">
+                     <div class="row">
+                      <div class="col-lg-1 "></div>
+                     <div class="col-lg-10 ">
+					<div class="widget">
+					<div class="widget-header">
+						<i class="icon-check "></i>
+             			<h3>Holiday Schedule</h3>
+					</div>
+					<div class="widget-content" id="holiday">
+				       <table class="table table-responsive" id="holiday_schedule">
+	                  <thead>
+	                    <tr>
+	                      <th class="col-md-1"><strong>#</strong></th>
+	                      <th class="col-md-2"><strong>Nickname</strong></th>
+	                      <th class="col-md-2"><strong>Starting At</strong></th>
+	                      <th class="col-md-2"><strong>Status</strong></th>
+                          <th class="col-md-2"><strong>Brightness</strong></th>
+                          <th class="col-md-1"></th>
+                            {% ifequal type '2HUE' %}
+                          <th class="col-md-1"><strong>Color</strong></th>
+                            {% endifequal %}
+                          <th class="col-md-1"></th>
+	                    </tr>
+	                  </thead>
+	                  <tbody>
+                      {% ifequal schedule.holiday|length 1 %}
+
+                          {% for sch in schedule.holiday.holiday %}
+                            <tr>
+                                <td class="col-sm-1 td_id">{{ sch.id }}</td>
+                                <td class="col-sm-2 td_nickname">
+                                    <input type="text" id="nickname_holiday_schedule_{{ sch.id }}" name="nickname_holiday_schedule_{{ sch.id }}" style="width:100%" value="{{ sch.nickname }}">
+                                </td>
+                                <td class="col-sm-2 td_tp">
+                                    <input type="text" name="tp_holiday_schedule_{{ sch.id }}" id="tp_holiday_schedule_{{ sch.id }}" class="hasDatePicker ui-timepicker-input" value="{{ sch.at|_convert }}" style="width: 100%;" autocomplete="off">
+                                </td>
+                                <td class="col-sm-2 td_status">
+                                     {% ifequal sch.status 'OFF' %}
+                                    <span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_holiday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-default on_off_right" type="button" id="on_holiday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                {% ifequal sch.status 'ON' %}
+                                <span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_holiday_schedule_{{ sch.id }}"> OFF </button>
+                                        <button class="btn btn-sm btn-success on_off_right" type="button" id="on_holiday_schedule_{{ sch.id }}"> ON </button></span>
+                                    {% endifequal %}
+                                </td>
+                                <td class="col-sm-2 td_brightness">
+                                    <div class="slider" id="brightness_holiday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                <td class="col-sm-1 td_brightness_value">
+                                    <input type="text" id="brightness_value_holiday_schedule_{{ sch.id }}" value="{{ sch.brightness }}%"  readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/>
+                                </td>
+                                {% ifequal type '2HUE' %}
+                                <td class="col-sm-1 td_color">
+                                    <div class="color-box" id="color_holiday_schedule_{{ sch.id }}"></div>
+                                </td>
+                                {% endifequal %}
+                                <td class="col-md-1 td-actions td_delete">
+                                    <button class="btn btn-sm btn-danger delete_td" type="button" id="delete_holiday_schedule_{{ sch.id }}"> x </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                      {% endifequal %}
+                      </tbody>
+	                </table>
+                	<div class="row">
+	                	<div class="text-center">
+	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_holiday"><i class="icon-ok"></i> Add New Period</button>
+                		</div>
+                	</div>
+                  	</div>
+					</div>
+					</div>
+					 <div class="col-lg-1 "></div>
+					</div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-actions">
+                  <div class="text-center">
+                <button class="btn btn-primary individual" type="submit" id="submit_holiday">Save Holiday Schedule Changes</button>
+                {% if request.user.get_profile.group.name|lower == 'admin' %}
+                      <a class="btn btn-primary" href="/report_ltschh/{{ mac_address }}" id="report_everyday">Export to Spreadsheet</a></div>
+                 {% endif %}
+
+                  </div>
+				</form>
+
+                </div>
+              </div>
+                <br/>
+
+				</div>
+				</div>
+				</div>
+			</div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="bottom-nav footer">2013 - 2014 &copy; Building Energy
+		Management Open Source Software.</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+
+
+
+	<!--switcher html start-->
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+</body>
+
+    <!--  Slider -->
+
+<script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+ <script class="include" type="text/javascript" src="/static/javascript/ui/jquery-ui.js"></script>
+<!--  Slider Enhancer -->
+<script src="/static/assets/slider_enhancer/jquery-ui-slider-pips.min.js"></script>
+<script src="/static/assets/colorpicker/js/colpick.js" type="text/javascript"></script>
+
+<!-- Bootstrap Datetime picker -->
+<script class="include" type="text/javascript" src="/static/dtpicker/bootstrap.min.js"></script>
+<script class="include" type="text/javascript" src="/static/assets/timepicker/jquery.timepicker.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+
+<script type="text/javascript" src="/static/app_js/lt_schedule.js"></script>
+<script type="text/javascript" src="/static/app_js/make_current.js"></script>
+<script type="text/javascript" src="/static/javascript/left_nav.js"></script>
+</html>

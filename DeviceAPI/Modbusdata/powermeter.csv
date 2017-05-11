@@ -1,0 +1,25 @@
+Address,Description,Multiplier,Potential,Current,Dimension
+0,voltage_a,0.1,PT,1,Word
+1,voltage_b,0.1,PT,1,Word
+2,voltage_c,0.1,PT,1,Word
+3,current_a,0.001,1,CT,Word
+4,current_b,0.001,1,CT,Word
+5,current_c,0.001,1,CT,Word
+6,current,0.001,1,CT,Word
+7,power_a,0.001,PT,CT,Signed Int
+8,power_b,0.001,PT,CT,Signed Int
+9,power_c,0.001,PT,CT,Signed Int
+10,reac_power_a,0.001,PT,CT,Signed Int
+11,reac_power_b,0.001,PT,CT,Signed Int
+12,reac_power_c,0.001,PT,CT,Signed Int
+13,appar_power_a,0.001,PT,CT,Word
+14,appar_power_b,0.001,PT,CT,Word
+15,appar_power_c,0.001,PT,CT,Word
+16,power_factor_a,0.001,1,1,Signed Int
+17,power_factor_b,0.001,1,1,Signed Int
+18,power_factor_c,0.001,1,1,Signed Int
+26,voltage,0.1,PT,1,Word
+27,frequency,0.01,1,1,Word
+28,power_sum,0.001,PT,CT,Signed Int
+29,reac_power,0.001,PT,CT,Signed Int
+30,appar_power,0.001,PT,CT,Word

@@ -1,0 +1,51 @@
+.top-buffer {
+    margin-top: 10px;
+}
+
+.bottom-buffer {
+    margin-left: 20px;
+}
+
+.left-buffer {
+    margin-left: 20px;
+}
+
+.panel-back {
+    background: none;
+}
+
+.dropdown-menu {
+    background-color: rgba(12, 7, 7, 0.9);
+}
+
+.dropdown-menu > li > a {
+    color: #F3EEEE;
+}
+
+.dropdown-menu.extended.notification {
+    width: 350px;
+}
+
+.btn-input {
+    display: block;
+}
+
+.btn-input .btn.form-control {
+    text-align: left;
+}
+
+.btn-input .btn.form-control span:first-child {
+    left: 10px;
+    overflow: hidden;
+    position: absolute;
+    right: 25px;
+}
+
+.btn-input .btn.form-control .caret {
+    margin-top: -1px;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+}
+
+

@@ -1,0 +1,8 @@
+{
+    "agent": {
+        "exec": "platformmonitoragent-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
+    },
+    "agent_id": "platformmonitoragent",
+    "poll_time": 60,
+    "backup_poll_time": 900
+}

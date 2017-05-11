@@ -1,0 +1,197 @@
+ <!--
+ Copyright (c) 2016, Virginia Tech
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+  following conditions are met:
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the authors and should not be
+ interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+ This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+ United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+ nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+ express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+ any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+ privately owned rights.
+
+ Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+ otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+ Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+ expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+ VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+ under Contract DE-EE0006352
+
+ #__author__ = "BEMOSS Team"
+ #__credits__ = ""
+ #__version__ = "2.0"
+ #__maintainer__ = "BEMOSS Team"
+ #__email__ = "aribemoss@gmail.com"
+ #__website__ = "www.bemoss.org"
+ #__created__ = "2014-09-12 12:04:50"
+ #__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load timedelta %}
+{% load device_count_in_zone %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>Node Status</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+<link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/fam-icons/fam-icons.css">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/css/alerts.css" rel="stylesheet">
+<link href="/static/css/demo_page.css" rel="stylesheet">
+<link href="/static/css/demo_table.css" rel="stylesheet">
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+       <script src="../../assets/js/html5shiv.js"></script>
+       <script src="../../assets/js/respond.min.js"></script>
+<![endif]-->
+
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+<script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+    <script type="text/javascript" src="/static/app_js/make_current.js"></script>
+<!--[if IE]><script type="text/javascript" src="/static/assets/jqueryknobdial/excanvas.js"></script><![endif]-->
+
+</head>
+<body >
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+{% include 'common/side_nav.html' %}
+  <div class="page-content" id="dashboard_content">
+    <form action="" method="post">
+  	{% csrf_token %}
+    <div class="content container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h2 class="page-title">Node Status</h2>
+        </div>
+      </div>
+    <div class="row">
+          <div class="col-lg-12">
+        <div class="widget">
+            <div class="widget-header"> <i class="icon-table"></i>
+                <h3>Node Status of Embedded Devices Connected to BEMOSS</h3>
+            </div>
+            <div class="widget-content">
+<div class="example_alt_pagination">
+      <div id="container">
+        <div class="full_width big"></div>
+  <div id="demo">
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="example">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Associated Zone</th>
+          <th>Model</th>
+          <th>Node Added On</th>
+          <th>Node Status</th>
+          <th>Last Scanned Time</th>
+          <th>Last Offline Time</th>
+        </tr>
+        </thead>
+      <tbody>
+      {% for em in nw_status %}
+        <tr {% ifequal em.device_status 'Online' %}
+                class="gradeA"
+            {% endifequal %}
+            {% ifequal em.device_status 'Offline' %}
+                class="gradeC"
+            {% endifequal %}
+                >
+          <td>{{ em.device_name }}</td>
+            <td>{{ em.associated_zone.zone_nickname }}</td>
+          <td>{{ em.device_model }}</td>
+          <td>{{ em.date_added | as_local_time}}</td>
+            {% ifequal em.device_status|lower 'offline' %}
+                <td style="color:red;">{{ em.device_status|upper }}</td>
+            {% else %}
+                <td>{{ em.device_status|upper }}</td>
+            {% endifequal %}
+            <td>{{ em.last_scanned | as_local_time}}</td>
+            <td>{{ em.last_offline | as_local_time}}</td>
+        </tr>
+      {%  endfor  %}
+        </tbody>
+      <tfoot>
+        <tr>
+            <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          </tr>
+        </tfoot>
+  </table>
+    </div>
+        </div>
+    </div>
+
+            </div>
+            </div>
+              </div>
+          </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software. </div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+           <script type="text/javascript" language="javascript" src="/static/js/jquery.js"></script>
+          <script type="text/javascript" language="javascript" src="/static/js/jquery.dataTables.js"></script>
+		<script type="text/javascript" charset="utf-8">
+			$(document).ready(function() {
+				$('#example').dataTable( {
+					"sPaginationType": "full_numbers"
+				} );
+                var pathh = window.location.pathname;
+                pathh = pathh.slice(0, -1);
+                $('li a[href*="' + pathh + '"]').parent().parent().parent().addClass("current");
+			} );
+		</script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+</body>
+</html>

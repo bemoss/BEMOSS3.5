@@ -1,0 +1,7 @@
+{
+    "agent": {
+        "exec": "plugload_scheduleragent-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
+    },
+    "agent_id": "3WSPEC1A59779F78",
+    "type": "plugload_scheduler"
+}

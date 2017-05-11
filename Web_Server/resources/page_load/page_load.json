@@ -1,0 +1,823 @@
+{
+    "ambient_light_sensor": {
+        "4WLS51743353884d": {
+            "page_load": "{empty_string}"
+        }, 
+        "4WLS830568i289437226": {
+            "page_load": {
+                "illuminance": 59
+            }
+        }, 
+        "DayLightSensor": {
+            "page_load": {
+                "status": 400
+            }
+        }, 
+        "Sensor2": {
+            "page_load": "{empty_string}"
+        }
+    }, 
+    "lighting": {
+        "2HUE00178818b4cd": {
+            "page_load": {
+                "brightness": 25, 
+                "color": null, 
+                "saturation": null, 
+                "status": "ON"
+            }
+        }, 
+        "2HUE0017881a4676": {
+            "page_load": {
+                "brightness": null, 
+                "color": null, 
+                "saturation": null, 
+                "status": null
+            }
+        }, 
+        "2SDB08002859f256": {
+            "page_load": {
+                "brightness": 0, 
+                "color": null, 
+                "saturation": null, 
+                "status": "OFF"
+            }
+        }, 
+        "2WLS221344K1300995": {
+            "page_load": {
+                "brightness": null, 
+                "color": null, 
+                "saturation": null, 
+                "status": null
+            }
+        }, 
+        "2WSL830568i469810079": {
+            "page_load": {
+                "brightness": 0, 
+                "color": null, 
+                "saturation": null, 
+                "status": "OFF"
+            }
+        }, 
+        "Hue": {
+            "page_load": "{empty_string}"
+        }, 
+        "Lighting1": {
+            "page_load": {
+                "brightness": 49, 
+                "color": [
+                    34, 
+                    56, 
+                    67
+                ], 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "Lighting2": {
+            "page_load": "{empty_string}"
+        }, 
+        "Lighting3": {
+            "page_load": {
+                "brightness": 49, 
+                "color": [
+                    34, 
+                    56, 
+                    67
+                ], 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "Lighting4": {
+            "page_load": {
+                "brightness": 49, 
+                "color": [
+                    34, 
+                    56, 
+                    67
+                ], 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "WattLight": {
+            "page_load": {
+                "brightness": 49, 
+                "color": [
+                    34, 
+                    56, 
+                    67
+                ], 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "WattstopperOcc": {
+            "page_load": "{empty_string}"
+        }, 
+        "WiFiLight5": {
+            "page_load": {
+                "brightness": 49, 
+                "color": "rgb(255,136,0)", 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "WifiLight5": {
+            "page_load": {
+                "brightness": 49, 
+                "color": "rgb(255,136,0)", 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "WifiLight6": {
+            "page_load": {
+                "brightness": 49, 
+                "color": "rgb(255,136,0)", 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "WifiLight8": {
+            "page_load": {
+                "brightness": 49, 
+                "color": "rgb(255,136,0)", 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "Wifihue": {
+            "page_load": {
+                "brightness": 49, 
+                "color": [
+                    34, 
+                    56, 
+                    67
+                ], 
+                "saturation": 63, 
+                "status": "ON"
+            }
+        }, 
+        "light1": {
+            "page_load": ""
+        }
+    }, 
+    "motion_sensor": {
+        "4PRM221211L010014E": {
+            "page_load": {
+                "motion": false
+            }
+        }
+    }, 
+    "occupancy_sensor": {
+        "Sensor1": {
+            "page_load": {
+                "status": "IN"
+            }
+        }, 
+        "WattstopperOcc": {
+            "page_load": {
+                "status": "IN"
+            }
+        }
+    }, 
+    "plugload": {
+        "3DSP0013a2004060f3c1": {
+            "page_load": {
+                "device_id": "3DSP0013a2004060f3c1", 
+                "power": 0, 
+                "status": "OFF"
+            }
+        }, 
+        "3DSP0013a2004064a8e6": {
+            "page_load": {
+                "device_id": "3DSP0013a2004064a8e6", 
+                "power": 0, 
+                "status": "OFF"
+            }
+        }, 
+        "3DSP0013a200406b65aa": {
+            "page_load": {
+                "device_id": "3DSP0013a200406b65aa", 
+                "power": 11, 
+                "status": "ON"
+            }
+        }, 
+        "3DSP0013a200406e4167": {
+            "page_load": {
+                "device_id": "3DSP0013a200406e4167", 
+                "power": 0, 
+                "status": "OFF"
+            }
+        }, 
+        "3DSP0013a200406e41ee": {
+            "page_load": {
+                "device_id": "3DSP0013a200406e41ee", 
+                "power": 0, 
+                "status": "OFF"
+            }
+        }, 
+        "3WIS221418K120031E": {
+            "page_load": {
+                "device_id": "3WIS221418K120031E", 
+                "power": 10, 
+                "status": "ON"
+            }
+        }, 
+        "3WIS221444K1200F24": {
+            "page_load": {
+                "device_id": "3WIS221444K1200F24", 
+                "power": 7, 
+                "status": "Off"
+            }
+        }, 
+        "3WPL830568i427833169": {
+            "page_load": {
+                "brightness": null, 
+                "color": null, 
+                "saturation": null, 
+                "status": "ON"
+            }
+        }, 
+        "3WSP221231K010079F": {
+            "page_load": {
+                "device_id": "3WSP221231K010079F", 
+                "status": "Off"
+            }
+        }, 
+        "Plugg": {
+            "page_load": {
+                "power": "500", 
+                "status": "OFF"
+            }
+        }, 
+        "Plugload1": {
+            "page_load": {
+                "power": 500, 
+                "status": "OFF"
+            }
+        }, 
+        "Plugload2": {
+            "page_load": {
+                "power": 500, 
+                "status": "OFF"
+            }
+        }, 
+        "Plugload3": {
+            "page_load": {
+                "power": 500, 
+                "status": "OFF"
+            }
+        }, 
+        "WattPlug": {
+            "page_load": {
+                "power": "500", 
+                "status": "OFF"
+            }
+        }, 
+        "WiFiSwitch6": {
+            "page_load": {
+                "power": "500", 
+                "status": "OFF"
+            }
+        }, 
+        "WifiLight6": {
+            "page_load": {
+                "power": "500", 
+                "status": "OFF"
+            }
+        }, 
+        "WifiSwitch9": {
+            "page_load": {
+                "power": "500", 
+                "status": "OFF"
+            }
+        }
+    }, 
+    "power_meter": {
+        "5DNT2158752": {
+            "page_load": {
+                "address": "2158752", 
+                "agent_id": "5DNT2158752", 
+                "api": "classAPI_BACnet_Dent", 
+                "apparent_power": -38.6, 
+                "current": 0.32, 
+                "device_type": "power_meter", 
+                "energy": 245.0, 
+                "model": "PowerScout 3+ Ethernet", 
+                "power": -0.2, 
+                "power_factor": 0.007, 
+                "reactive_power": 0.1, 
+                "real_power": -0.2, 
+                "voltage": 121.8
+            }
+        }, 
+        "Dent": {
+            "page_load": "{empty_string}"
+        }, 
+        "Powermeter1": {
+            "page_load": {
+                "apparent_power": 12, 
+                "current": 16, 
+                "energy": 12, 
+                "power_factor": 11, 
+                "reactive_power": 10, 
+                "real_power": 12, 
+                "voltage": 14
+            }
+        }, 
+        "Powermeter2": {
+            "page_load": "{empty_string}"
+        }
+    }, 
+    "rtu": {
+        "1RTU2c127b6cacf7": {
+            "page_load": {
+                "bypass_damper_position": 46, 
+                "cool_setpoint": 74.7, 
+                "cooling_mode": "None", 
+                "cooling_status": "OFF", 
+                "fan_status": "OFF", 
+                "heat_setpoint": 71.7, 
+                "heating": 65, 
+                "outside_damper_position": 25, 
+                "outside_temperature": 76.9, 
+                "pressure": 0.2, 
+                "return_temperature": 65.7, 
+                "supply_temperature": 75.5
+            }
+        }, 
+        "Thermostat4": {
+            "page_load": {
+                "bypass_damper_position": 89, 
+                "cool_setpoint": 56, 
+                "cooling_mode": "STG1", 
+                "cooling_status": "ON", 
+                "fan_status": "OFF", 
+                "heat_setpoint": 65, 
+                "heating": 67, 
+                "outside_damper_position": 78, 
+                "outside_temperature": 75, 
+                "pressure": 24, 
+                "return_temperature": 69, 
+                "supply_temperature": 67
+            }
+        }
+    }, 
+    "thermostat": {
+        "1NST0340074a8616": {
+            "page_load": {
+                "cool_setpoint": 70, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 75, 
+                "override": false, 
+                "temperature": 75, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST0a00033e9e61": {
+            "page_load": {
+                "battery": 55, 
+                "cool_setpoint": 75, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 76, 
+                "override": false, 
+                "temperature": 70, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST0d34090cdc87": {
+            "page_load": {
+                "battery": 5, 
+                "cool_setpoint": 66, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 78, 
+                "override": false, 
+                "temperature": 73, 
+                "thermostat_mode": "HEAT", 
+                "thermostat_state": "HEAT"
+            }
+        }, 
+        "1NST0e4546312705": {
+            "page_load": {
+                "battery": 40, 
+                "cool_setpoint": 68, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 76, 
+                "override": false, 
+                "temperature": 71, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST11593c46c432": {
+            "page_load": {
+                "battery": 25, 
+                "cool_setpoint": 65, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 73, 
+                "override": false, 
+                "temperature": 66, 
+                "thermostat_mode": "HEAT", 
+                "thermostat_state": "HEAT"
+            }
+        }, 
+        "1NST1266053ccdb0": {
+            "page_load": {
+                "cool_setpoint": 76, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 80, 
+                "override": false, 
+                "temperature": 77, 
+                "thermostat_mode": "HEAT", 
+                "thermostat_state": "HEAT"
+            }
+        }, 
+        "1NST1561386f09da": {
+            "page_load": {
+                "cool_setpoint": null, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": null, 
+                "override": false, 
+                "temperature": null, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST18b43017e76a": {
+            "page_load": {
+                "cool_setpoint": 84.0, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": null, 
+                "override": false, 
+                "temperature": 77.5, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST1c547d46e63a": {
+            "page_load": {
+                "battery": 92, 
+                "cool_setpoint": 76, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 74, 
+                "override": false, 
+                "temperature": 67, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST20266c5b8d22": {
+            "page_load": {
+                "cool_setpoint": 77, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 80, 
+                "override": false, 
+                "temperature": 65, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST2203341276e4": {
+            "page_load": {
+                "battery": 61, 
+                "cool_setpoint": 72, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 73, 
+                "override": false, 
+                "temperature": 75, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST2769463a2e01": {
+            "page_load": {
+                "battery": 73, 
+                "cool_setpoint": 76, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 80, 
+                "override": false, 
+                "temperature": 69, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST2b7b606168f1": {
+            "page_load": {
+                "cool_setpoint": 76, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 80, 
+                "override": false, 
+                "temperature": 71, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST3c1f4d5cab61": {
+            "page_load": {
+                "cool_setpoint": 76, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 69, 
+                "override": false, 
+                "temperature": 67, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST48565225a1ea": {
+            "page_load": {
+                "cool_setpoint": 75, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 66, 
+                "override": false, 
+                "temperature": 75, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST491524043284": {
+            "page_load": {
+                "battery": 74, 
+                "cool_setpoint": 66, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 76, 
+                "override": false, 
+                "temperature": 67, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST4b1154534f6c": {
+            "page_load": {
+                "cool_setpoint": null, 
+                "fan_mode": null, 
+                "fan_state": null, 
+                "heat_setpoint": null, 
+                "override": false, 
+                "temperature": null, 
+                "thermostat_mode": null, 
+                "thermostat_state": null
+            }
+        }, 
+        "1NST547f1b7bd1a0": {
+            "page_load": {
+                "cool_setpoint": 67, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 77, 
+                "override": false, 
+                "temperature": 68, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1NST636502750631": {
+            "page_load": {
+                "cool_setpoint": null, 
+                "fan_mode": null, 
+                "fan_state": null, 
+                "heat_setpoint": null, 
+                "override": false, 
+                "temperature": null, 
+                "thermostat_mode": null, 
+                "thermostat_state": null
+            }
+        }, 
+        "1NST670a46130620": {
+            "page_load": {
+                "battery": 21, 
+                "cool_setpoint": 80, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 72, 
+                "override": false, 
+                "temperature": 72, 
+                "thermostat_mode": "HEAT", 
+                "thermostat_state": "HEAT"
+            }
+        }, 
+        "1NST6951585b050c": {
+            "page_load": {
+                "battery": 77, 
+                "cool_setpoint": 71, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 66, 
+                "override": false, 
+                "temperature": 77, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1NST7d771c3fa61b": {
+            "page_load": {
+                "cool_setpoint": 67, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 79, 
+                "override": false, 
+                "temperature": 65, 
+                "thermostat_mode": "HEAT", 
+                "thermostat_state": "HEAT"
+            }
+        }, 
+        "1NST7f0f177d3d73": {
+            "page_load": {
+                "battery": 44, 
+                "cool_setpoint": 79, 
+                "fan_mode": "AUTO", 
+                "fan_state": "AUTO", 
+                "heat_setpoint": 78, 
+                "override": false, 
+                "temperature": 73, 
+                "thermostat_mode": "OFF", 
+                "thermostat_state": "OFF"
+            }
+        }, 
+        "1THEBGQKEKRXBGFV": {
+            "page_load": {
+                "cool_setpoint": 70, 
+                "fan_mode": "ON", 
+                "fan_state": "ON", 
+                "heat_setpoint": 87, 
+                "override": false, 
+                "temperature": 79, 
+                "thermostat_mode": "COOL", 
+                "thermostat_state": "COOL"
+            }
+        }, 
+        "1THEadf09": {
+            "page_load": {
+                "cool_setpoint": 65.6, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75.5, 
+                "temperature": 73.6, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "1THEsflkj": {
+            "page_load": "{empty_string}"
+        }, 
+        "Thermostat1": {
+            "page_load": {
+                "cool_setpoint": 65.6, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75.5, 
+                "temperature": 73.6, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "Thermostat2": {
+            "page_load": {
+                "cool_setpoint": 65.6, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75.5, 
+                "temperature": 73.6, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "Thermostat4": {
+            "page_load": {
+                "cool_setpoint": 65.6, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75.5, 
+                "temperature": 73.6, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "Thermostat5": {
+            "page_load": {
+                "cool_setpoint": 65.6, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75.5, 
+                "temperature": 73.6, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "WiFiThermostat2": {
+            "page_load": {
+                "cool_setpoint": 65, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75, 
+                "temperature": 72, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "Wifi1": {
+            "page_load": "{empty_string}"
+        }, 
+        "WifiThermostat1": {
+            "page_load": {
+                "cool_setpoint": 65, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75, 
+                "temperature": 72, 
+                "thermostat_mode": "HEAT"
+            }
+        }, 
+        "WifiThermostat2": {
+            "page_load": ""
+        }, 
+        "Wifithermostat1": {
+            "page_load": {
+                "cool_setpoint": 65, 
+                "fan_mode": "AUTO", 
+                "heat_setpoint": 75, 
+                "temperature": 72, 
+                "thermostat_mode": "HEAT"
+            }
+        }
+    }, 
+    "vav": {
+        "1VAV30168D000129": {
+            "page_load": {
+                "cool_setpoint": null, 
+                "flap_override": null, 
+                "flap_position": null, 
+                "heat_setpoint": null, 
+                "supply_temperature": null, 
+                "temperature": null
+            }
+        }, 
+        "1VAV30168D000262": {
+            "page_load": {
+                "cool_setpoint": 72.3, 
+                "flap_override": "ON", 
+                "flap_position": 31, 
+                "heat_setpoint": 70.5, 
+                "supply_temperature": 73.9, 
+                "temperature": 74.6
+            }
+        }, 
+        "1VAV30168D000263": {
+            "page_load": {
+                "cool_setpoint": 78.8, 
+                "flap_override": "ON", 
+                "flap_position": 78, 
+                "heat_setpoint": 77.0, 
+                "supply_temperature": 72.7, 
+                "temperature": 76.6
+            }
+        }, 
+        "Thermostat3": {
+            "page_load": {
+                "cool_setpoint": 56, 
+                "flap_override": true, 
+                "flap_position": 89, 
+                "heat_setpoint": 65, 
+                "supply_temperature": 67, 
+                "temperature": 55
+            }
+        }, 
+        "Thermostat5": {
+            "page_load": {
+                "cool_setpoint": 56, 
+                "flap_override": true, 
+                "flap_position": 89, 
+                "heat_setpoint": 65, 
+                "supply_temperature": 67, 
+                "temperature": 55
+            }
+        }
+    }, 
+    "weather_sensor": {
+        "Sensor5": {
+            "page_load": {
+                "co2": 55.0, 
+                "date_max_temp": 1273185387, 
+                "date_min_temp": 1273185387, 
+                "humidity": 45, 
+                "max_temp": 44, 
+                "min_temp": 44, 
+                "noise": 75, 
+                "outdoor_date_max_temp": 1273185387, 
+                "outdoor_date_min_temp": 1273185387, 
+                "outdoor_humidity": 33, 
+                "outdoor_max_temp": 45, 
+                "outdoor_min_temp": 54, 
+                "outdoor_temperature": 44, 
+                "pressure": 55, 
+                "temperature": 67
+            }
+        }
+    }
+}

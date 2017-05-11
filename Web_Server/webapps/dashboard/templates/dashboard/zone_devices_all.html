@@ -1,0 +1,1944 @@
+<!--
+Copyright (c) 2016, Virginia Tech
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+ following conditions are met:
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The views and conclusions contained in the software and documentation are those of the authors and should not be
+interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+privately owned rights.
+
+Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+under Contract DE-EE0006352
+
+#__author__ = "BEMOSS Team"
+#__credits__ = ""
+#__version__ = "2.0"
+#__maintainer__ = "BEMOSS Team"
+#__email__ = "aribemoss@gmail.com"
+#__website__ = "www.bemoss.org"
+#__created__ = "2014-09-12 12:04:50"
+#__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load check_false %}
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Devices - {{ zone_nickname|capfirst }}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+    <link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/fam-icons/fam-icons.css">
+    <link href="/static/style/style.css" rel="stylesheet">
+    <link href="/static/style/dashboard.css" rel="stylesheet">
+    <!-- Testing Sortable -->
+    <link href="/static/css/jquery-ui.css" rel="stylesheet">
+    <script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+    <script class="include" type="text/javascript" src="/static/javascript/jquery-ui.js"></script>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- Notify CSS -->
+    <link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+
+    <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+
+    <script class="include" type="text/javascript" src="/static/app_js/dashboard_common.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/common_fn.js"></script>
+    <script class="include" type="text/javascript" src="/static/javascript/gauge.min.js"></script>
+    <script type="text/javascript" src="/static/assets/jqueryknobdial/excanvas.js"></script>
+
+    <script class="include" type="text/javascript" src="/static/javascript/gauge.min.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/lt_dashboard.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/pl_dashboard.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/ss_dashboard.js"></script>
+    <script type="text/javascript" src="/static/app_js/make_current.js"></script>
+    <!--[if IE]><script type="text/javascript" src="/static/assets/jqueryknobdial/excanvas.js"></script><![endif]-->
+
+
+    <script>
+        var this_id = {{ zone_id }};
+    </script>
+
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+    {% include 'common/side_nav.html' %}
+    <div class="page-content" id="dashboard_content">
+        <form action="../" method="post">
+            {% csrf_token %}
+            <div class="content container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h2 class="page-title">All Devices - {{ zone_nickname|capfirst }}</h2>
+                    </div>
+                </div>
+                <div class="row" id="#unassigned_devices_th">
+
+                    <div class="col-lg-12">
+
+                        <div class="widget">
+                            <div class="widget-header"><i class="icon-cog"></i>
+
+                                <h3>HVAC Controllers</h3>
+                            </div>
+                            <!-- /widget-header -->
+                            <div class="widget-content connectedSortable" id="sortable1">
+
+                                {%for th in thermostats %}
+                                    {% if th.network_status == "ONLINE" %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{th.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{th.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                        <a href="/tstat/{{th.agent_id}}" class="stats-container">
+                                            <div class="stats-heading" id="{{th.id}}_nickname_header">{{th.nickname}}</div>
+                                            <div class="stats-body-alt" >
+                                                <h2></h2>
+
+                                                <div class="text-center h5">{{ th.thermostat_mode }}</div>
+                                                {% if th.network_status == 'ONLINE' %}
+                                                    <div class="text-center"><span class="h1">{{ th.temperature }}&deg;F</span></div>
+                                                {% else %}
+                                                    <div class="text-center" style="-webkit-filter:opacity(30%);"><span class="h1">{{ th.temperature }}&deg;F</span></div>
+                                                {% endif %}
+                                                <div class="text-center" style = "margin-top: 20px;"><h5>{{th.device_type|replace_|capfirst}}</h5>	</div>
+                                                {% ifequal th.thermostat_mode 'HEAT' %}
+                                                    <div class="text-center"><h5>Set Point:{{th.heat_setpoint}}&deg;F</h5></div>
+                                                {% else %}
+                                                    <div class="text-center"><h5>Set Point:{{th.cool_setpoint}}&deg;F</h5></div>
+                                                {% endifequal %}
+                                                <div class="text-center"><h5>{{th.network_status}}</h5></div>
+                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                    {% if th.identifiable %}
+                                                        <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify"
+                                                                                                                style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ th.id }}"><i class="icon-search" id="{{ th.id }}-spin"></i> Identify Device</button></div>
+                                                    {% endif %}
+                                                {% endifequal %}
+                                            </div>
+                                            <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ th.id }}" data-toggle="modal">View/Edit Information</div>
+                                        </a>
+                                    </div>
+
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ th.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{th.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{th.id}}_nick">{{th.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{th.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{th.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{th.id}}_nickname" placeholder="{{th.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{th.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{th.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{th.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{th.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{th.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{th.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{th.id}}-{{ th.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+                                {%for vav_this in vav %}
+                                    {% if vav_this.network_status == "ONLINE" %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{vav_this.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{vav_this.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                        <a href="/vav/{{vav_this.agent_id}}" class="stats-container">
+                                            <div class="stats-heading" id="{{vav_this.id}}_nickname_header">{{vav_this.nickname}}</div>
+                                            <div class="stats-body-alt"
+                                                 style="height:197px;"
+
+                                                    >
+                                                {% if vav_this.network_status == 'ONLINE' %}
+                                                    <div class="text-center"><h1 style="margin-top: -20px;"><img src="/static/images/vav_on.png" width="150" height="150" ></h1></div>
+                                                {% else %}
+                                                    <div class="text-center"><h1 style="margin-top: -20px;"><img src="/static/images/vav_on.png" style="-webkit-filter:opacity(30%);" width="150" height="150" ></h1></div>
+                                                {% endif %}
+                                                <div class="text-center"><h5>Flap Position: {{vav_this.flap_position}} %</h5></div>
+                                                <div class="text-center"><h5>{{vav_this.network_status}}</h5></div>
+                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                    {% if vav_this.identifiable %}
+                                                        <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify"
+                                                                                                                style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ vav_this.id }}"><i class="icon-search" id="{{ vav_this.id }}-spin"></i> Identify Device</button></div>
+
+                                                    {% endif %}
+
+                                                {% endifequal %}
+                                            </div>
+                                            <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ vav_this.id }}" data-toggle="modal">View/Edit Information</div>
+                                        </a>
+                                    </div>
+
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ vav_this.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{vav_this.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{vav_this.id}}_nick">{{vav_this.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{vav_this.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{vav_this.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{vav_this.id}}_nickname" placeholder="{{vav_this.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{vav_this.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{vav_this.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{vav_this.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{vav_this.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{vav_this.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{vav_this.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{vav_this.id}}-{{ vav_this.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+                                {%for rtu_this in rtu %}
+                                    {% if rtu_this.network_status == "ONLINE" %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{rtu_this.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{rtu_this.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                        <a href="/rtu/{{rtu_this.agent_id}}" class="stats-container">
+                                            <div class="stats-heading" id="{{rtu_this.id}}_nickname_header">{{rtu_this.nickname}}</div>
+                                            <div class="stats-body-alt"
+                                                 style="height:197px;">
+                                                {% if rtu_this.network_status == 'ONLINE' %}
+                                                    <div class="text-center"><h1 style="margin-top: 7px;"><img src="/static/images/rtu_on.png" width="100" height="100" ></h1></div>
+                                                {% else %}
+                                                    <div class="text-center"><h1 style="margin-top: 7px;"><img src="/static/images/rtu_on.png" style="-webkit-filter:opacity(30%);" width="100" height="100" ></h1></div>
+                                                {% endif %}
+                                                <div class="text-center"><h5
+                                                        {% if rtu_this.identifiable|is_false %}
+                                                            style="margin-top: 30px;"
+                                                        {% endif %}
+                                                        >Heat Set Point: {{rtu_this.heat_setpoint}} &deg;F</h5></div>
+                                                <div class="text-center"><h5>Cool Set Point: {{rtu_this.cool_setpoint}} &deg;F</h5></div>
+                                                <div class="text-center"><h5>{{rtu_this.network_status}}</h5></div>
+                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                    {% if rtu_this.identifiable %}
+                                                        <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify"
+                                                                                                                style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ rtu_this.id }}"><i class="icon-search" id="{{ rtu_this.id }}-spin"></i> Identify Device</button></div>
+
+                                                    {% endif %}
+
+                                                {% endifequal %}
+                                            </div>
+                                            <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ rtu_this.id }}" data-toggle="modal">View/Edit Information</div>
+                                        </a>
+                                    </div>
+
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ rtu_this.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{rtu_this.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{rtu_this.id}}_nick">{{rtu_this.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{rtu_this.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{rtu_this.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{rtu_this.id}}_nickname" placeholder="{{rtu_this.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{rtu_this.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{rtu_this.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{rtu_this.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{rtu_this.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{rtu_this.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{rtu_this.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{rtu_this.id}}-{{ rtu_this.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+
+                                <!-- /shortcuts -->
+                            </div>
+                            <!-- /widget-content -->
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row" id="#unassigned_devices_lt">
+
+                    <div class="col-lg-12">
+
+                        <div class="widget">
+                            <div class="widget-header"><i class="fa fa-lightbulb-o" style="margin-left: 13px;"></i>
+
+                                <h3>Lighting Loads</h3>
+                            </div>
+                            <!-- /widget-header -->
+                            <div class="widget-content connectedSortable" id="sortable1">
+
+                                {% for lt in lighting_loads %}
+                                    {% switch lt.device_model_id.device_model_id %}
+                                        {% case '2DBA' %}
+                                        {% if lt.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/light/{{ lt.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ lt.id }}_nickname_header">{{ lt.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if lt.status == 'ON' and lt.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/bulbon.png" width="45" height="70"
+                                                                alt="ON" style="-webkit-filter:brightness(1.5);"></h1>
+                                                        </div>
+
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/bulboff.png"
+                                                                                      width="50" height="80"
+                                                                                      alt="{{ lt.status }}"></div>
+                                                    {% endif %}
+                                                    <small style="margin-top: 20px;">{{ lt.device_type|replace_|capfirst }} </small>
+                                                    <div class="text-center" style="margin-bottom:22px;"><h5>Illuminated
+                                                        to : {{ lt.brightness }}%</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if lt.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ lt.id }}">
+                                                                    <i class="icon-search" id="{{ lt.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ lt.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '2HUE' %}
+                                        {% if lt.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/light/{{ lt.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ lt.id }}_nickname_header">{{ lt.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    <h5 class="hue"
+                                                        id="{{ lt.id }}_lights">{{ lt.multiple_on_off }}</h5>
+
+                                                    <div class="text-center" id="huelights_{{ lt.id }}"></div>
+                                                    {% if lt.status == 'ON' and lt.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/bulbon.png" width="50" height="80"
+                                                                alt="{{ lt.status }}"></h1></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/bulboff.png"
+                                                                                      width="50" height="80"
+                                                                                      alt="{{ lt.status }}"></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style="margin-top: 20px; ">
+                                                        <h5>{{ lt.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center" style="margin-bottom:25px;">
+                                                        <h5>{{ lt.multiple_on_off|length }} Connected Lights</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if lt.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ lt.id }}">
+                                                                    <i class="icon-search" id="{{ lt.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ lt.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '2SDB' %}
+                                        {% if lt.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/light/{{ lt.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ lt.id }}_nickname_header">{{ lt.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if lt.status == 'ON' and lt.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/sdb_on.png" width="100" height="70"
+                                                                alt="{{ lt.status }}"></h1></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/sdb_off.png"
+                                                                                      width="100" height="70"
+                                                                                      alt="{{ lt.status }}"></div>
+                                                    {% endif %}
+                                                    <small style="margin-top: 20px;">{{ lt.device_type|replace_|capfirst }} </small>
+                                                    <div class="text-center" style="margin-bottom:22px;"><h5>Illuminated
+                                                        to : {{ lt.brightness }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if lt.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ lt.id }}">
+                                                                    <i class="icon-search" id="{{ lt.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ lt.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '2WLS' %}
+                                        {% if lt.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/light/{{ lt.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ lt.id }}_nickname_header">{{ lt.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if lt.status == 'ON' and lt.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/wemoon.jpg" width="70" height="100"
+                                                                alt="{{ lt.status }}"></h1></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/wemooff.jpg"
+                                                                                      style="-webkit-filter:opacity(30%);"
+                                                                                      width="70" height="100"
+                                                                                      alt="{{ lt.status }}"></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style="margin-top: 0px;">
+                                                        <h5>{{ lt.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center"
+                                                         style="margin-top: 5px; margin-bottom:-10px;"><h5>
+                                                        Status: {{ lt.status }}</h5></div>
+                                                    <div class="text-center"
+                                                         style="margin-top: 5px; margin-bottom:-10px;"><h5>{{ lt.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if lt.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ lt.id }}">
+                                                                    <i class="icon-search" id="{{ lt.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ lt.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '2WSL' %}
+                                        {% if lt.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{lt.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/light/{{ lt.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ lt.id }}_nickname_header">{{ lt.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if lt.status == 'ON' and lt.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/wattstopper_on.png" width="100"
+                                                                height="100" alt="{{ lt.status }}"></h1></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img
+                                                                src="/static/images/wattstopper_off.png"
+                                                                style="-webkit-filter:opacity(30%);" width="100"
+                                                                height="100" alt="{{ lt.status }}"></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style="margin-top: 0px;">
+                                                        <h5>{{ lt.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center"
+                                                         style="margin-top: 5px; margin-bottom:-10px;"><h5>
+                                                        Status: {{ lt.status }}</h5></div>
+                                                    <div class="text-center"
+                                                         style="margin-top: 5px; margin-bottom:-10px;"><h5>{{ lt.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if lt.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ lt.id }}">
+                                                                    <i class="icon-search" id="{{ lt.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}
+                                                    {% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ lt.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                    {% endswitch %}
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel"
+                                         role="dialog" tabindex="-1" class="modal fade" id="{{ lt.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close"
+                                                            type="button">x
+                                                    </button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ lt.nickname }}
+                                                        Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ lt.id }}_nick">{{ lt.nickname }}</td>
+                                                            <td>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    <a href="javascript:;" class="nickname_edit"><i
+                                                                            class="icon-small icon-edit"
+                                                                            id="{{ lt.id }}_nick_edit"></i></a>
+                                                                {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $("#{{lt.id}}_nick_edit").click(function () {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit", ""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{lt.id}}_nickname" placeholder="{{lt.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ lt.zone.zone_nickname }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type</td>
+                                                            <td>{{ lt.device_type|replace_|capfirst }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ lt.vendor_name }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ lt.device_model }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ lt.mac_address }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class="attribution">Note: The nickname should have between 6 and
+                                                        15 characters with alphabets or numbers or underscore (_). No
+                                                        spaces or special characters.</p>
+
+                                                    <p class="attribution" id="viewediterror_{{ lt.id }}"
+                                                       style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">
+                                                        Close
+                                                    </button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes"
+                                                                id="#savechanges-{{ lt.id }}-{{ lt.device_model_id }}"
+                                                                type="button">Save changes
+                                                        </button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+
+                                <!-- /shortcuts -->
+                            </div>
+                            <!-- /widget-content -->
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row" id="#unassigned_devices_pl">
+
+                    <div class="col-lg-12">
+
+                        <div class="widget">
+                            <div class="widget-header"><i class="fa fa-power-off" style="margin-left: 13px;"></i>
+
+                                <h3>Plugloads</h3>
+                            </div>
+                            <!-- /widget-header -->
+                            <div class="widget-content connectedSortable" id="sortable1">
+
+                                {% for pl in plugloads %}
+                                    {% switch pl.device_model_id.device_model_id %}
+                                        {% case '3WSP' %}
+                                        {% if pl.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/plug/{{ pl.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ pl.id }}_nickname_header">{{ pl.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if pl.status == 'ON' and pl.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><img src="/static/images/wemo_plug.png"
+                                                                                      width="70" height="100"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/wemo_plug.png"
+                                                                                      style="-webkit-filter:opacity(30%);"
+                                                                                      width="70" height="100"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style="margin-top: 15px; ">
+                                                        <h5>{{ pl.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center" style="margin-bottom:-10px;"><h5>
+                                                        Status: {{ pl.status }}</h5></div>
+                                                    <div class="text-center" style="margin-bottom:-10px;"><h5>{{ pl.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if pl.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ pl.id }}">
+                                                                    <i class="icon-search" id="{{ pl.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ pl.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '3WPL' %}
+                                        {% if pl.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/plug/{{ pl.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ pl.id }}_nickname_header">{{ pl.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if pl.status == 'ON' and pl.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/wattstopper_on.png" width="100"
+                                                                height="100" alt="{{ pl.status }}"></h1></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img
+                                                                src="/static/images/wattstopper_off.png"
+                                                                style="-webkit-filter:opacity(30%);" width="100"
+                                                                height="100" alt="{{ pl.status }}"></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style="margin-top: 0px;">
+                                                        <h5>{{ pl.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center"
+                                                         style="margin-top: 5px; margin-bottom:-10px;"><h5>
+                                                        Status: {{ pl.power }} W</h5></div>
+                                                    <div class="text-center" style="margin-bottom:-10px;"><h5>{{ pl.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <div class="text-center" style="height: 23px;">
+                                                            <button class="btn btn-warning btn-xs identify"
+                                                                    style="margin-top: -40px; margin-bottom: 7px"
+                                                                    id="identify-{{ pl.id }}">
+                                                                <i class="icon-search" id="{{ pl.id }}-spin"></i>
+                                                                Identify Device
+                                                            </button>
+                                                        </div>{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ pl.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '3WIS' %}
+                                        {% if pl.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/plug/{{ pl.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ pl.id }}_nickname_header">{{ pl.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if pl.status == 'ON' and pl.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><h1><img
+                                                                src="/static/images/wis_on.png" width="100" height="100"
+                                                                alt="{{ pl.status }}"></h1></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/wis_off.png"
+                                                                                      style="-webkit-filter:opacity(30%);"
+                                                                                      width="100" height="100"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style="margin-top: 0px;">
+                                                        <h5>{{ pl.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center"
+                                                         style="margin-top: 5px; margin-bottom:-10px;"><h5>
+                                                        Status: {{ pl.power }} W</h5></div>
+                                                    <div class="text-center" style="margin-bottom:-10px;"><h5>{{ pl.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <div class="text-center" style="height: 23px;">
+                                                            <button class="btn btn-warning btn-xs identify"
+                                                                    style="margin-top: -40px; margin-bottom: 7px"
+                                                                    id="identify-{{ pl.id }}">
+                                                                <i class="icon-search" id="{{ pl.id }}-spin"></i>
+                                                                Identify Device
+                                                            </button>
+                                                        </div>{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ pl.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '3MOD' %}
+                                        {% if pl.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/plug/{{ pl.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ pl.id }}_nickname_header">{{ pl.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if pl.status == 'ON' and pl.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><img src="/static/images/plugon.png"
+                                                                                      width="100" height="90"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/plugoff.png"
+                                                                                      width="100" height="90"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                    {% endif %}
+                                                    <small>{{ pl.device_type|replace_|capfirst }} </small>
+                                                    <div class="text-center"><h5>Power: {{ pl.power }} kW</h5></div>
+                                                    <div class="text-center" style="margin-bottom:-10px;"><h5>{{ pl.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if pl.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ pl.id }}">
+                                                                    <i class="icon-search" id="{{ pl.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ pl.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '3VTH' %}
+                                        {% if pl.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/plug/{{ pl.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ pl.id }}_nickname_header">{{ pl.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    <h5 class="vthem"
+                                                        id="{{ pl.id }}_ldctrl">{{ pl.multiple_on_off }}</h5>
+
+                                                    <div class="text-center" id="vth_{{ pl.id }}"></div>
+                                                    <!-- {% if pl.status == 'ON' and pl.network_status == 'ONLINE' %}
+						               <div class="text-center"><img src="/static/images/plugon.png" width="100" height="90" alt="
+                                                        {{pl.status}}"></div>
+						                {% else %}
+						               <div class="text-center"><img src="/static/images/plugoff.png" width="100" height="90" alt="
+                                                        {{pl.status}}"></div>
+						                {% endif %} -->
+                                                    <div class="text-center" style="margin-top: 30px;">
+                                                        <h5>{{ pl.device_type|replace_|capfirst }}</h5></div>
+                                                    <div class="text-center" style="margin-bottom: 15px;"><h5>
+                                                        Power: {{ pl.power }} kW</h5></div>
+                                                    <div class="text-center" style="margin-bottom:-10px;"><h5>{{ pl.network_status }}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if pl.identifiable %}
+                                                            <div class="text-center" style="height: 23px;">
+                                                                <button class="btn btn-warning btn-xs identify"
+                                                                        style="margin-top: -40px; margin-bottom: 7px"
+                                                                        id="identify-{{ pl.id }}">
+                                                                    <i class="icon-search" id="{{ pl.id }}-spin"></i>
+                                                                    Identify Device
+                                                                </button>
+                                                            </div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ pl.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% case '3DSP' %}
+                                        {% if pl.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pl.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/plug/{{ pl.agent_id }}" class="stats-container">
+                                                <div class="stats-heading"
+                                                     id="{{ pl.id }}_nickname_header">{{ pl.nickname }}</div>
+                                                <div class="stats-body-alt">
+                                                    <h2></h2>
+                                                    {% if pl.status == 'ON' and pl.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><img src="/static/images/xBee.png"
+                                                                                      width="80" height="95"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                        <div class="text-center" style="margin-top: 0px; ">
+                                                            <h5>{{ pl.device_type|replace_|capfirst }}</h5></div>
+                                                        <div class="text-center" style="margin-bottom:-25px;"><h5>
+                                                            Power: {{ pl.power }} W</h5></div>
+                                                        <div class="text-center" style="margin-bottom:-20px;">
+                                                            <button class="btn btn-warning btn-xs identify"
+                                                                    id="identify-{{ pl.id }}"><i
+                                                                    class="icon-search"></i> Identify Device
+                                                            </button>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/xBee.png"
+                                                                                      style="-webkit-filter:opacity(30%);"
+                                                                                      width="80" height="95"
+                                                                                      alt="{{ pl.status }}"></div>
+                                                        <div class="text-center" style="margin-top: 15px;">
+                                                            <h5>{{ pl.device_type|replace_|capfirst }}</h5></div>
+                                                        <div class="text-center" style=""><h5>
+                                                            Power: {{ pl.current_status.power }} W</h5></div>
+                                                        <div class="text-center" style="margin-bottom:-10px;"><h5>
+                                                            {{ pl.network_status }}</h5></div>
+                                                        {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                            {% if pl.identifiable %}
+                                                                <div class="text-center"
+                                                                     style="height: 1px;margin-top: -5px; margin-bottom:22px;">
+                                                                    <button class="btn btn-warning btn-xs identify"
+                                                                            style="margin-top: -40px; margin-bottom: 7px"
+                                                                            id="identify-{{ pl.id }}">
+                                                                        <i class="icon-search"
+                                                                           id="{{ pl.id }}-spin"></i> Identify Device
+                                                                    </button>
+                                                                </div>{% endif %}{% endifequal %}
+
+                                                    {% endif %} </div>
+                                                <div class="stats-footer text-center" data-backdrop="false"
+                                                     data-target="#{{ pl.id }}" data-toggle="modal">View/Edit
+                                                    Information
+                                                </div>
+                                            </a>
+                                        </div>
+                                    {% endswitch %}
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel"
+                                         role="dialog" tabindex="-1" class="modal fade" id="{{ pl.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close"
+                                                            type="button">x
+                                                    </button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ pl.nickname }}
+                                                        Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ pl.id }}_nick">{{ pl.nickname }}</td>
+                                                            <td>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    <a href="javascript:;" class="nickname_edit">
+                                                                        <i class="icon-small icon-edit"
+                                                                           id="{{ pl.id }}_nick_edit"></i></a>{% endifequal %}
+                                                            </td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $("#{{pl.id}}_nick_edit").click(function () {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit", ""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{pl.id}}_nickname" placeholder="{{pl.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ pl.zone.zone_nickname }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type</td>
+                                                            <td>{{ pl.device_type|replace_|capfirst }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ pl.vendor_name }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ pl.device_model }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ pl.mac_address }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class="attribution">Note: The nickname should have between 6 and
+                                                        15 characters with alphabets or numbers or underscore (_). No
+                                                        spaces or special characters.</p>
+
+                                                    <p class="attribution" id="viewediterror_{{ pl.id }}"
+                                                       style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">
+                                                        Close
+                                                    </button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes"
+                                                                id="#savechanges-{{ pl.id }}-{{ pl.device_model_id }}"
+                                                                type="button">Save changes
+                                                        </button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+
+                                <!-- /shortcuts -->
+                            </div>
+                            <!-- /widget-content -->
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row" id="#unassigned_devices_ss">
+
+                    <div class="col-lg-12">
+
+                        <div class="widget">
+                            <div class="widget-header"><i class="fa fa-bullseye" style="margin-left: 13px;"></i>
+
+                                <h3>Sensors</h3>
+                            </div>
+                            <!-- /widget-header -->
+                            <div class="widget-content connectedSortable" id="sortable1">
+
+                                {%for ss in occ_sensors %}
+                                    {% switch ss.device_model_id.device_model_id %}
+                                        {% case '4WSO' %}
+                                        {% if ss.network_status == "ONLINE" %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ss.id}}_divopen" style="height:280px;">
+                                        {% else %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ss.id}}_divopen" style="height:280px; pointer-events: none;">
+                                        {% endif %}
+                                            <a href="/occ/{{ ss.agent_id }}" class="stats-container" >
+                                                <div class="stats-heading" id="{{ss.id}}_nickname_header">{{ss.nickname}}</div>
+                                                <div class="stats-body-alt" >
+                                                    <h2></h2>
+                                                    {% if ss.space_occupied and ss.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><img src="/static/images/occupied.png" width="90" height="90" alt="OCCUPIED"></div>
+                                                        <div class="text-center" style = "margin-top: 15px;"><h5>{{ss.device_type|replace_|capfirst}}</h5></div>
+                                                        <div class="text-center" style = " margin-bottom:12px;"><h5>OCCUPIED</h5></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/unoccupied.png" width="90" height="90" alt="UNOCCUPIED"></div>
+                                                        <div class="text-center" style = "margin-top: 15px;"><h5>{{ss.device_type|replace_|capfirst}}</h5></div>
+                                                        <div class="text-center" style = " margin-bottom:12px;"><h5>UNOCCUPIED</h5></div>
+                                                    {% endif %}
+                                                    <div class="text-center" style = "margin-bottom:-10px;"><h5>{{ss.network_status}}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if ss.identifiable %}
+                                                            <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify" style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ ss.id }}">
+                                                                <i class="icon-search" id="{{ ss.id }}-spin"></i> Identify Device</button></div>
+                                                        {% endif %}
+                                                    {% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ ss.id }}" data-toggle="modal">View/Edit Information</div>
+                                            </a>
+                                        </div>
+
+                                    {% endswitch %}
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ ss.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ss.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ss.id}}_nick">{{ss.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{ss.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{ss.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{ss.id}}_nickname" placeholder="{{ss.nickname}}"></input>'
+                                                                    });{% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ss.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{ss.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ss.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ss.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ss.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{ss.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{ss.id}}-{{ ss.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+                                {%for ss in lt_sensors %}
+                                    {% switch ss.device_model_id.device_model_id %}
+                                        {% case '4WLS' %}
+                                        {% if ss.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ss.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ss.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/dls/{{ ss.agent_id }}" class="stats-container" >
+                                                <div class="stats-heading" id="{{ss.id}}_nickname_header">{{ss.nickname}}</div>
+                                                <div class="stats-body-alt" >
+                                                    <h2></h2>
+                                                    {% if ss.network_status == 'ONLINE' %}
+                                                        <div class="text-center"><img src="/static/images/ltsens_on.png" width="35" height="90" ></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/ltsens_on.png" width="35" height="90" style="-webkit-filter:opacity(30%);"></div>
+                                                    {% endif %}
+
+                                                    <div class="text-center" style = "margin-top: 15px;"><h5>{{ss.device_type|replace_|capfirst}}</h5></div>
+                                                    <div class="text-center" style = "margin-bottom:-10px;"><h5>{{ss.network_status}}</h5></div>
+                                                    <div class="text-center" style = " margin-bottom:12px;"><h5>{{ss.illuminance}} lux</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if ss.identifiable %}
+                                                            <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify" style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ ss.id }}">
+                                                                <i class="icon-search" id="{{ ss.id }}-spin"></i> Identify Device</button></div>{% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ ss.id }}" data-toggle="modal">View/Edit Information</div>
+                                            </a>
+                                        </div>
+
+                                    {% endswitch %}
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ ss.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ss.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ss.id}}_nick">{{ss.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{ss.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{ss.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{ss.id}}_nickname" placeholder="{{ss.nickname}}"></input>'
+                                                                    });{% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ss.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{ss.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ss.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ss.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ss.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{ss.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{ss.id}}-{{ ss.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+                                {%for ss in m_sensors %}
+                                    {% switch ss.device_model_id.device_model_id %}
+                                        {% case '4PRM' %}
+                                        {% if ss.network_status == 'ONLINE' %}
+						            <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ss.id}}_divopen" style="height:280px;">
+                                    {% else %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ss.id}}_divopen" style="height:280px; pointer-events: none;">
+                                    {% endif %}
+                                            <a href="/mtn/{{ ss.agent_id }}" class="stats-container" >
+                                                <div class="stats-heading" id="{{ss.id}}_nickname_header">{{ss.nickname}}</div>
+                                                <div class="stats-body-alt" >
+                                                    <h2></h2>
+                                                    {% if ss.motion == 'ONLINE' %}
+                                                        <div class="text-center"><img src="/static/images/occupied.png" width="90" height="90" alt="MOTION DETECTED"></div>
+                                                    {% else %}
+                                                        <div class="text-center"><img src="/static/images/unoccupied.png" width="90" height="90" alt="NO MOTION DETECTED"></div>
+                                                    {% endif %}
+
+                                                    <div class="text-center" style = "margin-top: 15px; margin-bottom:30px;"><h5>{{ss.device_type|replace_|capfirst}}</h5></div>
+                                                    <div class="text-center" style = "margin-bottom:-10px;"><h5>{{ss.network_status}}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if ss.identifiable %}
+                                                            <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify" style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ ss.id }}">
+                                                                <i class="icon-search" id="{{ ss.id }}-spin"></i> Identify Device</button></div>
+                                                        {% endif %}{% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ ss.id }}" data-toggle="modal">View/Edit Information</div>
+                                            </a>
+                                        </div>
+
+                                    {% endswitch %}
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ ss.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ss.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ss.id}}_nick">{{ss.nickname}}</td>
+                                                            <td><a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{ss.id}}_nick_edit"></i></a></td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{ss.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{ss.id}}_nickname" placeholder="{{ss.nickname}}"></input>'
+                                                                    });{% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ss.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{ss.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ss.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ss.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ss.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{ss.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{ss.id}}-{{ ss.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+                                {%for tp in tp_sensors %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{tp.id}}_divopen" style="height:280px;">
+                                        <a href="/tp/{{tp.agent_id}}" class="stats-container">
+                                            <div class="stats-heading" id="{{tp.id}}_nickname_header">{{tp.nickname}}</div>
+                                            <div class="stats-body-alt" >
+                                                <h2></h2>
+                                                <!--<div id="preview">
+                        <div class="text-center">
+                        <canvas class="thermo_gauge" id="gauge_{{ws.id}}" width=150 height=100></canvas>
+                        <div id="{{ws.id}}-textfield" style = "margin-top: -90px;"></div>
+                        </div>
+                        <div class="text-center">
+                        <div id="unit" style = "font-size:12px; margin-top: 0px;">&deg;F</div>
+                        <div class="text-center">	<h4 id="{{ws.id}}_chvalue">{{ws.temperature}}</h4>
+                        <h4 style = "font-size:12.7px; margin-top: 16.5px;" id="{{ws.id}}_tmode">{{ws.thermostat_mode}}</h4></div>
+                        </div>
+                    </div>-->
+                                                <div class="text-center h5">{{ tp.nickname }}</div>
+                                                <div class="text-center"><h5>Temperature</h5></div>
+                                                <div class="text-center"><span class="h1">{{ tp.temperature }}&deg;F</span></div>
+                                                <div class="text-center" style = "margin-top: 20px;"><h5>Battery Level (%) </h5>	</div>
+                                                <div class="text-center"><h5>{{tp.battery}}</h5></div>
+
+                                            </div>
+                                            <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ tp.id }}" data-toggle="modal">View/Edit Information</div>
+                                        </a>
+                                    </div>
+
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ tp.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{tp.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{tp.id}}_nick">{{tp.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{tp.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{tp.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{tp.id}}_nickname" placeholder="{{tp.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{tp.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{tp.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{tp.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{tp.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{tp.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <!--<p class = "attribution">To assign a <em>Zone</em> to your device, drag your device to the corresponding zone.</p>-->
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{tp.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{tp.id}}-{{ tp.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+                                {% endfor %}
+                                {%for ws in w_sensors %}
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{ws.id}}_divopen" style="height:280px;">
+                                        <a href="/ws/{{ws.agent_id}}" class="stats-container">
+                                            <div class="stats-heading" id="{{ws.id}}_nickname_header">{{ws.nickname}}</div>
+                                            <div class="stats-body-alt" >
+                                                <h2></h2>
+
+                                                <div class="text-center h5">{{ ws.thermostat_mode }}</div>
+                                                <div class="text-center"><h5>Outdoor Temperature</h5></div>
+                                                <div class="text-center"><span class="h1">{{ ws.outdoor_temperature }}&deg;F</span></div>
+                                                <div class="text-center" style = "margin-top: 20px;"><h5>{{ws.device_type|replace_|capfirst}}</h5>	</div>
+                                                <div class="text-center"><h5>Indoor Temperature:{{ws.temperature}}&deg;F</h5></div>
+
+                                            </div>
+                                            <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ ws.id }}" data-toggle="modal">View/Edit Information</div>
+                                        </a>
+                                    </div>
+
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" class="modal fade" id="{{ ws.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close" type="button">x</button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ws.nickname}} Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ws.id}}_nick">{{ws.nickname}}</td>
+                                                            <td>{% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                <a href="javascript:;" class="nickname_edit" ><i class="icon-small icon-edit" id="{{ws.id}}_nick_edit"></i></a>
+                                                            {% endifequal %}</td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $( "#{{th.id}}_nick_edit" ).click(function() {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit",""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{ws.id}}_nickname" placeholder="{{ws.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ws.zone.zone_nickname}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type	</td>
+                                                            <td>{{ws.device_type|replace_|capfirst}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ws.vendor_name}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ws.device_model}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ws.mac_address}}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class = "attribution">Note: The nickname should have between 6 and 15 characters with alphabets or numbers or underscore (_). No spaces or special characters.</p>
+                                                    <p class = "attribution" id="viewediterror_{{ws.id}}" style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">Close</button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes" id="#savechanges-{{ws.id}}-{{ ws.device_model_id }}" type="button">Save changes</button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+
+                                <!-- /shortcuts -->
+                            </div>
+                            <!-- /widget-content -->
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row" id="#unassigned_devices_pm">
+
+                    <div class="col-lg-12">
+
+                        <div class="widget">
+                            <div class="widget-header"><i class="fa fa-building-o" style="margin-left: 13px;"></i>
+
+                                <h3>Powermeters</h3>
+                            </div>
+                            <!-- /widget-header -->
+                            <div class="widget-content connectedSortable" id="sortable1">
+
+                                {% for pm in powermeters %}
+                                    {% switch pm.device_model_id.device_model_id %}
+                                        {% case '5WTN' %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pm.id}}_divopen" style="height:280px;">
+                                            <a href="/pmtr/{{ pm.agent_id }}" class="stats-container">
+                                                <div class="stats-heading" id="{{pm.id}}_nickname_header">{{pm.nickname}}</div>
+                                                <div class="stats-body-alt" >
+                                                    <h2></h2>
+                                                    <div id="preview">
+                                                        <div class="text-center">
+                                                            <canvas class="powermeter" id="chart_{{pm.id}}" width=132 height=80></canvas>
+                                                            <div id="{{pm.id}}-textfield" style = "margin-top: -70px;"></div>
+                                                        </div>
+                                                        <div class="text-center">
+                                                            <div id="unit" style = "font-size:12px; margin-top: 0px;">kW</div>
+                                                            <div class="text-center">	<h4 id="{{pm.id}}_chvalue">{{pm.power_sum}}</h4></div>
+
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-center" style = "margin-top: 40px;"><h5>{{pm.device_type|replace_|capfirst}}</h5>	</div>
+                                                    <div class="text-center"><h5>{{pm.network_status}}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if pm.identifiable %}
+                                                            <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify" style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ pm.id }}">
+                                                                <i class="icon-search" id="{{ pm.id }}-spin"></i> Identify Device</button></div>
+                                                        {% endif %}
+                                                    {% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ pm.id }}" data-toggle="modal">View/Edit Information</div>
+                                            </a>
+                                        </div>
+                                        {% case '5DNT' %}
+                                        <div class="col-md-3 col-xs-12 col-sm-6 device_view" id="{{pm.id}}_divopen" style="height:280px;">
+                                            <a href="/pmtr/{{ pm.agent_id }}" class="stats-container">
+                                                <div class="stats-heading" id="{{pm.id}}_nickname_header">{{pm.nickname}}</div>
+                                                <div class="stats-body-alt" >
+                                                    <h2></h2>
+                                                    <div id="preview">
+                                                        <div class="text-center">
+                                                            <canvas class="powermeter" id="chartd_{{pm.id}}" width=132 height=80></canvas>
+                                                            <div id="{{pm.id}}-textfield" style = "margin-top: -70px;"></div>
+                                                        </div>
+                                                        <div class="text-center">
+                                                            <div id="unit" style = "font-size:12px; margin-top: 0px;">kW</div>
+                                                            <div class="text-center">	<h4 id="{{pm.id}}_chvalue">{{pm.power_sum}}</h4></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-center" style = "margin-top: 40px;"><h5>{{pm.device_type|replace_|capfirst}}</h5>	</div>
+                                                    <div class="text-center"><h5>{{pm.network_status}}</h5></div>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        {% if pm.identifiable %}
+                                                            <div class="text-center" style="height: 23px;"> <button class="btn btn-warning btn-xs identify" style="margin-top: -40px; margin-bottom: 7px" id="identify-{{ pm.id }}">
+                                                                <i class="icon-search" id="{{ pm.id }}-spin"></i> Identify Device</button></div>
+                                                        {% endif %}
+                                                    {% endifequal %}
+                                                </div>
+                                                <div class="stats-footer text-center" data-backdrop="false" data-target="#{{ pm.id }}" data-toggle="modal">View/Edit Information</div>
+                                            </a>
+                                        </div>
+                                    {% endswitch %}
+
+
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel"
+                                         role="dialog" tabindex="-1" class="modal fade" id="{{ pm.id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close"
+                                                            type="button">x
+                                                    </button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ pm.nickname }}
+                                                        Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ pm.id }}_nick">{{ pm.nickname }}</td>
+                                                            <td><a href="javascript:;" class="nickname_edit"><i
+                                                                    class="icon-small icon-edit"
+                                                                    id="{{ pm.id }}_nick_edit"></i></a></td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $("#{{pm.id}}_nick_edit").click(function () {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit", ""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{pm.id}}_nickname" placeholder="{{pm.nickname}}"></input>'
+                                                                    });{% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Zone</td>
+                                                            <td>{{ pm.zone.zone_nickname }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type</td>
+                                                            <td>{{ pm.device_type|replace_|capfirst }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ pm.vendor_name }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ pm.device_model }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ pm.mac_address }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class="attribution">Note: The nickname should have between 6 and
+                                                        15 characters with alphabets or numbers or underscore (_). No
+                                                        spaces or special characters.</p>
+
+                                                    <p class="attribution" id="viewediterror_{{ pm.id }}"
+                                                       style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">
+                                                        Close
+                                                    </button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes"
+                                                                id="#savechanges-{{ pm.id }}-{{ pm.device_model_id }}"
+                                                                type="button">Save changes
+                                                        </button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+
+                                {% endfor %}
+
+                                <!-- /shortcuts -->
+                            </div>
+                            <!-- /widget-content -->
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software.</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script>
+    var pathh = window.location.pathname;
+    pathh = pathh.slice(0, -1);
+    //$('li a[href*="' + pathh + '"]').parent().parent().parent().addClass("current");
+</script>
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+</body>
+</html>

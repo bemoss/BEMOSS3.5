@@ -1,0 +1,98 @@
+{"lighting": {
+        "WifiLight5": {
+            "active": [
+                "weekdayweekend", 
+                "holiday"
+            ], 
+            "inactive": [
+                "everyday"
+            ], 
+            "schedulers": {
+                "everyday": {
+                    "friday": [], 
+                    "monday": [
+                        {
+                            "at": 0, 
+                            "brightness": 34, 
+                            "color": "(245, 78, 245)", 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 30, 
+                            "brightness": 65, 
+                            "color": "(168, 98, 168)", 
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 60, 
+                            "brightness": 0, 
+                            "color": "(0, 0, 0)", 
+                            "id": "3", 
+                            "nickname": "Period3", 
+                            "status": "OFF"
+                        }
+                    ], 
+                    "saturday": [], 
+                    "sunday": [], 
+                    "thursday": [
+                        {
+                            "at": 0, 
+                            "brightness": 31, 
+                            "color": "(204, 63, 204)", 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "ON"
+                        }
+                    ], 
+                    "tuesday": [], 
+                    "wednesday": []
+                }, 
+                "holiday": {
+                    "holiday": [
+                        {
+                            "at": 0, 
+                            "brightness": 7, 
+                            "color": "(0, 0, 0)", 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 30, 
+                            "brightness": 0, 
+                            "color": "(0, 0, 0)", 
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "OFF"
+                        }
+                    ]
+                }, 
+                "weekdayweekend": {
+                    "weekday": [
+                        {
+                            "at": 0, 
+                            "brightness": 28, 
+                            "color": "(0, 10, 20)",
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 30, 
+                            "brightness": 13, 
+                            "color": "(230, 20, 30)",
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "ON"
+                        }
+                    ], 
+                    "weekend": []
+                }
+            }
+        }
+    }
+}

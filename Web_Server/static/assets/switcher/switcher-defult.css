@@ -1,0 +1,88 @@
+.demo_changer{ 
+    z-index: 900; 
+    position: fixed;
+    right: 0px;
+    top: 70px; 
+}
+
+
+
+
+
+
+
+.demo_changer .demo-icon{
+    background: url(../../images/switcher-arrow.png) no-repeat scroll 1px 1px rgba(0,0,0, 0.5);
+    border: 1px solid rgba(255,255,255, 0.3);
+	border-right:none;
+    cursor: pointer;
+    float: left;
+    height: 33px;
+    width: 33px;
+}
+
+.form_holder p {color:#7F7F7F;}
+.demo_changer .form_holder {
+	background: rgba(0,0,0,0.5);
+    float: right;
+	border: 1px solid rgba(255,255,255, 0.3);
+    width: 145px;
+}
+
+.demo_changer .form_holder p{
+    padding:0 20px;
+    font-size: 11px;
+}
+
+.demo_changer .form_holder input{
+    width: 55px;
+	border-radius: 0 10px 10px 0;
+	box-shadow: none;
+}
+
+.demo_changer .form_holder form{
+    padding: 0 20px;
+}
+
+.color_display_2 {
+   clear: both;
+    color: #FFFFFF;
+    display: inline-block;
+    font-size: 12px;
+	width:31px !important;
+	height:31px;
+    margin-bottom: 7px;
+    padding: 4px 10px;
+    text-align: center;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.29);
+}
+
+.color_display_2 a{
+    color: #fff;
+    text-decoration: none;
+}
+
+.color_display_2 a:focus,
+.color_display_2 a:hover {
+    color: #ededed !important;
+    text-decoration: none;
+}
+
+
+.predefined_styles{
+    padding:0px; height:59px; padding-left:3px;
+
+}
+
+.styleswitch{padding-top: 3px; float:left; margin-right: 3px;}
+
+@media only screen and (max-width: 768px) {
+.demo_changer{
+    display: none;
+}
+} 
+
+
+

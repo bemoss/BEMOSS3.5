@@ -1,0 +1,19 @@
+{
+    "address": "http://192.168.10.204", 
+    "agent": {
+        "exec": "thermostatagent-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
+    }, 
+    "agent_id": "1THE88308a2224dd",
+    "api": "classAPI_DummyRadioThermostat",
+    "building_name": "bemoss", 
+    "db_database": "bemossdb", 
+    "db_host": "localhost", 
+    "db_password": "admin", 
+    "db_port": "5432", 
+    "db_user": "admin", 
+    "device_monitor_time": 20, 
+    "model": "CT50 V1.94", 
+    "type": "thermostat", 
+    "vendor": "RadioThermostat", 
+    "zone_id": 999
+}

@@ -1,0 +1,6 @@
+{
+    "agentid": "master_driver",
+    "driver_config_list": [
+    					   "/home/aditya/BEMOSS/services/core/MasterDriverAgent/master_driver/test_bacnet1.config"
+    					  ]
+}

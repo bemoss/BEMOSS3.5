@@ -1,0 +1,277 @@
+ <!--
+ Copyright (c) 2016, Virginia Tech
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+  following conditions are met:
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the authors and should not be
+ interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+ This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+ United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+ nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+ express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+ any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+ privately owned rights.
+
+ Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+ otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+ Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+ expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+ VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+ under Contract DE-EE0006352
+
+ #__author__ = "BEMOSS Team"
+ #__credits__ = ""
+ #__version__ = "2.0"
+ #__maintainer__ = "BEMOSS Team"
+ #__email__ = "aribemoss@gmail.com"
+ #__website__ = "www.bemoss.org"
+ #__created__ = "2014-09-12 12:04:50"
+ #__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+{% load user_role %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>BEMOSS Zone 1 - Lighting Controller</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+<link href="/static/weathericons/css/weather-icons.css" rel="stylesheet" media="screen">
+<link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/style/dashboard.css" rel="stylesheet">
+<link href="/static/assets/jquery-easy-pie-chart/jquery.easy-pie-chart.css" rel="stylesheet" type="text/css" media="screen"/>
+
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/assets/slider_enhancer/jquery-ui-slider-pips.css">
+<link rel="stylesheet" href="/static/assets/colorpicker/css/colpick.css" type="text/css"/>
+
+<!--  Slider -->
+<script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+<link href="/static/css/jquery-ui.css" rel="stylesheet" type="text/css">
+
+
+
+<!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- <script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script> -->
+<style>
+.color-box {
+	float:center;
+	width:100px;
+	height:50px;
+	margin-left: 35%;
+	margin-top: 4%;
+	border: 1px solid white;
+}
+.slider {
+    float: left;
+    clear: left;
+    width: 70%;
+    margin-left: 20%;
+	margin-top: 4%;
+
+    background: #5e9ae2; /* Old browsers */
+	background: -moz-linear-gradient(left, #000000 0%, #ffffff 100%) !important; /* FireFox 3.6+ */
+	background: -webkit-gradient(linear, left top, right top, color-stop(0%,#000000), color-stop(100%,#ffffff)); /* Chrome, Safari 4+ */
+	background: -webkit-linear-gradient(left, #000000 0%,#ffffff 100%); /* Chrome 10+, Safari 5.1+ */
+	background: -o-linear-gradient(left, #000000 0%,#ffffff 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(left, #000000 0%,#ffffff 100%); /* IE 10+ */
+	background: linear-gradient(left,#000000 0%,#ffffff 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=’#000000’, endColorstr=’#ffffff′,GradientType=1 ); /* IE 6-9 */
+  }
+
+</style>
+<script>
+var agent_id = "{{ device_data.agent_id }}";
+var device_info = "{{device_info.node.node_id}}/lighting/{{ device_data.agent_id }}";
+var firstname = "{{ request.user.first_name }}";
+var lastname = "{{ request.user.last_name }}";
+var user = firstname.concat('_').concat(lastname);
+var zone = {{ device_info.node.node_id }};
+var _type = "{{ device_data.agent_id }}";
+var device_data_status = "{{ device_data.data.status }}";
+var brightness = "{{ device_data.data.brightness }}";
+brightness = brightness.replace("%", "");
+var saturation = "{{ device_data.data.saturation }}";
+saturation = saturation.replace("%", "");
+var color = "{{ device_data.data.hexcolor }}";
+color = color.toString();
+var device_data = jQuery.parseJSON('{{ device_data|device_data_jsonify}}');
+{% if request.user|has_group:'Tenant' %}
+var role = 'tenant';
+{% else  %}
+var role ='admin';
+{% endif %}
+{% ifnotequal request.user.get_profile.zone.zone_id None %}
+var uzone = {{ request.user.get_profile.zone.zone_id }};
+{% else  %}
+var uzone = 9999;
+{% endifnotequal %}
+
+</script>
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+    {% include 'common/side_nav.html' %}
+        <div class="page-content">
+  	        <form action="" method="post">
+                {% csrf_token %}
+                <div class="content container">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <h2 class="page-title">{{device_info.node.node_name}} : {{device_info.nickname}} </h2>
+                    </div>
+                  </div>
+                <div class="row">
+                        <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+                          <div class="stats-heading">Light Status</div>
+                          <div class="stats-body-alt">
+
+                            <div class="text-center">
+                            <div data-toggle="buttons" class="btn-group">
+                                {% ifequal device_data.data.status 'ON' %}
+                                      <label class="btn btn-lg btn-default active" style="background-color:green;" id="light_on"
+                                    {% if request.user|has_group:'Tenant' %} disabled
+                                    {% endif %}>
+                                        <input type="checkbox"  name="options" >
+                                        ON </label>
+                                      <label class="btn btn-lg btn-default" id="light_off"
+                                              {% if request.user|has_group:'Tenant' %} disabled
+                                    {% endif %}
+                                        <input type="checkbox"  name="options">
+                                        OFF </label>
+                                {% else %}
+                                    <label class="btn btn-lg btn-default" id="light_on"
+                                           {% if request.user|has_group:'Tenant' %} disabled
+                                    {% endif %}
+                                        <input type="checkbox"  name="options" >
+                                        ON </label>
+                                      <label class="btn btn-lg btn-default active" style="background-color:green;" id="light_off"
+                                              {% if request.user|has_group:'Tenant' %} disabled
+                                    {% endif %}
+                                        <input type="checkbox"  name="options" >
+                                        OFF </label>
+                                {% endifequal %}
+                                 </div></div>
+                            </div>
+                          <div class="stats-footer"><div class="text-center">Light connected!</div></div>
+                          </a> </div>
+
+                          {% ifnotequal device_data.data|get_item_in_dict:'brightness' None %}
+                          <div class="col-md-3 col-xs-12 col-sm-6" > <a href="#" class="stats-container" id="dim_container">
+                          <div class="stats-heading">Brightness</div>
+                          <div class="stats-body-alt" style="height:73px;">
+
+                            <div class="text-center">
+                            <h5> <div class="slider" id="brightness"></div></h5>
+                                </div>
+                          </div>
+
+                          <div class="stats-footer"><div class="text-center">Light illuminated to <input type="text" id="brightness_value" readonly style="border:0; color:#f6931f; font-weight:bold;width:50px"/></div></div>
+                          </a> </div>
+                          {% endifnotequal %}
+
+                        {% ifnotequal device_data.data|get_item_in_dict:'hexcolor' None %}
+                        <div class="col-md-3 col-xs-12 col-sm-6" > <a href="#" class="stats-container" id="color_container">
+                          <div class="stats-heading">Light Color</div>
+                          <div class="stats-body-alt" style="height:82px;">
+
+                            <div class="text-center">
+                            <div class="color-box">
+
+                                </div>
+                            </div>
+                        </div>
+                          <div class="stats-footer"><div class="text-center">
+                             Choose your light color
+                          </div></div>
+                          </a> </div>
+                        {% endifnotequal %}
+
+                  </div>
+
+                    </div>
+
+            <div class="row">
+                <div class="col-lg-1"></div>
+                 <div class="col-lg-6">
+                      <div class="widgetcontainer">
+
+                          <div class="todo-action-bar">
+                            <!--row start-->
+                            <div class="row">
+                                <div class="text-center">
+                                {% if request.user|has_group:'Admin' or  request.user|has_group:'Zone Manager'  %}
+
+                                <button type="button" class="btn btn-default" id="submit_lighting_data"><i class="icon-ok"
+                                        ></i> Submit All Changes</button>
+                                    <a class="btn btn-s-md btn-info " href={% url 'view-device-schedule' device_data.agent.mac_address %}><i class="icon-large icon-bar-chart"></i> Set Schedule</a>
+
+{% endif %}<a href={% url 'charts-view-device-chart' device_data.agent.mac_address %}><button type="button" class="btn btn-default btn-danger" ><i class="icon-bar-chart"></i> View Past Usage and Set Points</button></a>
+                                </div>
+                            </div>
+                            <!--row end-->
+                          </div>
+                        </div>
+                      </div>
+            </div><br/>
+	</form>
+        </div>
+</div>
+
+
+<div class="bottom-nav footer"> <span class="h6"> 2013-2017 &copy; Building Energy Management Open Source Software. </span><br/></div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery191.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery.jqplot.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/ui/jquery-ui.js"></script>
+<script src="/static/assets/slider_enhancer/jquery-ui-slider-pips.min.js"></script>
+<script src="/static/assets/colorpicker/js/colpick.js" type="text/javascript"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/lighting.js"></script>
+<script type="text/javascript" src="/static/app_js/make_current.js"></script>
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+
+</body>
+</html>

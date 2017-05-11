@@ -1,0 +1,552 @@
+.progress {
+	height: 7px;
+	margin-bottom: 20px;
+	overflow: hidden;
+	background-color: #f7f7f7;
+	background-image: -moz-linear-gradient(top, #f5f5f5, #f9f9f9);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f5f5), to(#f9f9f9));
+	background-image: -webkit-linear-gradient(top, #f5f5f5, #f9f9f9);
+	background-image: -o-linear-gradient(top, #f5f5f5, #f9f9f9);
+	background-image: linear-gradient(to bottom, #f5f5f5, #f9f9f9);
+	background-repeat: repeat-x;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff5f5f5', endColorstr='#fff9f9f9', GradientType=0);
+	-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+	-moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+	box-shadow: inset 0 1px 2px rgba(0,0,0,0.1)
+}
+
+.progress .bar {
+	float: left;
+	width: 0;
+	height: 100%;
+	font-size: 12px;
+	color: #fff;
+	text-align: center;
+	text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
+	background-color: #0e90d2;
+	background-image: -moz-linear-gradient(top, #149bdf, #0480be);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#149bdf), to(#0480be));
+	background-image: -webkit-linear-gradient(top, #149bdf, #0480be);
+	background-image: -o-linear-gradient(top, #149bdf, #0480be);
+	background-image: linear-gradient(to bottom, #149bdf, #0480be);
+	background-repeat: repeat-x;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff149bdf', endColorstr='#ff0480be', GradientType=0);
+	-webkit-box-shadow: inset 0 -1px 0 rgba(0,0,0,0.15);
+	-moz-box-shadow: inset 0 -1px 0 rgba(0,0,0,0.15);
+	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.15);
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	-webkit-transition: width .6s ease;
+	-moz-transition: width .6s ease;
+	-o-transition: width .6s ease;
+	transition: width .6s ease
+}
+
+.progress .bar+.bar {
+	-webkit-box-shadow: inset 1px 0 0 rgba(0,0,0,0.15), inset 0 -1px 0 rgba(0,0,0,0.15);
+	-moz-box-shadow: inset 1px 0 0 rgba(0,0,0,0.15), inset 0 -1px 0 rgba(0,0,0,0.15);
+	box-shadow: inset 1px 0 0 rgba(0,0,0,0.15), inset 0 -1px 0 rgba(0,0,0,0.15)
+}
+
+.progress-striped .bar {
+	background-color: #149bdf;
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255,255,255,0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255,255,255,0.15)), color-stop(0.75, rgba(255,255,255,0.15)), color-stop(0.75, transparent), to(transparent));
+	background-image: -webkit-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -moz-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -o-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	-webkit-background-size: 40px 40px;
+	-moz-background-size: 40px 40px;
+	-o-background-size: 40px 40px;
+	background-size: 40px 40px
+}
+
+.progress.active .bar {
+	-webkit-animation: progress-bar-stripes 2s linear infinite;
+	-moz-animation: progress-bar-stripes 2s linear infinite;
+	-ms-animation: progress-bar-stripes 2s linear infinite;
+	-o-animation: progress-bar-stripes 2s linear infinite;
+	animation: progress-bar-stripes 2s linear infinite
+}
+
+.progress-danger .bar, .progress .bar-danger {
+	background-color: #dd514c;
+	background-image: -moz-linear-gradient(top, #ee5f5b, #c43c35);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ee5f5b), to(#c43c35));
+	background-image: -webkit-linear-gradient(top, #ee5f5b, #c43c35);
+	background-image: -o-linear-gradient(top, #ee5f5b, #c43c35);
+	background-image: linear-gradient(to bottom, #ee5f5b, #c43c35);
+	background-repeat: repeat-x;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffee5f5b', endColorstr='#ffc43c35', GradientType=0)
+}
+
+.progress-danger.progress-striped .bar, .progress-striped .bar-danger {
+	background-color: #ee5f5b;
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255,255,255,0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255,255,255,0.15)), color-stop(0.75, rgba(255,255,255,0.15)), color-stop(0.75, transparent), to(transparent));
+	background-image: -webkit-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -moz-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -o-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)
+}
+
+.progress-success .bar, .progress .bar-success {
+	background-color: #5eb95e;
+	background-image: -moz-linear-gradient(top, #62c462, #57a957);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462), to(#57a957));
+	background-image: -webkit-linear-gradient(top, #62c462, #57a957);
+	background-image: -o-linear-gradient(top, #62c462, #57a957);
+	background-image: linear-gradient(to bottom, #62c462, #57a957);
+	background-repeat: repeat-x;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff62c462', endColorstr='#ff57a957', GradientType=0)
+}
+
+.progress-success.progress-striped .bar, .progress-striped .bar-success {
+	background-color: #62c462;
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255,255,255,0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255,255,255,0.15)), color-stop(0.75, rgba(255,255,255,0.15)), color-stop(0.75, transparent), to(transparent));
+	background-image: -webkit-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -moz-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -o-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)
+}
+
+.progress-info .bar, .progress .bar-info {
+	background-color: #4bb1cf;
+	background-image: -moz-linear-gradient(top, #5bc0de, #339bb9);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5bc0de), to(#339bb9));
+	background-image: -webkit-linear-gradient(top, #5bc0de, #339bb9);
+	background-image: -o-linear-gradient(top, #5bc0de, #339bb9);
+	background-image: linear-gradient(to bottom, #5bc0de, #339bb9);
+	background-repeat: repeat-x;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5bc0de', endColorstr='#ff339bb9', GradientType=0)
+}
+
+.progress-info.progress-striped .bar, .progress-striped .bar-info {
+	background-color: #5bc0de;
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255,255,255,0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255,255,255,0.15)), color-stop(0.75, rgba(255,255,255,0.15)), color-stop(0.75, transparent), to(transparent));
+	background-image: -webkit-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -moz-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -o-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)
+}
+
+.progress-warning .bar, .progress .bar-warning {
+	background-color: #faa732;
+	background-image: -moz-linear-gradient(top, #fbb450, #f89406);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
+	background-image: -webkit-linear-gradient(top, #fbb450, #f89406);
+	background-image: -o-linear-gradient(top, #fbb450, #f89406);
+	background-image: linear-gradient(to bottom, #fbb450, #f89406);
+	background-repeat: repeat-x;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0)
+}
+
+.progress-warning.progress-striped .bar, .progress-striped .bar-warning {
+	background-color: #fbb450;
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255,255,255,0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255,255,255,0.15)), color-stop(0.75, rgba(255,255,255,0.15)), color-stop(0.75, transparent), to(transparent));
+	background-image: -webkit-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -moz-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: -o-linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)
+}
+
+
+
+
+
+
+
+
+
+
+
+.nav > .disabled > a {
+    color: #999999;
+}
+.nav > .disabled > a:hover, .nav > .disabled > a:focus {
+    background-color: rgba(0, 0, 0, 0);
+    cursor: default;
+    text-decoration: none;
+}
+.navbar {
+    margin-bottom: 20px;
+    overflow: visible;
+}
+.navbar-inner {
+    background-color: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px 4px 4px 4px;
+    min-height: 40px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.navbar-inner:before, .navbar-inner:after {
+    content: "";
+    display: table;
+    line-height: 0;
+}
+.navbar-inner:after {
+    clear: both;
+}
+.navbar .container {
+    width: auto;
+}
+.nav-collapse.collapse {
+    height: auto;
+    overflow: visible;
+}
+.navbar .brand {
+    color: #777777;
+    display: block;
+    float: left;
+    font-size: 20px;
+    font-weight: 200;
+    margin-left: -20px;
+    padding: 10px 20px;
+    text-shadow: 0 1px 0 #FFFFFF;
+}
+.navbar .brand:hover, .navbar .brand:focus {
+    text-decoration: none;
+}
+.navbar-text {
+    color: #777777;
+    line-height: 40px;
+    margin-bottom: 0;
+}
+.navbar-link {
+    color: #777777;
+}
+.navbar-link:hover, .navbar-link:focus {
+    color: #333333;
+}
+.navbar .divider-vertical {
+    border-left: 1px solid #F2F2F2;
+    border-right: 1px solid #FFFFFF;
+    height: 40px;
+    margin: 0 9px;
+}
+.navbar .btn, .navbar .btn-group {
+    margin-top: 5px;
+}
+.navbar .btn-group .btn, .navbar .input-prepend .btn, .navbar .input-append .btn, .navbar .input-prepend .btn-group, .navbar .input-append .btn-group {
+    margin-top: 0;
+}
+.navbar-form {
+    margin-bottom: 0;
+}
+.navbar-form:before, .navbar-form:after {
+    content: "";
+    display: table;
+    line-height: 0;
+}
+.navbar-form:after {
+    clear: both;
+}
+.navbar-form input, .navbar-form select, .navbar-form .radio, .navbar-form .checkbox {
+    margin-top: 5px;
+}
+.navbar-form input, .navbar-form select, .navbar-form .btn {
+    display: inline-block;
+    margin-bottom: 0;
+}
+.navbar-form input[type="image"], .navbar-form input[type="checkbox"], .navbar-form input[type="radio"] {
+    margin-top: 3px;
+}
+.navbar-form .input-append, .navbar-form .input-prepend {
+    margin-top: 5px;
+    white-space: nowrap;
+}
+.navbar-form .input-append input, .navbar-form .input-prepend input {
+    margin-top: 0;
+}
+.navbar-search {
+    float: left;
+    margin-bottom: 0;
+    margin-top: 5px;
+    position: relative;
+}
+.navbar-search .search-query {
+    border-radius: 15px 15px 15px 15px;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 13px;
+    font-weight: normal;
+    line-height: 1;
+    margin-bottom: 0;
+    padding: 4px 14px;
+}
+.navbar-static-top {
+    margin-bottom: 0;
+    position: static;
+}
+.navbar-static-top .navbar-inner {
+    border-radius: 0 0 0 0;
+}
+.navbar-fixed-top, .navbar-fixed-bottom {
+    left: 0;
+    margin-bottom: 0;
+    position: fixed;
+    right: 0;
+    z-index: 1030;
+}
+.navbar-fixed-top .navbar-inner, .navbar-static-top .navbar-inner {
+    border-width: 0 0 1px;
+}
+.navbar-fixed-bottom .navbar-inner {
+    border-width: 1px 0 0;
+}
+.navbar-fixed-top .navbar-inner, .navbar-fixed-bottom .navbar-inner {
+    border-radius: 0 0 0 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+.navbar-static-top .container, .navbar-fixed-top .container, .navbar-fixed-bottom .container {
+    width: 940px;
+}
+.navbar-fixed-top {
+    top: 0;
+}
+.navbar-fixed-top .navbar-inner, .navbar-static-top .navbar-inner {
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
+}
+.navbar-fixed-bottom {
+    bottom: 0;
+}
+.navbar-fixed-bottom .navbar-inner {
+    box-shadow: 0 -1px 10px rgba(0, 0, 0, 0.1);
+}
+.navbar .nav {
+    display: block;
+    float: left;
+    left: 0;
+    margin: 0 10px 0 0;
+    position: relative;
+}
+.navbar .nav.pull-right {
+    float: right;
+    margin-right: 0;
+}
+.navbar .nav > li {
+    float: left;
+}
+.navbar .nav > li > a {
+    color: #fff;
+    float: none;
+    padding: 10px 15px;
+    text-decoration: none;
+}
+.navbar .nav .dropdown-toggle .caret {
+    margin-top: 8px;
+}
+.navbar .nav > li > a:focus, .navbar .nav > li > a:hover {
+    background-color: rgba(0, 0, 0, 0);
+    color: #333333;
+    text-decoration: none;
+}
+.navbar .nav > .active > a, .navbar .nav > .active > a:hover, .navbar .nav > .active > a:focus {
+    background-color:rgba(0, 0, 0, 0.25);
+    color: #fff;
+    text-decoration: none;
+}
+.navbar .btn-navbar {
+    background-color: #EDEDED;
+    background-image: linear-gradient(to bottom, #F2F2F2, #E5E5E5);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.075);
+    color: #FFFFFF;
+    display: none;
+    float: right;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: 7px 10px;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+.navbar .btn-navbar:hover, .navbar .btn-navbar:focus, .navbar .btn-navbar:active, .navbar .btn-navbar.active, .navbar .btn-navbar.disabled, .navbar .btn-navbar[disabled] {
+    background-color: #E5E5E5;
+    color: #FFFFFF;
+}
+.navbar .btn-navbar:active, .navbar .btn-navbar.active {
+}
+.navbar .btn-navbar .icon-bar {
+    background-color: #F5F5F5;
+    border-radius: 1px 1px 1px 1px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+    display: block;
+    height: 2px;
+    width: 18px;
+}
+.btn-navbar .icon-bar + .icon-bar {
+    margin-top: 3px;
+}
+.navbar .nav > li > .dropdown-menu:before {
+    border-bottom: 7px solid rgba(0, 0, 0, 0.2);
+    border-left: 7px solid rgba(0, 0, 0, 0);
+    border-right: 7px solid rgba(0, 0, 0, 0);
+    content: "";
+    display: inline-block;
+    left: 9px;
+    position: absolute;
+    top: -7px;
+}
+.navbar .nav > li > .dropdown-menu:after {
+    border-bottom: 6px solid #FFFFFF;
+    border-left: 6px solid rgba(0, 0, 0, 0);
+    border-right: 6px solid rgba(0, 0, 0, 0);
+    content: "";
+    display: inline-block;
+    left: 10px;
+    position: absolute;
+    top: -6px;
+}
+.navbar-fixed-bottom .nav > li > .dropdown-menu:before {
+    border-bottom: 0 none;
+    border-top: 7px solid rgba(0, 0, 0, 0.2);
+    bottom: -7px;
+    top: auto;
+}
+.navbar-fixed-bottom .nav > li > .dropdown-menu:after {
+    border-bottom: 0 none;
+    border-top: 6px solid #FFFFFF;
+    bottom: -6px;
+    top: auto;
+}
+.navbar .nav li.dropdown > a:hover .caret, .navbar .nav li.dropdown > a:focus .caret {
+    border-bottom-color: #333333;
+    border-top-color: #333333;
+}
+.navbar .nav li.dropdown.open > .dropdown-toggle, .navbar .nav li.dropdown.active > .dropdown-toggle, .navbar .nav li.dropdown.open.active > .dropdown-toggle {
+    background-color: #E5E5E5;
+    color: #555555;
+}
+.navbar .nav li.dropdown > .dropdown-toggle .caret {
+    border-bottom-color: #777777;
+    border-top-color: #777777;
+}
+.navbar .nav li.dropdown.open > .dropdown-toggle .caret, .navbar .nav li.dropdown.active > .dropdown-toggle .caret, .navbar .nav li.dropdown.open.active > .dropdown-toggle .caret {
+    border-bottom-color: #555555;
+    border-top-color: #555555;
+}
+.navbar .pull-right > li > .dropdown-menu, .navbar .nav > li > .dropdown-menu.pull-right {
+    left: auto;
+    right: 0;
+}
+.navbar .pull-right > li > .dropdown-menu:before, .navbar .nav > li > .dropdown-menu.pull-right:before {
+    left: auto;
+    right: 12px;
+}
+.navbar .pull-right > li > .dropdown-menu:after, .navbar .nav > li > .dropdown-menu.pull-right:after {
+    left: auto;
+    right: 13px;
+}
+.navbar .pull-right > li > .dropdown-menu .dropdown-menu, .navbar .nav > li > .dropdown-menu.pull-right .dropdown-menu {
+    border-radius: 6px 0 6px 6px;
+    left: auto;
+    margin-left: 0;
+    margin-right: -1px;
+    right: 100%;
+}
+.navbar-inverse .navbar-inner {
+    background-color: #1B1B1B;
+    background-image: linear-gradient(to bottom, #222222, #111111);
+    background-repeat: repeat-x;
+    border-color: #252525;
+}
+.navbar-inverse .brand, .navbar-inverse .nav > li > a {
+    color: #999999;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+.navbar-inverse .brand:hover, .navbar-inverse .nav > li > a:hover, .navbar-inverse .brand:focus, .navbar-inverse .nav > li > a:focus {
+    color: #FFFFFF;
+}
+.navbar-inverse .brand {
+    color: #999999;
+}
+.navbar-inverse .navbar-text {
+    color: #999999;
+}
+.navbar-inverse .nav > li > a:focus, .navbar-inverse .nav > li > a:hover {
+    background-color: rgba(0, 0, 0, 0);
+    color: #FFFFFF;
+}
+.navbar-inverse .nav .active > a, .navbar-inverse .nav .active > a:hover, .navbar-inverse .nav .active > a:focus {
+    background-color: #111111;
+    color: #FFFFFF;
+}
+.navbar-inverse .navbar-link {
+    color: #999999;
+}
+.navbar-inverse .navbar-link:hover, .navbar-inverse .navbar-link:focus {
+    color: #FFFFFF;
+}
+.navbar-inverse .divider-vertical {
+    border-left-color: #111111;
+    border-right-color: #222222;
+}
+.navbar-inverse .nav li.dropdown.open > .dropdown-toggle, .navbar-inverse .nav li.dropdown.active > .dropdown-toggle, .navbar-inverse .nav li.dropdown.open.active > .dropdown-toggle {
+    background-color: #111111;
+    color: #FFFFFF;
+}
+.navbar-inverse .nav li.dropdown > a:hover .caret, .navbar-inverse .nav li.dropdown > a:focus .caret {
+    border-bottom-color: #FFFFFF;
+    border-top-color: #FFFFFF;
+}
+.navbar-inverse .nav li.dropdown > .dropdown-toggle .caret {
+    border-bottom-color: #999999;
+    border-top-color: #999999;
+}
+.navbar-inverse .nav li.dropdown.open > .dropdown-toggle .caret, .navbar-inverse .nav li.dropdown.active > .dropdown-toggle .caret, .navbar-inverse .nav li.dropdown.open.active > .dropdown-toggle .caret {
+    border-bottom-color: #FFFFFF;
+    border-top-color: #FFFFFF;
+}
+.navbar-inverse .navbar-search .search-query {
+    background-color: #515151;
+    border-color: #111111;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+    transition: none 0s ease 0s;
+}
+.navbar-inverse .navbar-search .search-query:-moz-placeholder {
+    color: #CCCCCC;
+}
+.navbar-inverse .navbar-search .search-query:focus, .navbar-inverse .navbar-search .search-query.focused {
+    background-color: #FFFFFF;
+    border: 0 none;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
+    color: #333333;
+    outline: 0 none;
+    padding: 5px 15px;
+    text-shadow: 0 1px 0 #FFFFFF;
+}
+.navbar-inverse .btn-navbar {
+    background-color: #0E0E0E;
+    background-image: linear-gradient(to bottom, #151515, #040404);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+.navbar-inverse .btn-navbar:hover, .navbar-inverse .btn-navbar:focus, .navbar-inverse .btn-navbar:active, .navbar-inverse .btn-navbar.active, .navbar-inverse .btn-navbar.disabled, .navbar-inverse .btn-navbar[disabled] {
+    background-color: #040404;
+    color: #FFFFFF;
+}
+.navbar-inverse .btn-navbar:active, .navbar-inverse .btn-navbar.active {
+}
+
+.inputGroup-btn{
+	background-color:rgba(255, 255, 255, 0.25);
+	border:1px solid rgba(255, 255, 255, 0.25);
+	border-left:none;
+}
+
+
+
+
+
+
+
+
+
+

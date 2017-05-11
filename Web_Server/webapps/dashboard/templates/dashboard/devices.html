@@ -1,0 +1,329 @@
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+{% load get_dict %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Devices - {{ request_node }}</title>
+    <!--
+
+    # Authors: BEMOSS Team
+    # Version: 2.0
+    # Email: aribemoss@gmail.com
+    # Created: "2014-10-13 18:45:40"
+    # Updated: "2015-02-13 15:06:41"
+
+
+    Copyright © 2014 by Virginia Polytechnic Institute and State University
+    All rights reserved
+
+    Virginia Polytechnic Institute and State University (Virginia Tech) owns the copyright for the BEMOSS software and its
+    associated documentation ("Software") and retains rights to grant research rights under patents related to
+    the BEMOSS software to other academic institutions or non-profit research institutions.
+    You should carefully read the following terms and conditions before using this software.
+    Your use of this Software indicates your acceptance of this license agreement and all terms and conditions.
+
+    You are hereby licensed to use the Software for Non-Commercial Purpose only.  Non-Commercial Purpose means the
+    use of the Software solely for research.  Non-Commercial Purpose excludes, without limitation, any use of
+    the Software, as part of, or in any way in connection with a product or service which is sold, offered for sale,
+    licensed, leased, loaned, or rented.  Permission to use, copy, modify, and distribute this compilation
+    for Non-Commercial Purpose to other academic institutions or non-profit research institutions is hereby granted
+    without fee, subject to the following terms of this license.
+
+    Commercial Use: If you desire to use the software for profit-making or commercial purposes,
+    you agree to negotiate in good faith a license with Virginia Tech prior to such profit-making or commercial use.
+    Virginia Tech shall have no obligation to grant such license to you, and may grant exclusive or non-exclusive
+    licenses to others. You may contact the following by email to discuss commercial use:: vtippatents@vtip.org
+
+    Limitation of Liability: IN NO EVENT WILL VIRGINIA TECH, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR REDISTRIBUTE
+    THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+    CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO
+    LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE
+    OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF VIRGINIA TECH OR OTHER PARTY HAS BEEN ADVISED
+    OF THE POSSIBILITY OF SUCH DAMAGES.
+
+    For full terms and conditions, please visit https://bitbucket.org/bemoss/bemoss_os.
+
+    Address all correspondence regarding this license to Virginia Tech's electronic mail address:: vtippatents@vtip.org
+
+
+        -->
+
+    <meta http-equiv="refresh" content="100">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+    <link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/fam-icons/fam-icons.css">
+    <link href="/static/style/style.css" rel="stylesheet">
+    <link href="/static/style/dashboard.css" rel="stylesheet">
+    <!-- Testing Sortable -->
+    <link href="/static/css/jquery-ui.css" rel="stylesheet">
+    <script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+    <script class="include" type="text/javascript" src="/static/javascript/jquery-ui.js"></script>
+
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+
+
+    <!-- Notify CSS -->
+    <link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+
+    <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+
+    <script class="include" type="text/javascript" src="/static/app_js/dashboard_common.js"></script>
+    <script class="include" type="text/javascript" src="/static/app_js/common_fn.js"></script>
+    <script class="include" type="text/javascript" src="/static/javascript/gauge.min.js"></script>
+    <!--[if IE]><script type="text/javascript" src="/static/assets/jqueryknobdial/excanvas.js"></script><![endif]-->
+    <script>
+        var url_identify_device = "{%  url 'dashboard-identify-device' %}";
+        var save_view_edit_changes_dashboard = "{%  url 'save_view_edit_changes_dashboard' %}";
+    </script>
+
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+    {% include 'common/side_nav.html' %}
+    <div class="page-content" id="dashboard_content">
+        <form action="../" method="post">
+            {% csrf_token %}
+            <div class="content container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h2 class="page-title">{{request_node }}: {{ request_deviceType|upper }} DEVICES</h2>
+                    </div>
+                </div>
+                <div class="row" id="#unassigned_devices">
+
+                    <div class="col-lg-12">
+
+                        <div class="widget">
+                            {%  if request_deviceType == "all" %}
+                                {% get_keys device_list 'APR' request_node_id as devicetypes %}
+                            {% else %}
+                                {% make_list request_deviceType as devicetypes%}
+                            {% endif %}
+                            {% for type in devicetypes %}
+
+                            <div class="widget">
+                            <div class="widget-header"><i class="icon-table"></i>
+                                <h3>{{ type }} Controllers</h3>
+                            </div>
+                            <div class="widget-content connectedSortable" id="sortable1">
+                                {% get_value device_list 'APR' request_node_id type as devices %}
+                                {% for device in devices %}
+
+                                    <div class="col-md-3 col-xs-12 col-sm-6 device_view"
+                                         id="{{ device.agent_id }}_divopen"
+                                         style="height:280px; {% if device.devicedata.network_status == 'OFFLINE' %} pointer-events: none; {%  endif %}">
+                                        <a href="{% url 'device-view-device' device.mac_address %}" class="stats-container">
+                                            <div class="stats-heading"
+                                                 id="{{ device.agent_id }}_nickname_header">{{ device.nickname }}</div>
+                                            <div class="stats-body-alt">
+                                                <h2></h2>
+                                                    <div class="text-center h5">
+                                                        {%  ifnotequal device.devicedata.dashboard_view|get_item_in_dict:'top' None %}
+                                                        {{ device.devicedata.data|get_item_in_dict:device.devicedata.dashboard_view.top }}
+                                                        {% else %}
+                                                        <br>
+                                                        {% endifnotequal %}
+                                                    </div>
+                                                    {% if device.devicedata.network_status == 'ONLINE' %}
+                                                        <div class="text-center">
+                                                    {% else %}
+                                                        <div class="text-center" style="-webkit-filter:opacity(30%);">
+                                                    {% endif %}
+
+                                                    {% if device.devicedata.dashboard_view.center.type == 'meter' %}
+                                                        <div id="preview">
+                                                    <div class="text-center">
+                                                        <canvas class="powermeter" id="chartd_{{ device.agent_id }}" width=132
+                                                                height=80></canvas>
+                                                        <div id="{{ device.agent_id }}-textfield" style = "margin-top: -70px;"></div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div id="unit" style="font-size:12px; margin-top: 0px;">{{ device.devicedata.dashboard_view.center.unit }}</div>
+                                                        <div class="text-center"><h4
+                                                                id="{{ device.agent_id }}_chvalue">{{ device.devicedata.data|get_item_in_dict:device.devicedata.dashboard_view.center.value }}</h4>
+                                                        </div>
+                                                    </div>
+                                                        </div>
+                                                    {% elif device.devicedata.dashboard_view.center.type == 'image' %}
+                                                        <div class="text-center">
+                                                        <img src="/static/images/{{ device.devicedata.dashboard_view.center.value }}" width=auto height="80">
+                                                        </div>
+
+                                                    {% else %}
+
+                                                        <span class="h1">{{ device.devicedata.data|get_item_in_dict:device.devicedata.dashboard_view.center.value }}</span>
+                                                    {% endif %}
+                                                    </div>
+
+                                                <div class="text-center" style="margin-top: 10px;">
+                                                    <h5>{%  ifnotequal device.devicedata.dashboard_view|get_item_in_dict:'bottom' None %}
+                                                        {{ device.devicedata.dashboard_view.bottom.title }} : {{ device.devicedata.data|get_item_in_dict:device.devicedata.dashboard_view.bottom }}
+                                                        {% else %}
+                                                        <br>
+                                                        {% endifnotequal %}
+                                                    </h5></div>
+                                                <div class="text-center"><h5>{{ device.devicedata.network_status }}</h5></div>
+                                                {% ifequal request.user.groups.all.0.name|lower  'admin' %}
+                                                    {% if device.identifiable %}
+                                                        <div class="text-center" style="height: 23px;">
+                                                            <button class="btn btn-warning btn-xs identify"
+                                                                    style="margin-top: -40px; margin-bottom: 7px"
+                                                                    id="identify-{{ device.agent_id }}" {%  if device.devicedata.network_status == 'OFFLINE' %} disabled {% endif %}>
+                                                                <i class="icon-search" id="{{ device.agent_id }}-spin"></i>
+                                                                Identify
+                                                                Device
+                                                            </button>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="text-center" style="height: 23px;">
+                                                        </div>
+                                                    {% endif %}
+                                                {% endifequal %}
+                                            </div>
+                                            <a href="#">
+                                            <div class="stats-footer text-center" data-backdrop="false"
+                                                 data-target="#{{ device.agent_id}}" data-toggle="modal">View/Edit
+                                                Information
+                                            </div>
+                                            </a>
+
+                                    </div>
+                                        </a>
+                                    <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel"
+                                         role="dialog" tabindex="-1" class="modal fade" id="{{ device.agent_id }}">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button aria-hidden="true" data-dismiss="modal" class="close"
+                                                            type="button">x
+                                                    </button>
+                                                    <h4 id="myModalLabel" class="modal-title">{{ device.nickname }}
+                                                        Information</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed">
+                                                        <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Device Nickname</td>
+                                                            <td id="{{ device.agent_id }}_nick">{{ device.nickname }}</td>
+                                                            <td><a href="javascript:;" class="nickname_edit"><i
+                                                                    class="icon-small icon-edit"
+                                                                    id="{{ device.agent_id }}_nick_edit"></i></a></td>
+                                                            <script>
+                                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                                    $("#{{device.agent_id}}_nick_edit").click(function () {
+                                                                        //alert("testing");
+                                                                        var newtest = document.getElementById(this.id.replace("_edit", ""));
+                                                                        newtest.innerHTML = '<input type="text" id="{{device.agent_id}}_nickname" placeholder="{{device.nickname}}"></input>'
+                                                                    });
+                                                                {% endifequal %}
+                                                            </script>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Type</td>
+                                                            <td>{{ device.device_type|capfirst }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Vendor Name</td>
+                                                            <td>{{ device.vendor_name }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Device Model</td>
+                                                            <td>{{ device.device_model }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>MAC Address</td>
+                                                            <td>{{ device.mac_address }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class="attribution">Note: The nickname should have between 6 and
+                                                        15 characters with alphabets or numbers or underscore (_). No
+                                                        spaces or special characters.</p>
+                                                    <p class="attribution" id="viewediterror_{{ device.agent_id }}"
+                                                       style="color:red;"></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button data-dismiss="modal" class="btn btn-default" type="button">
+                                                        Close
+                                                    </button>
+                                                    {% ifequal request.user.groups.all.0.name|lower 'admin' %}
+                                                        <button class="btn btn-primary save_changes"
+                                                                id="#savechanges-{{ device.agent_id }}-{{ device.device_model_id }}"
+                                                                type="button">Save changes
+                                                        </button>
+                                                    {% endifequal %}
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+                                {%  empty %}
+                                    Sorry, no devices matching the request
+                                {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+
+                                <!-- /shortcuts -->
+
+                            <!-- /widget-content -->
+                        </div>
+
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software.</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+</body>
+</html>

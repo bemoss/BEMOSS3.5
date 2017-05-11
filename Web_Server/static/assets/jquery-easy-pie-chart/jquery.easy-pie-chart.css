@@ -1,0 +1,62 @@
+.easyPieChart {
+    position: relative;
+    text-align: center;
+}
+
+.easyPieChart canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
+.value-pie {
+    color: #FFFFFF;
+    float: right;
+}
+.value-pie a.active {
+    color: #ff8800;
+}
+
+
+.chart-tittle {
+    background:rgba(0,0,0,0.3);
+    display: inline-block;
+    font-weight: normal;
+    padding: 15px;
+    width: 100%;
+}
+
+
+.text-muted {
+    color: #fff;
+}
+.axis {
+    margin: 6px 0 0;
+}
+.axis li {
+    font-size: 9px;
+    line-height: 1em;
+    margin-right: 2px;
+    padding: 0;
+    text-align: center;
+    vertical-align: top;
+    width: 10px;
+}
+.axis li:last-child {
+    margin-right: 0 !important;
+}
+.axis-full {
+    display: table;
+}
+.axis-full li {
+    display: table-cell;
+    padding: 0;
+    width: 10%;
+}
+
+.list-inline {
+    list-style: none outside none;
+    padding-left: 0;
+}
+

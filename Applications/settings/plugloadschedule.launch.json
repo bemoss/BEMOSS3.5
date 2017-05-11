@@ -1,0 +1,131 @@
+{"plugload": {
+        "Wifiswitch1": {
+            "active": [
+                "weekdayweekend",
+                "holiday"
+            ], 
+            "inactive": [
+                "everyday"
+            ], 
+            "schedulers": {
+                "everyday": {
+                    "friday": [], 
+                    "monday": [
+                        {
+                            "at": 0, 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "OFF"
+                        }, 
+                        {
+                            "at": 30, 
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 60, 
+                            "id": "3", 
+                            "nickname": "Period3", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 90, 
+                            "id": "4", 
+                            "nickname": "Period4", 
+                            "status": "OFF"
+                        }
+                    ], 
+                    "saturday": [], 
+                    "sunday": [], 
+                    "thursday": [], 
+                    "tuesday": [], 
+                    "wednesday": [
+                        {
+                            "at": 0, 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "OFF"
+                        }, 
+                        {
+                            "at": 30, 
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 60, 
+                            "id": "3", 
+                            "nickname": "Period3", 
+                            "status": "OFF"
+                        }
+                    ]
+                }, 
+                "holiday": {
+                    "holiday": [
+                        {
+                            "at": 0, 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 30, 
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "ON"
+                        }, 
+                        {
+                            "at": 60, 
+                            "id": "3", 
+                            "nickname": "Period3", 
+                            "status": "OFF"
+                        }, 
+                        {
+                            "at": 90, 
+                            "id": "4", 
+                            "nickname": "Period4", 
+                            "status": "OFF"
+                        }
+                    ]
+                }, 
+                "weekdayweekend": {
+                    "weekday": [
+                        {
+                            "at": 1390,
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "OFF"
+                        }, 
+                        {
+                            "at": 1330,
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "ON"
+                        }
+                    ], 
+                    "weekend": [
+                        {
+                            "at": 0, 
+                            "id": "1", 
+                            "nickname": "Period1", 
+                            "status": "OFF"
+                        }, 
+                        {
+                            "at": 30, 
+                            "id": "2", 
+                            "nickname": "Period2", 
+                            "status": "OFF"
+                        }, 
+                        {
+                            "at": 60, 
+                            "id": "3", 
+                            "nickname": "Period3", 
+                            "status": "ON"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

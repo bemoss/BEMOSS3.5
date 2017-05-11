@@ -1,0 +1,260 @@
+ <!--
+ Copyright (c) 2016, Virginia Tech
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+  following conditions are met:
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the authors and should not be
+ interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+ This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+ United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+ nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+ express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+ any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+ privately owned rights.
+
+ Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+ otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+ Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+ expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+ VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+ under Contract DE-EE0006352
+
+ #__author__ = "BEMOSS Team"
+ #__credits__ = ""
+ #__version__ = "2.0"
+ #__maintainer__ = "BEMOSS Team"
+ #__email__ = "aribemoss@gmail.com"
+ #__website__ = "www.bemoss.org"
+ #__created__ = "2014-09-12 12:04:50"
+ #__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+{% load user_role %}
+{% load get_dict %}
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ device_info.node.node_name }}: Smart Plug - {{ device_nickname }}</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/style/dashboard.css" rel="stylesheet">
+     <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+<!--<link rel="stylesheet" type="text/css" href="/static/style/jquery.jqplot.min.css" />-->
+    <link href="/static/css/jquery-ui.css" rel="stylesheet">
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+
+<script src="/static/js/jquery.js"></script>
+<script>
+    var device_data = jQuery.parseJSON('{{ device_data|device_data_jsonify}}');
+
+    var agent_id = "{{ device_data.agent_id }}";
+	var device_status = "{{ device_data.data|get_item_in_dict:'status' }}";
+	var flag = "{{ device_data.data|get_item_in_dict:'status' }}";
+	var sp_current = 0.5;
+	var device_info = "{{device_data.device_zone}}/plugload/{{device_data.agent_id}}";
+    var firstname = "{{ request.user.first_name }}";
+    var lastname = "{{ request.user.last_name }}";
+    var user = firstname.concat('_').concat(lastname);
+	var power = "{{ device_data.data|get_item_in_dict:'power' }}";
+    var device_data = jQuery.parseJSON('{{ device_data|device_data_jsonify}}');
+    var device_type_id = "{{ device_type_id }}";
+    console.log(device_data);
+</script>
+
+
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+{% include 'common/side_nav.html' %}
+  <div class="page-content">
+    <form action="" method="post">
+  	{% csrf_token %}
+    <div class="content container">
+      <div class="row">
+        <div class="col-md-12">
+          <h2 class="page-title">{{device_info.node.node_name}} : {{device_info.nickname}} </h2>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container">
+              <div class="stats-heading">Device Status</div>
+              <div class="stats-body-alt" id="statss">
+            <!--<div class="text-center" ><h3>{{ device_nickname }}</h3></div>-->
+                <div class="text-center"> <div data-toggle="buttons" class="btn-group">
+                	{% ifequal device_data.data.status 'ON' %}
+		                  <label class="btn btn-lg btn-default active" style="background-color:green;" id="sp_on"
+                          {% if request.user|has_group:'Tenant' %} disabled
+                          {% endif %}>
+		                    <input type="checkbox"  name="options" >
+		                    ON </label>
+		                  <label class="btn btn-lg btn-default" id="sp_off"
+                                  {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+		                    <input type="checkbox"  name="options">
+		                    OFF </label>
+		            {% else %}
+		            	<label class="btn btn-lg btn-default" id="sp_on"
+                                {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+		                    <input type="checkbox"  name="options" >
+		                    ON </label>
+		                  <label class="btn btn-lg btn-default active" style="background-color:green;" id="sp_off"
+                                  {% if request.user|has_group:'Tenant' %} disabled
+                        {% endif %}>
+		                    <input type="checkbox"  name="options" >
+		                    OFF </label>
+		            {% endifequal %}
+		             </div> </div>
+
+              </div>
+              <div class="stats-footer"><div class="text-center">Toggle ON/OFF status</div></div>
+        </a>
+        </div>
+        {% ifnotequal device_data.data|get_item_in_dict:'power' None %}
+        <div class="col-md-3 col-xs-12 col-sm-6"> <a href="#" class="stats-container" >
+          <div class="stats-heading">Power Consumption (W)</div>
+          <div class="stats-body-alt" id="power_con">
+
+            <div class="widget-content" style="background-color: rgba(0,0,0, 0.11);" >
+            <div class="text-center">
+
+                <div id="preview">
+                    <div class="text-center">
+                    <canvas class="powermeter" id="chart_9" width=132 height=80></canvas>
+                    <div id="9-textfield" style = "margin-top: -70px; font-size: 10px;"></div>
+                    </div>
+                    <div class="text-center">
+                    <div id="unit" style = "font-size:12px; margin-top: 0px;">W</div>
+
+                    </div>
+                </div>
+                <div class="text-center">	<span class="h4">Power: </span><span class="h4" id="power_val">{{ device_data.data.power }}</span><span class="h4"> W</span></div>
+
+            </div>
+            </div>
+        </div>
+        </a>
+        </div>
+    {% endifnotequal %}
+
+    </div>
+</div>
+    <div class="row">
+     <div class="col-lg-10">
+          <div class="widgetcontainer">
+                <!--row start-->
+                <div class="row">
+                <div class="col-md-offset-3">
+                 {% if request.user|has_group:'Admin' or  request.user|has_group:'Zone Manager'  %}
+                    <button type="button" class="btn btn-default" id="confirm_change"><i class="icon-ok"></i> Submit All Changes</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                    <a class="btn btn-s-md btn-info" href={% url 'view-device-schedule' device_data.agent.mac_address %}><i class="icon-large icon-calendar"></i> Set Schedule</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               {% endif %}      {% if device_data.power != None %}
+                    <a href="/wtpl_statistics/{{ mac_address }}"><button type="button" class="btn btn-default btn-danger" ><i class="icon-bar-chart"></i> View Past Usage and Set Points</button></a>
+                    {% else %}
+                    <a href={% url 'charts-view-device-chart' device_data.agent.mac_address %}><button type="button" class="btn btn-default btn-danger" ><i class="icon-bar-chart"></i> View Past Usage and Set Points</button></a>
+                    {% endif %}
+                </div>
+                    </div>
+                <!--row end-->
+            </div>
+          </div>
+</div>
+    <div class="row">
+      <div class="col-md-10 col-xs-12 col-sm-6">
+          <div class="widget-content" id="statistics_view" hidden>
+            <div id="chart10" style="width:100%; height:350px"></div>
+          </div>
+      </div>
+    </div>
+
+
+    </form>
+  </div>
+</div>
+<div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software. </div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery-ui.js"></script>
+<!--<script class="include" type="text/javascript" src="/static/javascript/jquery191.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery.jqplot.min.js"></script>-->
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+
+
+<script class="include" type="text/javascript" src="/static/javascript/gauge.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/plugload.js"></script>
+<script type="text/javascript" src="/static/app_js/make_current.js"></script>
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+<!-- End additional plugins
+
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.meterGaugeRenderer.min.js"></script>
+
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.barRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.highlighter.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.cursor.min.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.pointLabels.min.js"></script>
+
+
+<script class="include" type="text/javascript" src="/static/javascript/jqplot.canvasTextRenderer.min.js"></script>
+
+
+<script type="text/javascript" src="/static/javascript/jqplot.canvasAxisLabelRenderer.min.js"></script>
+<script type="text/javascript" src="/static/javascript/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="/static/javascript/jqplot.canvasOverlay.min.js"></script>
+
+
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/line-charts.js"></script>
+
+
+<script class="include" type="text/javascript" src="/static/javascript/meter-gauge.js"></script>
+
+ -->
+
+
+
+</body>
+</html>

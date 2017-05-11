@@ -1,0 +1,343 @@
+ <!--
+ Copyright (c) 2016, Virginia Tech
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+  following conditions are met:
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the authors and should not be
+ interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
+
+ This material was prepared as an account of work sponsored by an agency of the United States Government. Neither the
+ United States Government nor the United States Department of Energy, nor Virginia Tech, nor any of their employees,
+ nor any jurisdiction or organization that has cooperated in the development of these materials, makes any warranty,
+ express or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness or
+ any information, apparatus, product, software, or process disclosed, or represents that its use would not infringe
+ privately owned rights.
+
+ Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer, or
+ otherwise does not necessarily constitute or imply its endorsement, recommendation, favoring by the United States
+ Government or any agency thereof, or Virginia Tech - Advanced Research Institute. The views and opinions of authors
+ expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
+
+ VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
+ under Contract DE-EE0006352
+
+ #__author__ = "BEMOSS Team"
+ #__credits__ = ""
+ #__version__ = "3.5"
+ #__maintainer__ = "BEMOSS Team"
+ #__email__ = "aribemoss@gmail.com"
+ #__website__ = "www.bemoss.org"
+ #__created__ = "2014-09-12 12:04:50"
+ #__lastUpdated__ = "2016-03-14 11:23:33" -->
+
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+{% load user_role %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BEMOSS - Thermostat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+    <link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link href="/static/weathericons/css/weather-icons.css" rel="stylesheet" media="screen">
+    <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+    <link href="/static/style/style.css" rel="stylesheet">
+    <link href="/static/style/dashboard.css" rel="stylesheet">
+    <link href="/static/assets/jquery-easy-pie-chart/jquery.easy-pie-chart.css" rel="stylesheet" type="text/css"
+          media="screen"/>
+
+    <!-- Notify CSS -->
+    <!-- <link href="../static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet"> -->
+    <link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+
+    <link href="/static/css/jquery-ui.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="/static/assets/slider_enhancer/jquery-ui-slider-pips.css">
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+    <script class="include" type="text/javascript" src="/static/javascript/jquery.min.js"></script>
+    <script>
+        var agent_id = "{{ device_data.agent_id }}";
+        var firstname = "{{ request.user.first_name }}";
+        var lastname = "{{ request.user.last_name }}";
+        var user = firstname.concat('_').concat(lastname);
+        {% if request.user|has_group:'Tenant' %}
+var role = 'tenant';
+{% else  %}
+var role ='admin';
+{% endif %}
+        {% ifnotequal request.user.get_profile.zone.zone_id None %}
+            var uzone = {{ request.user.get_profile.zone.zone_id }};
+        {% else  %}
+            var uzone = 9999;
+        {% endifnotequal %}
+        var device_data = jQuery.parseJSON('{{ device_data|device_data_jsonify}}');
+    </script>
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+    {% include 'common/side_nav.html' %}
+    <div class="page-content">
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="content container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h2 class="page-title">{{device_info.node.node_name}} : {{device_info.nickname}} </h2>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-xs-12 col-sm-6">
+                        {% ifnotequal device_data.data|get_item_in_dict:'battery' None %}
+                            <a href="#" class="stats-container">
+                                <div class="stats-heading">Battery Level</div>
+                                <div class="stats-body-alt">
+                                    <div class="progress" style="width: 100%;">
+                                        <div class="progress-bar progress-bar-info" role="progressbar"
+                                             aria-valuenow="{{ device_data.data|get_item_in_dict:'battery' }}" aria-valuemin="0"
+                                             aria-valuemax="100" style="width: {{ device_data.battery }}%">
+                                            <span class="sr-only">{{ device_data.data|get_item_in_dict:'battery' }} %</span>
+                                        </div>
+                                    </div>
+                                    <h4 class="text-center" id="battery_lvl">{{ device_data.data|get_item_in_dict:'battery' }} %</h4>
+                                </div>
+
+                            </a>
+                        {% endifnotequal %}
+                        {% if device_type_id == '1THE' %} <br/><br/><br/>{% endif %}
+                        <a href="#" class="stats-container">
+                            <div class="stats-heading">Indoor Temperature</div>
+                            <div class="stats-body-alt">
+                                <div class="text-center"><span class="h1"
+                                                               id="indoor_temp">{{ device_data.data|get_item_in_dict:'temperature' }}</span><span
+                                        class="h1">&deg;F</span></div>
+                            </div>
+                        </a>
+                        {% ifnotequal device_data.data|get_item_in_dict:'hold' None %}
+                            <a href="#" class="stats-container">
+                                <div class="stats-heading">Hold</div>
+                                <div class="stats-body-alt">
+                                    <div class="text-center">
+
+                                        <button class="btn btn-default" type="button" id="hold_none"
+                                                {% if request.user|has_group:'Tenant' %} disabled
+                                                {% endif %}><span class="h4">None</span></button>
+                                        <button class="btn btn-default" type="button" id="hold_temp"
+                                                {% if request.user|has_group:'Tenant' %} disabled
+                                                {% endif %}><span class="h4">Temporary</span></button>
+                                        <button class="btn btn-default" type="button" id="hold_perm"
+                                                {% if request.user|has_group:'Tenant' %} disabled
+                                                {% endif %}><span class="h4">Permanent</span></button>
+                                    </div>
+                                </div>
+
+                            </a> {% endifnotequal %}
+                    </div>
+                    <div class="col-lg-6 col-xs-12 col-sm-6">
+                        <div class="widget-container" id="weather_widget">
+                            <div class="padded"><i class="icon-map-marker pull-right"></i> <span class="h4"
+                                                                                                 id="locateion">{{ weather_info.location }}</span>
+                                <br/>
+
+                                <div class="text-center padder m-t"><span class="h1" id="iconandtemp"><i
+                                        class="{{ weather_icon }}"></i> {{ weather_info.temp_f }}&deg;F</span></div>
+                            </div>
+                            <div class="text-center padder m-t"><span class="h4" id="weather">{{ weather }}</span></div>
+                            <br/>
+
+                            <div class="widget-footer lt">
+                                <div class="row">
+                                    <div class="col-xs-4">
+                                        <small class="text-muted block">Humidity</small>
+                                        <span id="humidity">{{ weather_info.humidity }}</span></div>
+                                    <div class="col-xs-4">
+                                        <small class="text-muted block">Precipitation</small>
+                                        <span id="precip">{{ weather_info.precip }} in.</span></div>
+                                    <div class="col-xs-4">
+                                        <small class="text-muted block">Winds</small>
+                                        <span id="winds">{{ weather_info.winds }} mph</span></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-xs-12 col-sm-6" id="actt"><a href="#" class="stats-container">
+                        <div class="stats-heading">Thermostat Mode</div>
+                        <div class="stats-body-alt">
+                            <div class="text-center">
+                                <button class="btn btn-default btn-lg" type="button" id="th_heat"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}><i class="shortcut-icon icon-fire"></i> Heat
+                                </button>
+                                &nbsp;&nbsp;&nbsp;
+                                <button class="btn btn-default btn-lg" type="button" id="th_cool"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}><i class="shortcut-icon icon-tint"></i> Cool
+                                </button>
+                                &nbsp;&nbsp;&nbsp;
+                                <button class="btn btn-default btn-lg" type="button" id="th_auto"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}><i class="shortcut-icon icon-tint"></i><i class="shortcut-icon icon-fire"></i> Auto
+                                </button>
+                                &nbsp;&nbsp;&nbsp;
+                                <button class="btn btn-default btn-lg" type="button" id="th_off"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}><i class="shortcut-icon icon-off"></i> Off
+                                </button>
+                            </div>
+                        </div>
+                        <div class="stats-footer">#</div>
+                    </a></div>
+                    <div class="col-md-6 col-xs-12 col-sm-6" id="actt1"><a href="#" class="stats-container">
+                        <div class="stats-heading">Fan Mode</div>
+                        <div class="stats-body-alt">
+                            <div class="text-center">
+                                <button class="btn btn-default btn-lg" type="button" id="fan_auto"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}><i class="shortcut-icon icon-leaf"></i> Auto
+                                </button>
+                                &nbsp;&nbsp;&nbsp;
+                                <button class="btn btn-default btn-lg" type="button" id="fan_on"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}><i class="shortcut-icon icon-off"></i> On
+                                </button>
+                                &nbsp;&nbsp;&nbsp;
+                            </div>
+                        </div>
+                        <div class="stats-footer">#</div>
+                    </a></div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-4 col-xs-12 col-sm-6" id="actt"><a href="#" class="stats-container">
+                        <div class="stats-heading">Heat SetPoint</div>
+                        <div class="stats-body-alt">
+                            <div class="text-center">
+                                <span class="h1" id="heat_setpoint">{{ device_data.data|get_item_in_dict:'heat_setpoint' }}</span><span
+                                    class="h1">&deg;F</span>
+                                <button class="btn btn-info" id="heatminus" type="button"
+                                        {% if not request.user|has_group:'Admin' and request.user.get_profile.zone.zone_id !=  device_zone %}
+                                        disabled
+                                        {% endif %}
+                                        ><span class="h4">-</span></button>
+                                <button class="btn btn-warning" id="heatplus" type="button"
+                                        {% if not request.user|has_group:'Admin' and request.user.get_profile.zone.zone_id !=  device_zone %}
+                                        disabled
+                                        {% endif %}
+                                        ><span class="h4">+</span></button>
+
+                            </div>
+                        </div>
+                        <div class="stats-footer">#</div>
+                    </a></div>
+                    <div class="col-md-4 col-xs-12 col-sm-6" id="actt1"><a href="#" class="stats-container">
+                        <div class="stats-heading">Cool SetPoint</div>
+                        <div class="stats-body-alt">
+                            <div class="text-center">
+                                <span class="h1" id="cool_setpoint">{{ device_data.data|get_item_in_dict:'cool_setpoint' }}</span><span
+                                    class="h1">&deg;F</span>
+                                <button class="btn btn-info" id="coolminus" type="button"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}
+                                        ><span class="h4">-</span></button>
+                                <button class="btn btn-warning" id="coolplus" type="button"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}
+                                        ><span class="h4">+</span></button>
+
+                            </div>
+                        </div>
+                        <div class="stats-footer">#</div>
+                    </a></div>
+                    <div class="col-md-4 col-xs-12 col-sm-6" id="actt1"><a href="#" class="stats-container">
+                        <div class="stats-heading">Anti-Tampering</div>
+                        <div class="stats-body-alt">
+                            <div class="text-center">
+                                <button class="btn btn-default" id="antitamper_yes" type="button"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}
+                                        ><span class="h4">Enabled</span></button>
+                                <button class="btn btn-default" id="antitamper_no" type="button"
+                                        {% if request.user|has_group:'Tenant' %} disabled
+                                        {% endif %}
+                                        ><span class="h4">Disabled</span></button>
+                            </div>
+                        </div>
+                        <div class="stats-footer">#</div>
+                    </a></div>
+
+                </div>
+                <div class="row">
+                    <div class="text-center">
+                        {% if request.user|has_group:'Admin' or  request.user|has_group:'Zone Manager' %}
+
+                            <button type="button" class="btn btn-default" id="submitthermostatdata"><i
+                                    class="icon-ok"></i>Submit All Changes
+                            </button>
+                            <a href={% url 'view-device-schedule' device_data.agent.mac_address %}>
+                                <button type="button" class="btn btn-default btn-primary" id="set_thermostat_sche"><i class="icon-bar-chart"></i>
+                                    Set Schedule
+                                </button>
+                            </a>
+
+                        {% endif %}
+                        <a href={% url 'charts-view-device-chart' device_data.agent.mac_address %}>
+                            <button type="button" class="btn btn-default btn-danger" id="view_thermostat_data"><i class="icon-bar-chart"></i> View
+                                Past Usage and Set Points
+                            </button>
+                        </a>
+                     </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="bottom-nav footer"><span class="h6"> 2013-2017 &copy;
+    Building Energy Management Open Source Software. </span><br/></div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script src="/static/js/select-checkbox.js"></script>
+<script src="/static/js/to-do-admin.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/ui/jquery-ui.js"></script>
+<script src="/static/assets/slider_enhancer/jquery-ui-slider-pips.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/thermostat.js"></script>
+<script type="text/javascript" src="/static/app_js/make_current.js"></script>
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+</body>
+</html>
