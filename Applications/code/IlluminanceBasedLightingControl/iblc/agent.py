@@ -65,20 +65,21 @@ class IlluminanceBasedLightingControl(Agent):
 
         super(IlluminanceBasedLightingControl, self).__init__(**kwargs)
         self.variables = kwargs
-        self.app_name = "illuminance_based_lighting_control"
-        self.app_id = 'iblc1'
         # 2. @params agent
+        config = utils.load_config(config_path)
+        def get_config(name):
+            try:
+                kwargs.pop(name)
+            except KeyError:
+                return config.get(name, '')
         self.curcon = db_helper.db_connection()
+        self.app_id = get_config('agent_id')
 
-        # TODO: get lighting ID, sensor ID and target illuminance from database:
-        # multiple lightings can be controlled and multiple sensor readings can be combined.
-        self.lightings = ['LMRC_830568n5', 'LMRC_830568n6']
-        self.sensor = ['LMLS_830568n2']
-        self.target_illuminance = 350
+        self.update_para('all')
 
         # monitor time should be larger or equal to device monitor time.
         self.monitor_time = int(settings.DEVICES['device_monitor_time'])
-        self.caliberate_topic = 'to/iblc1/from/ui/caliberate'
+        self.caliberate_topic = 'to/'+self.app_id+'/from/ui/caliberate'
 
         self.firsttime = True
 
@@ -89,7 +90,23 @@ class IlluminanceBasedLightingControl(Agent):
         self.core.periodic(self.monitor_time, self.light_tracking)
         self.vip.pubsub.subscribe(peer='pubsub', prefix=self.caliberate_topic, callback=self.caliberate)
 
-    def caliberate(self):
+    def update_para(self, var=None):
+        # multiple lightings can be controlled and multiple sensor readings can be combined.
+        self.curcon.execute("SELECT app_data FROM application_running WHERE app_agent_id=%s", (self.app_id,))
+        app_data = self.curcon.fetchone()[0]
+        if 'target' in app_data.keys():
+            self.target_illuminance = app_data['target']
+        if var == 'all':
+            self.lightings = []
+            self.sensor = []
+            for light in app_data['lights']:
+                self.curcon.execute("SELECT agent_id FROM device_info WHERE nickname=%s", (light,))
+                self.lightings.append(self.curcon.fetchone()[0])
+            for sensor in app_data['sensors']:
+                self.curcon.execute("SELECT agent_id FROM device_info WHERE nickname=%s", (sensor,))
+                self.sensor.append(self.curcon.fetchone()[0])
+
+    def caliberate(self, peer, sender, bus, topic, headers, message):
         '''
         This function will conduct a caliberation to find out the approximate relation between brightness and illuminance
         since it varies by installation cases. This relation will be used in later controlling process.
@@ -115,9 +132,10 @@ class IlluminanceBasedLightingControl(Agent):
         print 'caliberation result is ' + str(self.impact) + ' Lux/1%'
 
     def light_tracking(self):
-        if self.firsttime:
-            self.firsttime = False
-            self.caliberate()
+        # if self.firsttime:
+        #     self.firsttime = False
+        #     self.caliberate()
+        self.update_para()
         try:
             illuminance = self.illuminance_measuring()
             needed_luminance = self.target_illuminance - illuminance

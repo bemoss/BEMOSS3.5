@@ -57,16 +57,16 @@ import settings
 #TODO change auth_token
 auth_token = 'bemoss'
 #TODO change description
-app_description = 'Scheduling APP for lighting controllers'
+app_description = 'Illuminance based lighting controllers'
 #TODO change app_user
-app_user = ["lighting"]
+app_user = ["lighting sensor"]
 #------------------------------------------------------------------------------------------------
 
 app_name = find_packages('.')
 app_name = app_name[0]
 # print app_name
 app_exec = app_name+'agent-3.0-py2.7.egg'
-exec_store = app_name + 'agent'
+exec_store = app_name + '_app'
 # print app_exec
 app_working_directory = os.getcwd()
 app_folder = os.path.basename(os.getcwd())

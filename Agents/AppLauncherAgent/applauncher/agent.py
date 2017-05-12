@@ -246,7 +246,7 @@ class AppLauncherAgent(Agent):
                 "agent": {
                     "exec": _exec
                 },
-                "agent_id": ui_agent_id
+                "agent_id": ui_app_name+ '_' + ui_agent_id
             }
             PROJECT_DIR = settings.PROJECT_DIR
             _launch_file = os.path.join(PROJECT_DIR, "Applications/launch/"
@@ -267,13 +267,18 @@ class AppLauncherAgent(Agent):
                     break
 
             if not installed:
-                os.system("volttron-pkg configure /tmp/volttron_wheels/"+ui_app_name+"agent-0.1-py2-none-any.whl "+ _launch_file+
-                ";volttron-ctl install "+ui_app_name+"_"+ui_agent_id+"=/tmp/volttron_wheels/"+ui_app_name+"agent-0.1-py2-none-any.whl")
+                env_path = settings.PROJECT_DIR + '/env/bin/'
+                os.system(  # ". env/bin/activate"
+                    env_path + "volttron-pkg configure " + platform.get_home() + "/packaged/" + ui_app_name + "-3.0-py2-none-any.whl " + _launch_file + ";" + \
+                    env_path + "volttron-ctl install " + ui_app_name+"_"+ui_agent_id + "=" + platform.get_home() + "/packaged/" + ui_app_name + "-3.0-py2-none-any.whl;")
 
             os.system("volttron-ctl start --tag "+os.path.basename(_launch_file))
             os.system("volttron-ctl status")
             print "AppLauncher has successfully launched APP: {} for Agent: {}"\
                 .format(ui_app_name, ui_agent_id)
+            self.curcon.execute("UPDATE application_running SET status=%s WHERE app_agent_id=%s",
+                                ("running", ui_app_name+"_"+ui_agent_id,))
+            self.curcon.commit()
             # send reply back to UI
             _topic_appLauncher_ui = '/appLauncher/ui/' + ui_app_name + '/' + ui_agent_id + '/' + 'launch/response'
             _headers = {
