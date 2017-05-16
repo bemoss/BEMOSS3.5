@@ -95,68 +95,21 @@ $( document ).ready(function() {
     $(".eq_height_DER").height(ht);
     $(".eq_height_cam").height(ht);
 
-    $('#save_start').click( function(evt){
+    $('#iblc_add').click( function(evt){
           evt.preventDefault();
-          var lightings = [];
-          var lsensors = [];
-	      $.each($('input:checked'), function(index, value) {
-              var current_id = this.id;
-                  if (current_id.indexOf('lt') == 0) {
-                    lightings.push(this.value);
-                   }
-                   if (current_id.indexOf('ss') == 0) {
-                       lsensors.push(this.value);
-                   }
-          });
-            var devices = [app_id, lightings, lsensors];
-           var jsonText = JSON.stringify(devices);
-            //alert(jsonText);
-            console.log(jsonText);
+            var jsonText = JSON.stringify('iblc');
+            app_add(jsonText)
+        });
 
-        if (lsensors.length > 0 && lightings.length > 0) {
-                $.ajax({
-                    url: '/application/save_start/',
-                    type: 'POST',
-                    data: jsonText,
-                    dataType: 'json',
-                    success: function (data) {
-                        $('.bottom-right').notify({
-                            message: {text: 'Your configuration has been saved and application is started.'},
-                            type: 'blackgloss',
-                            fadeOut: {enabled: true, delay: 5000}
-                        }).show();
-                         setTimeout(function(){
-                         window.location.reload();
-                }, 5000);
-                    },
-                    error: function (data) {
-                        $('.bottom-right').notify({
-                            message: {text: 'Communication Error. Try again later!'},
-                            type: 'blackgloss',
-                            fadeOut: {enabled: true, delay: 5000}
-                        }).show();
-                    }
-                });
-        } else {
-            $('.bottom-right').notify({
-                            message: {text: 'Please select at least one light and one sensor.'},
-                            type: 'blackgloss',
-                            fadeOut: {enabled: true, delay: 5000}
-                        }).show();
-        }
-	   });
-
-    $('#caliberate').click( function(evt){
-          evt.preventDefault();
-            var jsonText = JSON.stringify(app_id);
-            $.ajax({
-                url: '/application/caliberate/',
+    function app_add(type){
+        $.ajax({
+                url: '/application/app_add/',
                 type: 'POST',
-                data: jsonText,
+                data: type,
                 dataType: 'json',
                 success: function (data) {
                     $('.bottom-right').notify({
-                        message: {text: 'Your lighting system will be caliberated shortly.'},
+                        message: {text: 'Your application has been added in database.'},
                         type: 'blackgloss',
                         fadeOut: {enabled: true, delay: 5000}
                     }).show();
@@ -172,42 +125,7 @@ $( document ).ready(function() {
                     }).show();
                 }
             });
-        });
+    }
 
-    $('#update_target').click( function(evt){
-          evt.preventDefault();
-            var target = $('#target_illuminance').val();
-            var msg = [app_id, target];
-            var jsonText = JSON.stringify(msg);
-            $.ajax({
-                url: '/application/update_target/',
-                type: 'POST',
-                data: jsonText,
-                dataType: 'json',
-                success: function (data) {
-                    if (data == 'invalid target') {
-                        var disp_msg = 'Please input a valid number as the target illuminance.'
-                    }
-                    else{
-                        var disp_msg = 'Your illuminance preference will be updated shortly.'
-                    }
-                    $('.bottom-right').notify({
-                        message: {text: disp_msg},
-                        type: 'blackgloss',
-                        fadeOut: {enabled: true, delay: 5000}
-                    }).show();
-                     setTimeout(function(){
-                     window.location.reload();
-            }, 5000);
-                },
-                error: function (data) {
-                    $('.bottom-right').notify({
-                        message: {text: 'Communication Error. Try again later!'},
-                        type: 'blackgloss',
-                        fadeOut: {enabled: true, delay: 5000}
-                    }).show();
-                }
-            });
-        });
 
 });

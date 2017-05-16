@@ -52,7 +52,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Illuminance based lighting control</title>
+    <title>BEMOSS Applications</title>
 
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -82,7 +82,6 @@
     <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.js"></script>
     <script type="text/javascript" src="/static/app_js/make_current.js"></script>
     <script>
-        var app_id = "{{ app_id }}";
 
     </script>
 
@@ -92,87 +91,16 @@
 <div class="wrapper">
     {% include 'common/side_nav.html' %}
     <div class="page-content" id="dashboard_content">
-        <form action="" method="post">
+
             {% csrf_token %}
             <div class="content container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <h2 class="page-title">Illuminance Based Lighting Control: {{ app_id }}</h2>
+                        <h2 class="page-title">BEMOSS Applications</h2>
                     </div>
                 </div>
 
-            <div class="content container">
-                <h4>Please select lighting load controller(s) and a sensor for this illuminance-based control App.</h4>
-            </div>
-
-            <div class="row">
-        <div class="col-md-4 col-xs-12 col-sm-12">
-      <div class="widget">
-            <div class="widget-header"> <i class="icon-globe"></i>
-              <h3>Lightings</h3>
-            </div>
-
-            <div class="widget-content eq_height_hvac">
-                 <div class="control-group">
-                    <div class="controls span2">
-                        {% for eachlight in lights %}
-                            <label class="checkbox">
-                            <input type="checkbox" id="lt_{{ eachlight.nickname }}" value="{{ eachlight.nickname }}"
-                            {% if eachlight.nickname in app_info.app_data|get_item_in_dict:'lights' %} checked {% endif %}> {{ eachlight.nickname }}
-                            </label><br>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-          </div>
     </div>
-         <div class="col-md-4 col-xs-12 col-sm-12 ">
-      <div class="widget">
-            <div class="widget-header"> <i class="icon-globe"></i>
-              <h3>Sensors</h3>
-            </div>
-
-            <div class="widget-content eq_height_lt">
-            <div class="control-group">
-                    <div class="controls span2">
-            {% for eachsensor in sensors %}
-                <label class="checkbox">
-                <input type="checkbox" id="ss_{{ eachsensor.nickname }}" value="{{ eachsensor.nickname }}"
-                {% if eachsensor.nickname in app_info.app_data|get_item_in_dict:'sensors' %} checked {% endif %}>{{ eachsensor.nickname }}
-                </label><br>
-            {% endfor %}
-                    </div></div>
-            </div>
-          </div>
-    </div>
-            <div class="col-md-4 col-xs-12 col-sm-12 ">
-      <div class="widget">
-            <div class="widget-header"> <i class="icon-star"></i>
-              <h3>Save and Start</h3>
-            </div>
-
-            <div class="widget-content eq_height_lt">
-            <div class="control-group">
-                    <div class="controls span2">
-            <div class="text-left bottom-buffer">
-                <p>Click the button below to save the settings and start application.</p>
-                                        <button class="btn btn-success" id="save_start">Save and Start</button>
-                <br>
-            <br>
-                {% ifequal app_info.status 'running' %}
-                <p>The application is currently running.</p>
-                {% endifequal %}
-                                    </div>
-                    </div></div>
-            </div>
-          </div>
-    </div>
-
-
-
-    </div>
-    </div>
-        {% ifequal app_info.status 'running' %}
                 <div class="row top-buffer">
 
                     <div class="col-lg-12">
@@ -180,54 +108,92 @@
                             <div class="widget-header">
                                 <i class="icon-bookmark"></i>
 
-                                <h3>Set Target Illuminance</h3>
+                                <h3>Illuminance based lighting control (IBLC)</h3>
                             </div>
                             <div class="widget-content">
 
                                 <div class="row">
                                     <div class="text-left bottom-buffer ">
-                                        <p>Please click the 'Calibrate' button below to initialize parameters of the
-                                            illuminance-based control system.  The caliberation examines the illuminance
-                                            under different brightness level, which takes about 10 minutes.</p>
-                                        <button id="caliberate" {% if 'caliberating' in app_info.app_data %}
-                                                class="btn btn-success" disabled >Caliberating
-                                                {% else %}
-                                                class="btn btn-warning" >Caliberate{% endif %}</button>
+                                        <p>Illuminance based lighting control is a close loop control, aiming at intelligently
+                                        adjust the lights' brightness according to the ambiant light level while maintaining
+                                        a constant illuminance. A lighting device and a sensor is needed to use this application.
+                                        </p>
+                                        <button class="btn btn-warning" id="iblc_add">Start New</button>
                                     </div>
                                 </div>
-                                {% if 'sensitivity' in app_info.app_data %}
-                                <div class="row top-buffer">
-                                    <div class="text-left bottom-buffer">
-                                        <p>Please enter your desired illuminance below (in Lux).</p>
-                                    </div>
 
-
-                                    <div class="col-lg-4">
-                                        <textarea class="form-control" name="text" rows="2" id="target_illuminance">
-                                         {% if "target" in app_info.app_data %} {{ app_info.app_data|get_item_in_dict:"target" }}
-                                             {% endif %}</textarea>
-                                        <span class="help-block">
-                                            * The recommended brightness level in office space is 300-500 Lux according to the Illuminating Engineering Society of North America.
-                                            <br>*The maximum achievable illuminance based on your lighting-sensor system is
-                                            <em>{{ app_info.app_data|get_item_in_dict:'max_illuminance' }}</em> Lux.</span>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="text-left top-buffer bottom-buffer">
-                                        <button class="btn btn-warning" id="update_target">Update Settings</button>
-                                    </div>
-                                </div>
-                                {% endif %}
                             </div>
                         </div>
                     </div>
 
                 </div>
-        {% endifequal %}
 
+    <div class="widget">
+                <div class="widget-header"> <i class="icon-table"></i>
+                <h3>Existing Applications (Click app ID to see detail.)</h3>
+            </div>
+                      <div class="widget-content">
+        <div class="example_alt_pagination">
+              <div id="container">
+                <div class="full_width big"></div>
+          <div id="demo">
+            <table class="display example" id="lite_tbl">
+      <thead>
+        <tr>
+          <th class="col-md-2">App ID</th>
+          <th class="col-md-1">Type</th>
+            <th class="col-md-1">Status</th>
+            <th class="col-md-4">Description</th>
+            <th class="col-md-2">Started Time</th>
+            <th class="col-md-1">Delete</th>
+        </tr>
+        </thead>
+      <tbody>
 
-        </form>
+      {% for app in iblc_apps %}
+        <tr class="gradeA">
+          <td><a href="application/{{ app.app_agent_id }}">{{ app.app_agent_id }}</a></td>
+          <td>{{ app.app_type }}</td>
+          <td {% if app.status|lower == 'stopped' %} style="color:red;" {% endif %}>{{ app.status }}</td>
+          <td>
+          <!-- TODO: create a column 'app_display_info' in application table instead of using the following logic-->
+              {% if app.app_type == 'IBLC' %}
+                  {% ifequal app.app_data|get_item_in_dict:'target' None %}
+                        Target illuminance not set yet.
+                  {% else %}
+                    Target illuminance set to {{ app.app_data|get_item_in_dict:'target' }} Lux.
+                  {% endifequal %}
+              {% endif %}
+
+          </td>
+          <td>{{ app.start_time | as_local_time}}</td>
+            <td>X</td>
+        </tr>
+      {%  endfor  %}
+        </tbody>
+      <tfoot>
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+            <th></th>
+          </tr>
+        </tfoot>
+  </table>
+
     </div>
+        </div>
+    </div>
+
+            </div><br/>
+                    </div>
+
+
+    </div>
+
+
 </div>
 
 <div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software.</div>
@@ -251,7 +217,7 @@
 </script>
 <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
 <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
-<script class="include" type="text/javascript" src="/static/app_js/iblc.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/applications.js"></script>
 
 
 <!--switcher html start-->

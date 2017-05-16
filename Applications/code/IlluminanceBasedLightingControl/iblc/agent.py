@@ -53,6 +53,7 @@ from volttron.platform.agent import utils
 from bemoss_lib.utils import db_helper
 from bemoss_lib.utils.catcherror import catcherror
 import time
+import json
 import settings
 
 utils.setup_logging()
@@ -80,6 +81,7 @@ class IlluminanceBasedLightingControl(Agent):
         # monitor time should be larger or equal to device monitor time.
         self.monitor_time = int(settings.DEVICES['device_monitor_time'])
         self.caliberate_topic = 'to/'+self.app_id+'/from/ui/caliberate'
+        self.update_target_topic = 'to/' + self.app_id + '/from/ui/update_target'
 
         self.firsttime = True
 
@@ -89,6 +91,7 @@ class IlluminanceBasedLightingControl(Agent):
     def setup(self, sender, **kwargs):
         self.core.periodic(self.monitor_time, self.light_tracking)
         self.vip.pubsub.subscribe(peer='pubsub', prefix=self.caliberate_topic, callback=self.caliberate)
+        self.vip.pubsub.subscribe(peer='pubsub', prefix=self.update_target_topic, callback=self.update_target)
 
     def update_para(self, var=None):
         # multiple lightings can be controlled and multiple sensor readings can be combined.
@@ -96,6 +99,8 @@ class IlluminanceBasedLightingControl(Agent):
         app_data = self.curcon.fetchone()[0]
         if 'target' in app_data.keys():
             self.target_illuminance = app_data['target']
+        if 'sensitivity' in app_data.keys():
+            self.impact = app_data['sensitivity']
         if var == 'all':
             self.lightings = []
             self.sensor = []
@@ -113,14 +118,25 @@ class IlluminanceBasedLightingControl(Agent):
         :return: No return for this function, calculated relation is stored in a self variable.
         '''
         print 'start caliberation...'
+        self.curcon.execute("SELECT app_data FROM application_running WHERE app_agent_id=%s", (self.app_id,))
+        app_data = self.curcon.fetchone()[0]
+        app_data.update({'caliberating': True})
+        self.curcon.execute("UPDATE application_running SET app_data=%s WHERE app_agent_id=%s",
+                            (json.dumps(app_data), self.app_id,))
+        self.curcon.commit()
         X = np.array([[1, 10], [1, 40], [1, 70], [1, 100]])
         y = []
         # TODO: set a flag in DB to show caliberation is in process
         for brightness in X[:,1]:
             print 'Tesing with brightness ' + str(brightness) + '%:'
             message = {'brightness': brightness}
-            self.light_controlling(message)
-            time.sleep(self.monitor_time + 6)
+            current_brightness = self.get_brightness()
+            # Light control occasionally will not be successful, the loop here will make sure the desired brightness is acquired.
+            while current_brightness != brightness:
+                self.light_controlling(message)
+                time.sleep(10)
+                current_brightness = self.get_brightness()
+            time.sleep(self.monitor_time)
             illuminance = self.illuminance_measuring()
             print 'The illuminance at brightness ' + str(brightness) + '% is ' + str(illuminance) + ' Lux'
 
@@ -130,6 +146,24 @@ class IlluminanceBasedLightingControl(Agent):
         # self.impact shows the impact of brightness on illuminance, unit: Lux/1%
         self.impact = reg_para[1][0]
         print 'caliberation result is ' + str(self.impact) + ' Lux/1%'
+        self.curcon.execute("SELECT app_data FROM application_running WHERE app_agent_id=%s", (self.app_id,))
+        app_data = self.curcon.fetchone()[0]
+        app_data.pop('caliberating')
+        app_data.update({'sensitivity': self.impact, 'max_illuminance':illuminance})
+        self.curcon.execute("UPDATE application_running SET app_data=%s WHERE app_agent_id=%s",
+                            (json.dumps(app_data), self.app_id,))
+        self.curcon.commit()
+
+    def update_target(self, peer, sender, bus, topic, headers, message):
+        message = json.loads(message)
+        self.target_illuminance = message['target']
+        self.curcon.execute("SELECT app_data FROM application_running WHERE app_agent_id=%s", (self.app_id,))
+        app_data = self.curcon.fetchone()[0]
+        app_data.update({'target': self.target_illuminance})
+        self.curcon.execute("UPDATE application_running SET app_data=%s WHERE app_agent_id=%s",
+                            (json.dumps(app_data), self.app_id,))
+        self.curcon.commit()
+
 
     def light_tracking(self):
         # if self.firsttime:

@@ -3,7 +3,8 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.application_main),
+    url(r'^$', views.application_main, name='application-main'),
+    url(r'^app_add/$', views.application_add),
     url(r'^save_start/$', views.save_and_start, name='save_and_start'),
     url(r'^caliberate/$', views.caliberate, name='iblc-app-caliberate'),
     url(r'^update_target/$', views.update_target_illuminance, name='update-illuminance'),
