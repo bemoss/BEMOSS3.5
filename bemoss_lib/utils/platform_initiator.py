@@ -215,41 +215,20 @@ if cur.rowcount == 0:  # this APP used to be launched before
 cur.execute("select * from information_schema.tables where table_name=%s", ('application_running',))
 print bool(cur.rowcount)
 if bool(cur.rowcount):
-    cur.execute("DROP TABLE application_running")
+    cur.execute("DELETE FROM application_running")
     conn.commit()
 else:
     pass
 
-cur.execute('''CREATE TABLE application_running
-       (APPLICATION_ID SERIAL   PRIMARY KEY   NOT NULL,
-       APP_AGENT_ID   VARCHAR(50)   NOT NULL,
-       START_TIME     TIMESTAMP,
-       STATUS        VARCHAR(10),
-       APP_SETTING   VARCHAR(200));''')
-print "Table application_running created successfully"
-conn.commit()
+
 
 cur.execute("select * from information_schema.tables where table_name=%s", ('application_registered',))
 print bool(cur.rowcount)
 if bool(cur.rowcount):
-    cur.execute("DROP TABLE application_registered")
+    cur.execute("DELETE FROM application_registered")
     conn.commit()
 else:
     pass
-
-cur.execute('''CREATE TABLE application_registered
-       (APPLICATION_ID SERIAL   PRIMARY KEY   NOT NULL,
-       APP_NAME VARCHAR (30) NOT NULL,
-       EXECUTABLE VARCHAR (35) NOT NULL,
-       AUTH_TOKEN VARCHAR (20) NOT NULL,
-       APP_USER TEXT,
-       DESCRIPTION  VARCHAR (200) NOT NULL,
-       REGISTERED_TIME  TIMESTAMP  NOT NULL,
-       LAST_UPDATED_TIME  TIMESTAMP NOT NULL);''')
-print "Table application_registered created successfully"
-conn.commit()
-
-
 
 
 cur.execute("select * from information_schema.tables where table_name=%s", ('passwords_manager',))
@@ -266,22 +245,6 @@ if bool(cur.rowcount):
     cur.execute("DELETE FROM supported_devices")
     conn.commit()
 
-# cur.execute("select * from information_schema.tables where table_name=%s", ('node_device',))
-# print bool(cur.rowcount)
-# if bool(cur.rowcount):
-#     cur.execute("DELETE FROM node_device")
-#     conn.commit()
-# else:
-#     pass
-#
-#     cur.execute('''CREATE TABLE node_device
-#            (TRANS_NO SERIAL PRIMARY KEY   NOT NULL,
-#            DEVICE_ID  VARCHAR(50),
-#            assigned_zone_ID INT,
-#            CURRENT_ZONE_ID INT,
-#            DATE_MOVE TIMESTAMP);''')
-#     print "Table node_device created successfully"
-# conn.commit()
 
 
 for file in os.listdir(os.path.expanduser(settings.PROJECT_DIR + "/DeviceAPI")):

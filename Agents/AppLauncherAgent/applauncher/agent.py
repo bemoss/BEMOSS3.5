@@ -132,9 +132,8 @@ class AppLauncherAgent(Agent):
                                          (app_name,))
                         if self.curcon.rowcount != 0:
                             auth_token = str(self.curcon.fetchone()[0])
-                        app_setting = row[4]
-                        print "AppLauncher >> is trying the previous run App {} for agent {} with auth_token {} and " \
-                              "app_setting {}".format(app_name, agent_id, auth_token, app_setting)
+                        print "AppLauncher >> is trying the previous run App {} for agent {} " \
+                              "with auth_token {}".format(app_name, agent_id, auth_token)
                         self.app_has_already_launched = False
                         self.launch_app(app_name, agent_id, auth_token)
                     else:  # do nothing
@@ -182,31 +181,35 @@ class AppLauncherAgent(Agent):
                         print "AppLauncher >> {}".format(line)
 
                 if self.app_has_already_launched:
-                    _launch_file_to_check = str(ui_app_name) + "_" + str(ui_agent_id)
+                    app_agent_id = str(ui_app_name) + "_" + str(ui_agent_id)
                     self.curcon.execute("SELECT status FROM "+db_table_application_running+" WHERE app_agent_id=%s",
-                                     (_launch_file_to_check,))
+                                     (app_agent_id,))
                     if self.curcon.rowcount != 0:  # this APP used to be launched before
                         _app_status = str(self.curcon.fetchone()[0])
                         if _app_status == "running":  # no need to launch new app
                             pass
                         else:
                             self.curcon.execute("UPDATE application_running SET status=%s WHERE app_agent_id=%s",
-                                     ("running", _launch_file_to_check,))
+                                     ("running", app_agent_id,))
                             self.curcon.commit()
                     else:
                         # 2. log app that has been launched to the database
                         _launch_file_name = str(ui_app_name) + "_" + str(ui_agent_id)
                         _start_time = str(datetime.datetime.now())
                         _app_status = "running"
-                        self.curcon.execute("SELECT application_id FROM "+db_table_application_running)
+                        self.curcon.execute("SELECT id FROM "+db_table_application_running)
                         if self.curcon.rowcount != 0:
                             # print 'cur.fetchall()' + str(max(cur.fetchall())[0])
                             app_no = max(self.curcon.fetchall())[0] + 1
                         else: #default no_app
                             app_no = 1
-                        self.curcon.execute("INSERT INTO application_running(application_id, app_agent_id, start_time, status) "
-                             "VALUES(%s,%s,%s,%s)",
-                             (app_no, _launch_file_name, _start_time, _app_status))
+                        self.curcon.execute(
+                            "SELECT app_name FROM " + db_table_application_registered + " WHERE app_name=%s",
+                            (ui_app_name,))
+                        app_type = self.curcon.fetchone()[0]
+                        self.curcon.execute("INSERT INTO application_running(id, app_agent_id, start_time, status, "
+                                            "app_type, app_data) VALUES(%s,%s,%s,%s,%s,%s)",
+                             (app_no, _launch_file_name, _start_time, _app_status, app_type, '{}'))
                         self.curcon.commit()
                         print "AppLauncher >> the requested APP {} for {} is running but not in db, " \
                               "now it is added to db".format(ui_app_name, ui_agent_id)
@@ -221,9 +224,9 @@ class AppLauncherAgent(Agent):
                     _message = "failure"
                     self.vip.pubsub.publish(_topic_appLauncher_ui, _headers, _message)
                 else: # APP has not launched yet
-                    _launch_file_to_check = str(ui_app_name) + "_" + str(ui_agent_id)
+                    app_agent_id = str(ui_app_name) + "_" + str(ui_agent_id)
                     self.curcon.execute("SELECT status FROM "+db_table_application_running+" WHERE app_agent_id=%s",
-                                     (_launch_file_to_check,))
+                                     (app_agent_id,))
                     if self.curcon.rowcount != 0: # delete existing row from the table before launching new app
                         self.launch_existing_app(ui_app_name, ui_agent_id)
                     else: #this APP has never been launched and not in db launch new app
@@ -243,7 +246,7 @@ class AppLauncherAgent(Agent):
                 "agent": {
                     "exec": _exec
                 },
-                "agent_id": ui_agent_id
+                "agent_id": ui_app_name+ '_' + ui_agent_id
             }
             PROJECT_DIR = settings.PROJECT_DIR
             _launch_file = os.path.join(PROJECT_DIR, "Applications/launch/"
@@ -264,13 +267,18 @@ class AppLauncherAgent(Agent):
                     break
 
             if not installed:
-                os.system("volttron-pkg configure /tmp/volttron_wheels/"+ui_app_name+"agent-0.1-py2-none-any.whl "+ _launch_file+
-                ";volttron-ctl install "+ui_app_name+"_"+ui_agent_id+"=/tmp/volttron_wheels/"+ui_app_name+"agent-0.1-py2-none-any.whl")
+                env_path = settings.PROJECT_DIR + '/env/bin/'
+                os.system(  # ". env/bin/activate"
+                    env_path + "volttron-pkg configure " + platform.get_home() + "/packaged/" + ui_app_name + "-3.0-py2-none-any.whl " + _launch_file + ";" + \
+                    env_path + "volttron-ctl install " + ui_app_name+"_"+ui_agent_id + "=" + platform.get_home() + "/packaged/" + ui_app_name + "-3.0-py2-none-any.whl;")
 
             os.system("volttron-ctl start --tag "+os.path.basename(_launch_file))
             os.system("volttron-ctl status")
             print "AppLauncher has successfully launched APP: {} for Agent: {}"\
                 .format(ui_app_name, ui_agent_id)
+            self.curcon.execute("UPDATE application_running SET status=%s WHERE app_agent_id=%s",
+                                ("running", ui_app_name+"_"+ui_agent_id,))
+            self.curcon.commit()
             # send reply back to UI
             _topic_appLauncher_ui = '/appLauncher/ui/' + ui_app_name + '/' + ui_agent_id + '/' + 'launch/response'
             _headers = {
@@ -281,10 +289,11 @@ class AppLauncherAgent(Agent):
             self.vip.pubsub.publish('pubsub', _topic_appLauncher_ui, _headers, _message)
 
     def launch_new_app(self, ui_app_name, ui_agent_id):
-        self.curcon.execute("SELECT executable FROM "+db_table_application_registered+" WHERE app_name=%s", (ui_app_name,))
+        self.curcon.execute("SELECT app_name, executable FROM "+db_table_application_registered+" WHERE app_name=%s", (ui_app_name,))
         # 1. launch app for an agent based on the exec file and agent_id
         if self.curcon.rowcount != 0:
-            _exec_name = str(self.curcon.fetchone()[0])
+            app_info = self.curcon.fetchone()
+            _exec_name = str(app_info[1])
             _exec = _exec_name+"-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
             data = {
                 "agent": {
@@ -342,15 +351,15 @@ class AppLauncherAgent(Agent):
             _launch_file_name = str(ui_app_name) + "_" + str(ui_agent_id)
             _start_time = str(datetime.datetime.now())
             _app_status = "running"
-            self.curcon.execute("SELECT application_id FROM "+db_table_application_running)
+            self.curcon.execute("SELECT id FROM "+db_table_application_running)
             if self.curcon.rowcount != 0:
                 # print 'cur.fetchall()' + str(max(cur.fetchall())[0])
                 app_no = max(self.curcon.fetchall())[0] + 1
             else: #default no_app
                 app_no = 1
-            self.curcon.execute("INSERT INTO application_running(application_id, app_agent_id, start_time, status) "
-                             "VALUES(%s,%s,%s,%s)",
-                             (app_no, _launch_file_name, _start_time, _app_status))
+            self.curcon.execute("INSERT INTO application_running(id, app_agent_id, start_time, status, app_type, app_data) "
+                             "VALUES(%s,%s,%s,%s,%s,%s)",
+                             (app_no, _launch_file_name, _start_time, _app_status, app_info[0], '{}'))
             self.curcon.commit()
             print "AppLauncher finished update table applications_running of APP: {}".format(ui_app_name)
             print "with launch_file: {}, at timestamp {}".format(_launch_file, _start_time)
@@ -375,19 +384,19 @@ class AppLauncherAgent(Agent):
                         self.app_has_already_launched = True
 
                 if self.app_has_already_launched:
-                    _launch_file_to_check = str(ui_app_name) + "_" + str(ui_agent_id)
+                    app_agent_id = str(ui_app_name) + "_" + str(ui_agent_id)
                     self.curcon.execute("SELECT status FROM "+db_table_application_running+" WHERE app_agent_id=%s",
-                                     (_launch_file_to_check,))
+                                     (app_agent_id,))
                     if self.curcon.rowcount != 0:
                         _app_status = str(self.curcon.fetchone()[0])
                         #if it's running disable app
                         if _app_status == "running":
-                            _lauch_file_to_disable = _launch_file_to_check
+                            _lauch_file_to_disable = app_agent_id
                             os.system("volttron-ctl stop --tag "+_lauch_file_to_disable)
                             os.system("volttron-ctl status")
                             print "AppLauncher has successfully disabled APP: {} ".format(ui_app_name)
                             self.curcon.execute("UPDATE application_running SET status=%s WHERE app_agent_id=%s"
-                                             , ('disabled', _launch_file_to_check))
+                                             , ('disabled', app_agent_id))
                             self.curcon.commit()
                             # send reply back to UI
                             topic_appLauncher_ui = '/appLauncher/ui/' + ui_app_name + '/' + ui_agent_id + '/' \

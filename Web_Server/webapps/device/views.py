@@ -47,15 +47,13 @@ under Contract DE-EE0006352
 '''
 
 
-from webapps.discovery.models import SupportedDevices
-from webapps.deviceinfos.models import DeviceMetadata, SupportedDevices
 from _utils.device_list_utils import get_device_list_and_count
 from bemoss_lib.utils.encrypt import decrypt_value
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import HttpResponse
-from webapps.deviceinfos.models import DeviceMetadata, Miscellaneous
+from webapps.deviceinfos.models import DeviceMetadata, Miscellaneous, SupportedDevices
 from _utils import config_helper
 from _utils import device_list_utils as _helper
 

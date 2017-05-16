@@ -1,0 +1,7 @@
+{
+    "agent": {
+        "exec": "iblc-0.1-py2.7.egg --config \"%c\" --sub \"%s\" --pub \"%p\""
+    },
+    "type": "iblc",
+    "agent_id": "iblc_agent1"
+}

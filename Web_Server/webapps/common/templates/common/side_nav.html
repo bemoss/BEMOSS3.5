@@ -87,6 +87,7 @@ under Contract DE-EE0006352
                         class="label label-success pull-right"
                         style="font-size: 14px;color:black;">{{ zones|new_users }}</span></a></li>
                 <li><a href="{% url 'dashboard-bemoss-settings' %}"> <i class="icon-key"></i>Misc Settings</a></li>
+                <li><a href="{% url 'application-main' %}"> <i class="icon-star"></i>Applications</a></li>
 
             {% endif %}
             {%  get_keys device_list 'all' as node_ids %}

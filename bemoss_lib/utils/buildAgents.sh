@@ -92,5 +92,7 @@ cd $1/Applications/code/Lighting_Scheduler
 python installapp.py
 cd $1/Applications/code/Plugload_Scheduler
 python installapp.py
+cd $1/Applications/code/IlluminanceBasedLightingControl
+python installapp.py
 #sudo chmod 777 -R ~/workspace
 #echo "BEMOSS App installation complete!"
