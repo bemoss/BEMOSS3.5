@@ -125,6 +125,28 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-lg-12">
+                        <div class="widget">
+                            <div class="widget-header">
+                                <i class="icon-bookmark"></i>
+
+                                <h3>Fault Detection</h3>
+                            </div>
+                            <div class="widget-content">
+
+                                <div class="row">
+                                    <div class="text-left bottom-buffer ">
+                                        <p>This app will look at temperature history of a thermostat, as well as outdoor temperature history,
+                                            and if it detects that the current temperature profile is anamolous it will generate a notification
+                                            to alert the user about the abnormal behavior.
+                                        </p>
+                                        <button class="btn btn-warning" id="fault_add">Start New</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -150,14 +172,14 @@
         </thead>
       <tbody>
 
-      {% for app in iblc_apps %}
+      {% for app in apps %}
         <tr class="gradeA">
           <td><a href="application/{{ app.app_agent_id }}">{{ app.app_agent_id }}</a></td>
-          <td>{{ app.app_type }}</td>
+          <td>{{ app.app_type.app_name }}</td>
           <td {% if app.status|lower == 'stopped' %} style="color:red;" {% endif %}>{{ app.status }}</td>
           <td>
           <!-- TODO: create a column 'app_display_info' in application table instead of using the following logic-->
-              {% if app.app_type == 'IBLC' %}
+              {% if app.app_type.app_name == 'IBLC' %}
                   {% ifequal app.app_data|get_item_in_dict:'target' None %}
                         Target illuminance not set yet.
                   {% else %}

@@ -49,10 +49,11 @@
 {% load timedelta %}
 {% load device_count_in_zone %}
 {% load get_dict %}
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Illuminance based lighting control</title>
+    <title>Fault Detection</title>
 
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,7 +84,6 @@
     <script type="text/javascript" src="/static/app_js/make_current.js"></script>
     <script>
         var app_id = "{{ app_id }}";
-
     </script>
 
 </head>
@@ -92,60 +92,60 @@
 <div class="wrapper">
     {% include 'common/side_nav.html' %}
     <div class="page-content" id="dashboard_content">
-        <form action="" method="post">
-            {% csrf_token %}
             <div class="content container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <h2 class="page-title">Illuminance Based Lighting Control: {{ app_id }}</h2>
+                        <h2 class="page-title">Fault Detection: {{ app_id }}</h2>
                     </div>
                 </div>
 
             <div class="content container">
-                <h4>Please select lighting load controller(s) and a sensor for this illuminance-based control App.</h4>
+                <h4>Please select the thermostat for which HVAC anamoly needs to be detected.</h4>
             </div>
 
             <div class="row">
-        <div class="col-md-4 col-xs-12 col-sm-12">
+        <div class="col-md-6 col-xs-12 col-sm-12">
       <div class="widget">
             <div class="widget-header"> <i class="icon-globe"></i>
-              <h3>Lightings</h3>
+              <h3>Thermostat</h3>
             </div>
 
             <div class="widget-content eq_height_hvac">
                  <div class="control-group">
                     <div class="controls span2">
-                        {% for eachlight in lights %}
-                            <label class="checkbox">
-                            <input type="checkbox" id="lt_{{ eachlight.nickname }}" value="{{ eachlight.nickname }}"
-                            {% if eachlight.nickname in app_info.app_data|get_item_in_dict:'lightings' %} checked {% endif %}> {{ eachlight.nickname }}
-                            </label><br>
+                        {% for thermostat in available_thermostats %}
+                            <label class="radio-inline"><input type="radio" name="thradio"
+                                                               value="{{thermostat.agent_id}}" id="{{thermostat.agent_id }}"
+                                    {% if thermostat.agent_id == app_info.app_data.thermostat %} checked="" {% endif %}>
+                                {{ thermostat.nickname  }}</label>
                         {% endfor %}
                     </div>
+
+                </div>
+            </div>
+          </div>
+        <div class="widget">
+            <div class="widget-header"> <i class="icon-globe"></i>
+              <h3>Sensitivity</h3>
+            </div>
+
+            <div class="widget-content eq_height_hvac">
+                <div class="control-group">
+                 <div class="controls span2">
+                     {%  for iter in 3|times %}
+                        {% cycle "low" "medium" "high" as sensitivity silent%}
+                                     <label class="radio-inline"><input type="radio" name="snradio"
+                                                                        value="{{ sensitivity }}" id="{{ sensitivity }}"
+                                     {% if app_info.app_data.sensitivity == sensitivity %} checked="" {% endif %}>
+                                       {% cycle "Low" "Medium" "High" %} </label>
+                     {% endfor %}
+
+                </div>
                 </div>
             </div>
           </div>
     </div>
-         <div class="col-md-4 col-xs-12 col-sm-12 ">
-      <div class="widget">
-            <div class="widget-header"> <i class="icon-globe"></i>
-              <h3>Sensors</h3>
-            </div>
-
-            <div class="widget-content eq_height_lt">
-            <div class="control-group">
-                    <div class="controls span2">
-            {% for eachsensor in sensors %}
-                <label class="checkbox">
-                <input type="checkbox" id="ss_{{ eachsensor.nickname }}" value="{{ eachsensor.nickname }}"
-                {% if eachsensor.nickname in app_info.app_data|get_item_in_dict:'lsensors' %} checked {% endif %}>{{ eachsensor.nickname }}
-                </label><br>
-            {% endfor %}
-                    </div></div>
-            </div>
-          </div>
-    </div>
-            <div class="col-md-4 col-xs-12 col-sm-12 ">
+            <div class="col-md-6 col-xs-12 col-sm-12 ">
       <div class="widget">
             <div class="widget-header"> <i class="icon-star"></i>
               <h3>Save and Start</h3>
@@ -155,15 +155,32 @@
             <div class="control-group">
                     <div class="controls span2">
             <div class="text-left bottom-buffer">
-                <p>Click the button below to save the settings and start application.</p>
-                                        <button class="btn btn-success" id="save_start">Save and Start</button>
-                <br>
-            <br>
                 {% ifequal app_info.status 'running' %}
-                <p>The application is currently running.</p>
+                <p>The application is currently running. <button class="btn btn-success" id="save_start">Save</button></p>
+
+                {% else %}
+                <p>The application is not running. <button class="btn btn-success" id="save_start">Save and Start</button></p>
                 {% endifequal %}
-                                    </div>
-                    </div></div>
+                <br>
+            </div>
+                    </div>
+            </div>
+            </div>
+      </div>
+
+      <div class="widget">
+            <div class="widget-header"> <i class="icon-star"></i>
+              <h3>Fault Status</h3>
+            </div>
+            <div class="widget-content eq_height_lt">
+            <div class="control-group">
+                    <div class="controls span2">
+            <div class="text-left bottom-buffer">
+                The Status is: {{ app_info.app_data.fault }}
+
+            </div>
+                    </div>
+            </div>
             </div>
           </div>
     </div>
@@ -172,61 +189,9 @@
 
     </div>
     </div>
-        {% ifequal app_info.status 'running' %}
-                <div class="row top-buffer">
-
-                    <div class="col-lg-12">
-                        <div class="widget">
-                            <div class="widget-header">
-                                <i class="icon-bookmark"></i>
-
-                                <h3>Set Target Illuminance</h3>
-                            </div>
-                            <div class="widget-content">
-
-                                <div class="row">
-                                    <div class="text-left bottom-buffer ">
-                                        <p>Please click the 'Calibrate' button below to initialize parameters of the
-                                            illuminance-based control system.  The caliberation examines the illuminance
-                                            under different brightness level, which takes about 10 minutes.</p>
-                                        <button id="calibrate" {% if 'calibrating' in app_info.app_data %}
-                                                class="btn btn-success" disabled >calibrating
-                                                {% else %}
-                                                class="btn btn-warning" >calibrate{% endif %}</button>
-                                    </div>
-                                </div>
-                                {% if 'sensitivity' in app_info.app_data %}
-                                <div class="row top-buffer">
-                                    <div class="text-left bottom-buffer">
-                                        <p>Please enter your desired illuminance below (in Lux).</p>
-                                    </div>
 
 
-                                    <div class="col-lg-4">
-                                        <textarea class="form-control" name="text" rows="2" id="target_illuminance">
-                                         {% if "target" in app_info.app_data %} {{ app_info.app_data|get_item_in_dict:"target" }}
-                                             {% endif %}</textarea>
-                                        <span class="help-block">
-                                            * The recommended brightness level in office space is 300-500 Lux according to the Illuminating Engineering Society of North America.
-                                            <br>*The maximum achievable illuminance based on your lighting-sensor system is
-                                            <em>{{ app_info.app_data|get_item_in_dict:'max_illuminance' }}</em> Lux.</span>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="text-left top-buffer bottom-buffer">
-                                        <button class="btn btn-warning" id="update_target">Update Settings</button>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
 
-                </div>
-        {% endifequal %}
-
-
-        </form>
     </div>
 </div>
 
@@ -251,7 +216,7 @@
 </script>
 <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
 <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
-<script class="include" type="text/javascript" src="/static/app_js/iblc.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/fault_detection.js"></script>
 
 
 <!--switcher html start-->

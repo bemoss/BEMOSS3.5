@@ -101,6 +101,11 @@ $( document ).ready(function() {
             app_add(jsonText)
         });
 
+    $('#fault_add').click( function(evt){
+          evt.preventDefault();
+            var jsonText = JSON.stringify('fault_detection');
+            app_add(jsonText)
+        });
     function app_add(type){
         $.ajax({
                 url: '/application/app_add/',
