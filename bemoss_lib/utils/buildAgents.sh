@@ -83,6 +83,9 @@ volttron-pkg package $1/Agents/BasicAgent
 #Install Bacnet Agent
 ./scripts/core/pack_install.sh $1/services/core/BACnetProxy $1/services/core/BACnetProxy/bacnet-proxy.agent bacnetagent
 
+#Install VIPToUI Agent
+./scripts/core/pack_install.sh $1/Agents/UIToVIPAgent/ $1/Agents/UIToVIPAgent/uitovipagent.launch.json uitovipagent
+
 #sudo chmod 777 -R ~/.volttron/packaged/
 
 #Install Apps

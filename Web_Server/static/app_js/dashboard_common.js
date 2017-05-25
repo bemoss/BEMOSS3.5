@@ -146,11 +146,12 @@ $( document ).ready(function() {
          // ["", "agent", "ui", device_type, command, building_name, zone_id, agent_id]
          if (topic) {
              topic = topic.split('/');
+             "to/ui/identify_response/from/agnet_id"
              console.log(topic);
-             if (topic[0] == 'identify_response') {
+             if (topic[2] == 'identify_response') {
                 //stop Identification
                  //notify done
-                 agent_id = topic[2];
+                 agent_id = topic[4];
                  identifier = "identify-"+agent_id;
                  $('#' + agent_id + "-spin").removeClass('fa fa-spinner fa-spin').addClass('icon-search');
                  $('#' + identifier).removeClass('btn-success disabled').addClass('btn-warning');

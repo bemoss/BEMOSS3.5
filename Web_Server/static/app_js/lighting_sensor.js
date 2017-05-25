@@ -58,9 +58,9 @@ $( document ).ready(function() {
          if (topic) {
              topic = topic.split('/');
              console.log(topic);
-              // from/agent_id/device_status_response
-               // from/agent_id/device_update_response
-             if (topic[1] == device_data.agent_id && topic[2] == 'device_status_response') {
+              // to/ui/from/agent_id/device_status_response
+               // to/ui/from/agent_id/device_update_response
+             if (topic[3] == device_data.agent_id && topic[4] == 'device_status_response') {
                  if ($.type( _data['message'] ) === "string"){
                      var _message = $.parseJSON(_data['message']);
                      if ($.type(_message) != "object"){
