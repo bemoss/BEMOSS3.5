@@ -88,6 +88,11 @@ var temperature, heat_setpoint, cool_setpoint = [];
 temperature = {{ temperature|safe }};
 heat_setpoint = {{ heat_setpoint|safe }};
 cool_setpoint = {{ cool_setpoint|safe }};
+{% if weather_temperature != None %}
+outdoor_temperature = {{weather_temperature|safe}};
+    {% else %}
+    outdoor_temperature = [];
+{% endif %}
 //var device_info = "{{ device_info }}";
 var mac = "{{ mac }}";
 
@@ -134,7 +139,10 @@ var mac = "{{ mac }}";
                         </label><br/>
                         <label class="checkbox">
                             <input type="checkbox" id="cool_set_point" value="Cool Setpoint"> Cool Setpoint
-                        </label>
+                        </label><br/>
+                        <label class="checkbox">
+                            <input type="checkbox" id="outdoor_temp" value="Outdoor Temperature"> Outdoor Temperature
+                        </label><br/>
                     </div>
                 </div><br/>
                 <div class="form-group text-center">

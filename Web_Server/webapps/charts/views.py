@@ -63,6 +63,7 @@ import pytz
 #sys.path.insert(0,os.path.expanduser('~/BEMOSS/'))
 from bemoss_lib.databases.cassandraAPI.cassandraDB import retrieve
 from bemoss_lib.utils import date_converter
+import settings
 
 def parse_resultset(variables, data_point, result_set, last_date=None):
     if len(result_set)>0 and type(result_set[0][variables.index(data_point)]) in [str,unicode]:
@@ -92,7 +93,7 @@ def parse_resultset(variables, data_point, result_set, last_date=None):
 
 
 
-def returnChartsPage(request, context,mac,data_variables,page):
+def returnChartsPage(request, context,mac,data_variables,page,get_weather=False):
     '''
     :param context: var obtained from RequestContext(request)
     :param mac: Device mac ID (table id)
@@ -103,8 +104,12 @@ def returnChartsPage(request, context,mac,data_variables,page):
     '''
     agent_id = get_agent_id_from_mac(mac)
     try:
-        varlist, rs = retrieve(agent_id)
+        if not get_weather:
+            varlist, rs = retrieve(agent_id)
+        else:
+            varlist, rs = retrieve(agent_id, weather_agent=settings.weather_agent)
     except Exception as er:
+        print er
         print 'Cassandra data reading error'
         return {}
 
@@ -131,7 +136,7 @@ def returnChartsPage(request, context,mac,data_variables,page):
     data_dict.update(device_list_side_nav)
     return render(request, page,data_dict)
 
-def returnsCharts(request,data_variables):
+def returnsCharts(request,data_variables,get_weather=False):
 
     _data = request.body
     _data = json.loads(_data)
@@ -147,6 +152,7 @@ def returnsCharts(request,data_variables):
     else:
         from_date = None
 
+
     if 'to_dt' in _data.keys():
         to_date = _data['to_dt']
         if to_date not in [None,'',u'']:
@@ -157,8 +163,16 @@ def returnsCharts(request,data_variables):
     else:
         to_date = None
 
+    if from_date is None and to_date is None:
+        to_date = datetime.datetime(2017, 2, 4)
+        from_date = datetime.datetime(2017, 1, 1)
+
     agent_id = get_agent_id_from_mac(mac)
-    varlist, rs = retrieve(agent_id, ['time']+data_variables.values(),startTime=from_date,endTime=to_date)
+    if get_weather:
+        varlist, rs = retrieve(agent_id,weather_agent=settings.weather_agent)
+    else:
+        varlist, rs = retrieve(agent_id)
+    #varlist, rs = retrieve(agent_id, weather_agent="weatheragent22101", )
     json_result =dict()
     for key,val in data_variables.items():
         json_result[key] = parse_resultset(varlist,val,rs,to_date)
@@ -172,17 +186,26 @@ def charts_device(request, mac):
     objects = [ob for ob in DeviceMetadata.objects.filter(mac_address=mac)]
     #Todo make device model a foreign key
     device_model = objects[0].device_model
-    chart_page = SupportedDevices.objects.get(device_model=device_model).chart_template
+    supported_device = SupportedDevices.objects.get(device_model=device_model)
+    chart_page = supported_device.chart_template
     agent_id = get_agent_id_from_mac(mac)
     data = Devicedata.objects.get(agent_id=agent_id)
+    if supported_device.device_type.device_type == "HVAC":
+        get_weather = True
+    else:
+        get_weather = False
+
     data_variables = dict()
     for item in data.data.keys():
         data_variables[item] = item
 
+    weather_vars = ['weather_temperature', 'weather_humidity', 'weather_pressure', 'weather_v_wind', 'weather_sky_condition']
+    for v in weather_vars:
+        data_variables[v] = v
     if request.method == 'GET':
-        return returnChartsPage(request, context, mac, data_variables, chart_page)
+        return returnChartsPage(request, context, mac, data_variables, chart_page, get_weather=get_weather)
     elif request.method == 'POST':
-        return returnsCharts(request,data_variables)
+        return returnsCharts(request,data_variables,get_weather=get_weather)
 
     '''
     thermostat
@@ -204,7 +227,7 @@ def charts_device(request, mac):
 def get_statistics_datetime_thermostat(request):
     if request.method == 'POST':
         data_variables = {'temperature':'temperature','heat_setpoint':'heat_setpoint','cool_setpoint':'cool_setpoint'}
-        return returnsCharts(request,data_variables)
+        return returnsCharts(request,data_variables,get_weather=True)
 
 
 @login_required(login_url='/login/')
