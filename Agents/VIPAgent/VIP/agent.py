@@ -82,13 +82,13 @@ __version__ = '3.0'
 
 
 
-class UIToVIPAgent(BEMOSSAgent):
+class VIPAgent(BEMOSSAgent):
     '''Listens to everything and publishes a heartbeat according to the
     heartbeat period specified in the settings module.
     '''
 
     def __init__(self, config_path, **kwargs):
-        super(UIToVIPAgent, self).__init__(**kwargs)
+        super(VIPAgent, self).__init__(**kwargs)
         self.config = utils.load_config(config_path)
         self.agent_id = self.config['agentid']
         context = zmq.Context()
@@ -138,7 +138,7 @@ class UIToVIPAgent(BEMOSSAgent):
 def main(argv=sys.argv):
     '''Main method called by the eggsecutable.'''
     try:
-        utils.vip_main(UIToVIPAgent)
+        utils.vip_main(VIPAgent)
     except Exception as e:
         _log.exception('unhandled exception')
 

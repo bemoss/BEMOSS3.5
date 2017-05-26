@@ -62,7 +62,7 @@ volttron-ctl start --tag bacnetagent
 sleep 2
 volttron-ctl start --tag networkagent
 sleep 2
-volttron-ctl start --tag uitovipagent
+volttron-ctl start --tag vipagent
 sleep 10
 #network agent needs to fully start before multinodeagent can be started
 volttron-ctl start --tag multinodeagent
