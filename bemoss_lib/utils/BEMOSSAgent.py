@@ -26,6 +26,7 @@ class BEMOSSAgent(Agent):
         self.vip.pubsub.publish('pubsub','to/tsdagent/insert',message=message)
 
     def TSDCustomInsert(self, all_vars, log_vars, tablename):
+        all_vars = dict(all_vars) #make a copy to prevent the source from being modified
         for key in all_vars.keys():
             if key not in log_vars:
                 all_vars.pop(key)

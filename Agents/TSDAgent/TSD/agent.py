@@ -117,8 +117,11 @@ class TSDAgent(Agent):
         for key, val in message['all_vars'].items():
             if message['log_vars'][key] == "TIMESTAMP":
                 message['all_vars'][key] = date_converter.deserialize(val)
-            if message['log_vars'][key] == "UUID" and val:
-                message['all_vars'][key] = uuid.UUID(val)
+            if message['log_vars'][key] == "UUID":
+                try:
+                    message['all_vars'][key] = uuid.UUID(val)
+                except ValueError:
+                    message['all_vars'][key] = None
 
     @Core.periodic(5)
     def do_insertion_jobs(self):
