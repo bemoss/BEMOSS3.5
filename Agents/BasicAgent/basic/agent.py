@@ -68,7 +68,6 @@ import uuid
 from volttron.platform.vip.agent import Agent, Core, PubSub, compat
 from volttron.platform.agent import utils
 from volttron.platform.messaging import headers as headers_mod
-from bemoss_lib.databases.cassandraAPI import cassandraDB
 from bemoss_lib.utils.offline_table_init import *
 from bemoss_lib.utils.encrypt import decrypt_value
 from bemoss_lib.communication.Email import EmailService
@@ -236,7 +235,7 @@ class BasicAgent(BEMOSSAgent):
             self.Device.getDeviceStatus()
             api_vars = dict(self.Device.variables)
             api_vars['user'] = 'backupsave'
-            cassandraDB.insert(self.agent_id, api_vars, self.log_variables)
+            self.TSDInsert(self.agent_id, api_vars, self.log_variables)
             print('Every Data Pushed to cassandra')
         except Exception as er:
             print("ERROR: {} fails to update cassandra database".format(self.agent_id))
@@ -322,7 +321,7 @@ class BasicAgent(BEMOSSAgent):
             else:
                 message = 'failure'
             # No matter success or failure, record this attempt anyway.
-            cassandraDB.insert(self.agent_id, _data_complete, self.log_variables)
+            self.TSDInsert(self.agent_id, _data_complete, self.log_variables)
         else:
             print("The POST message is invalid, check brightness, status or color setting and try again\n")
             message = 'failure'
@@ -384,7 +383,7 @@ class BasicAgent(BEMOSSAgent):
         try:
             # log data to cassandra
             self.variables['user'] = 'device_monitor'
-            cassandraDB.insert(self.agent_id, self.variables, self.log_variables)
+            self.TSDInsert(self.agent_id, self.variables, self.log_variables)
             print('Data Pushed to cassandra')
             print "{} success update database".format(self.agent_id)
 
@@ -413,7 +412,7 @@ class BasicAgent(BEMOSSAgent):
                 self.offline_variables['related_to'] = None
                 self.offline_id = temp
                 self.offline_variables['logged_time'] = datetime.utcnow()
-                cassandraDB.customInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
+                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
                                          tablename=self.offline_table)
 
                 time = date_converter.UTCToLocal(datetime.utcnow())
@@ -440,7 +439,7 @@ class BasicAgent(BEMOSSAgent):
                 self.offline_variables['related_to'] = self.offline_id
                 self.offline_id = None
                 self.offline_variables['logged_time'] = datetime.utcnow()
-                cassandraDB.customInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
+                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
                                          tablename=self.offline_table)
                 time = date_converter.UTCToLocal(datetime.utcnow())
 
