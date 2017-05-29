@@ -92,7 +92,7 @@ $( document ).ready(function() {
          if (topic) {
              topic = topic.split('/');
              console.log(topic);
-             if (topic[1] == device_data.agent_id && topic[2] == 'device_status_response') {
+             if (topic[3] == device_data.agent_id && topic[4] == 'device_status_response') {
                  if ($.type( _data['message'] ) === "string"){
                      var _message = $.parseJSON(_data['message']);
                      if ($.type(_message) != "object"){
@@ -104,7 +104,7 @@ $( document ).ready(function() {
                  }
 
              }
-             if (topic[1] == device_data.agent_id && topic[2] == 'update_response') {
+             if (topic[3] == device_data.agent_id && topic[4] == 'update_response') {
                  var message_upd = _data['message'];
                  var popup = false
                  if ($.type( _data['message'] ) === "string"){

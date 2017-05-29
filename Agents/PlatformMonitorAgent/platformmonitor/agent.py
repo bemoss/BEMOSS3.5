@@ -182,7 +182,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
 
     #2. agent setup method
-    @Core.receiver('onsetup')
+    @Core.receiver('onstart')
     def setup(self,sender,**kwargs):
         #Create offline_event table
         retry = True
@@ -254,7 +254,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 offline_variables['related_to'] = None
                 #save in DB; platform crash
                 offline_variables['logged_time']=datetime.datetime.utcnow()
-                cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
 
                 #restart
 
@@ -271,7 +271,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
                 #save in DB; platform restart
                 offline_variables['logged_time']=datetime.datetime.utcnow()
-                cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
             else:
                 print 'Fresh boy'
 
@@ -282,7 +282,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
             platform_variables['event_id']=uuid.uuid4()
             platform_variables['end_time']=datetime.datetime.utcnow()
             offline_variables['logged_time']=datetime.datetime.utcnow()
-            cassandraDB.customInsert(platform_variables,platform_log_variables,platform_table)
+            self.TSDCustomInsert(platform_variables,platform_log_variables,platform_table)
 
         self.core.periodic(self.poll_time, self.agentMonitorBehavior)
         self.core.periodic(self.backup_poll_time, self.agentBackupMonitorBehavior)
@@ -303,7 +303,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
         try:
             #Platfrom-monitor is running. Also serves to check if cassandra is running. Save every-poll-time. If it goes missing, means went off
             platform_variables['end_time']=datetime.datetime.utcnow()
-            cassandraDB.customInsert(platform_variables,platform_log_variables,platform_table)
+            self.TSDCustomInsert(platform_variables,platform_log_variables,platform_table)
         except cluster.NoHostAvailable as er:
             #Cassandra offline. Save the offline time in temp variable
             print er
@@ -334,7 +334,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 offline_variables['related_to']=None
                 #safe offline event first
                 offline_variables['logged_time']=datetime.datetime.utcnow()
-                cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
 
                 #Then save the online event
                 offline_variables['time']=datetime.datetime.utcnow()
@@ -344,7 +344,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 offline_variables['related_to']=temp
                 offline_variables['event_id']=uuid.uuid4()
                 offline_variables['logged_time']=datetime.datetime.utcnow()
-                cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                 self.last_seen_dead.pop('cassandra')
                 self.cassandra_death_time=None
                 self.cassandra_death_date=None
@@ -372,7 +372,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                     self.crash_id['volttron'] = offline_variables['event_id']
                     #save offline
                     offline_variables['logged_time']=datetime.datetime.utcnow()
-                    cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                 except cluster.NoHostAvailable as er:
                     print er
             #If volttron not running, we are done
@@ -398,7 +398,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         offline_variables['related_to']=None
                     #save offline
                     offline_variables['logged_time']=datetime.datetime.utcnow()
-                    cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                 except cluster.NoHostAvailable as er:
                     print er
 
@@ -427,7 +427,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         self.crash_id['postgresql']=offline_variables['event_id']
                     #save offline
                     offline_variables['logged_time']=datetime.datetime.utcnow()
-                    cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                 except cluster.NoHostAvailable as er:
                     print er
             #Can't continue to restarting Agents, if prostgress is down. We don't know which agent are crashed, and which are regularly shutdown
@@ -449,7 +449,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         offline_variables['related_to']=None
                     #save offline
                     offline_variables['logged_time']=datetime.datetime.utcnow()
-                    cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                 except cluster.NoHostAvailable as er:
                     print er
 
@@ -488,7 +488,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                     offline_variables['related_to']=None
                                 #save offline
                                 offline_variables['logged_time']=datetime.datetime.utcnow()
-                                cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                             except cluster.NoHostAvailable as er:
                                     print er
                                     print 'Cassandra not available.'
@@ -525,7 +525,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                             self.crash_id[row[0]]=offline_variables['event_id']
                                         #save offline
                                         offline_variables['logged_time']=datetime.datetime.utcnow()
-                                        cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                                        self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                                     except cluster.NoHostAvailable as er:
                                         print er
                                         print 'Cassandra not available.'
@@ -576,14 +576,14 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                     offline_variables['related_to'] = None
                                 #save agent just start
                                 offline_variables['logged_time']=datetime.datetime.utcnow()
-                                cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                                 #Save device online
                                 # offline_variables['event']='online'
                                 # offline_variables['event_id']=uuid.uuid4()
                                 # offline_variables['reason']='fresh-start'
                                 # offline_variables['related_to'] = temp
                                 # offline_variables['logged_time']=datetime.datetime.utcnow()
-                                # cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                                # self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
                             except cluster.NoHostAvailable as er:
                                 print er
                                 print 'Cassandra not available.'
@@ -620,7 +620,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                             self.crash_id[agent]=temp
                         #save agent just start
                         offline_variables['logged_time']=datetime.datetime.utcnow()
-                        cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                        self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
 
                     except cluster.NoHostAvailable as er:
                         print er
@@ -648,7 +648,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                             offline_variables['related_to'] = None
                         #save agent just start
                         offline_variables['logged_time']=datetime.datetime.utcnow()
-                        cassandraDB.customInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                        self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
 
                     except cluster.NoHostAvailable as er:
                         print er
@@ -745,7 +745,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
             notification_variables['date_id'] = mydate
             notification_variables['last_event_log_time'] = self.last_event_log_time
             notification_variables['email_sent_time'] = datetime.datetime.utcnow()
-            cassandraDB.customInsert(notification_variables, notification_log_variables, notification_table)
+            self.TSDCustomInsert(notification_variables, notification_log_variables, notification_table)
 
             for priority in notification_map.keys():
 

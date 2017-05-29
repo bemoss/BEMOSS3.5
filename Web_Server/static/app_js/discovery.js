@@ -91,7 +91,7 @@ $( document ).ready(function() {
              console.log(topic);
              // from/misc/approvalhelper_get_device_username_response
              // from/misc/device_update_response
-             if (topic[1] == "approvalhelperagent" && topic[2] == "get_device_username_response") {
+             if (topic[3] == "approvalhelperagent" && topic[4] == "get_device_username_response") {
                  var message_upd = _data['message'];
                  message_upd = JSON.parse(message_upd);
                  if (message_upd['flag']==1) {

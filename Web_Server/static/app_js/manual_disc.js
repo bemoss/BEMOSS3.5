@@ -70,7 +70,7 @@ $( document ).ready(function() {
              // /agent/ui/misc/bemoss/discovery_request_response
               // from/agent_id/device_status_response
              // from/agent_id/device_update_response
-             if (topic[1]=='devicediscoveryagent' && topic[2] == 'discovery_request_response') {
+             if (topic[3]=='devicediscoveryagent' && topic[4] == 'discovery_request_response') {
                  if (message == 'ON') {
                      update_discovery_status_on(message);
                      $('.bottom-right').notify({

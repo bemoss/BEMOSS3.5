@@ -75,8 +75,8 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.wsgi
 from django.core.wsgi import get_wsgi_application
-
-
+from bemoss_lib.utils.BEMOSS_globals import *
+import time
 
 from volttron.platform.vip.agent import Core, Agent
 import gevent
@@ -95,6 +95,7 @@ current_path = BASE_DIR
 
 define('port', type=int, default=8082)
 define('host', type=str, default="localhost")
+
 def mysleep():
     gevent.sleep(0.3)
 
@@ -132,19 +133,12 @@ class MainHandler(websocket.WebSocketHandler):
 
     def initialize(self):
         print 'Initializing tornado websocket'
-        # self.push_socket = ctx.socket(zmq.PUSH)
-        # self.sub_socket = ctx.socket(zmq.SUB)
-        #
-        # self.push_socket.connect(push_socket)
-        # self.sub_socket.connect(sub_socket)
-        # self.zmq_subscribe()
-        #
-        # self.zmq_stream = ZMQStream(self.sub_socket)
-        # self.zmq_stream.on_recv(self.zmq_msg_recv)
-        self.server_agent = Agent()
-        self.event = gevent.event.Event()
-        self.server_agent_thread = gevent.spawn(self.server_agent.core.run, self.event)
-        self.event.wait()
+
+        self.context = zmq.Context()
+        self.sub_socket = self.context.socket(zmq.SUB)
+        self.sub_socket.connect(PUB_ADDRESS)
+        self.zmq_stream = ZMQStream(self.sub_socket)
+        self.zmq_stream.on_recv(self.recv_func)
 
 
     def check_origin(self, origin):
@@ -169,13 +163,23 @@ class MainHandler(websocket.WebSocketHandler):
 
     def on_close(self):
         print("WebSocket closed")
+        self.sub_socket.setsockopt(zmq.LINGER, 0)
+        self.sub_socket.close()
+        self.zmq_stream.close()
+        self.context.term()
 
-    def recv_func(self,peer, sender, bus, topic,headers,message):
+
+    def recv_func(self,message):
         #self.process_data(message)
-        topic = topic[6:] #remove the to/ui/ part as it is default
         try:
-            self.write_message({'message':message,'topic':topic})
-        except:
+            message = message[0]
+            topic, messagedata = message.split(ZMQ_SEPARATOR)
+            messagedata = json.loads(messagedata)
+            # self.vip.pubsub.publish('pubsub',topic,message=messagedata)
+            print topic, messagedata
+            self.write_message({'message':messagedata,'topic':topic})
+        except Exception as er:
+            print er
             pass
 
     def process_data(self, data):
@@ -202,11 +206,15 @@ class MainHandler(websocket.WebSocketHandler):
 
     def zmq_subscribe(self,agent_id):
         #self.sub_socket.setsockopt(zmq.SUBSCRIBE, "")
-        self.server_agent.vip.pubsub.subscribe(peer='pubsub', prefix="to/ui/from/"+agent_id, callback=self.recv_func)
+        topicfilter = "/to/ui/"
+        self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, "to/ui/from/"+agent_id)
+        #self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, u'')
+
 
 class GenericHandler(MainHandler):
     def zmq_subscribe(self,topic):
-        self.server_agent.vip.pubsub.subscribe(peer='pubsub', prefix='to/ui/'+topic, callback=self.recv_func)
+        #self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, u'')
+        self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, "to/ui/" + topic)
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()

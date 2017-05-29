@@ -59,63 +59,86 @@ from datetime import datetime
 import logging
 import sys
 
+import gevent
 from volttron.platform.vip.agent import Agent, Core, PubSub, compat
 from volttron.platform.agent import utils
 from volttron.platform.messaging import headers as headers_mod
+import zmq
+from zmq.eventloop.zmqstream import ZMQStream
 
+import random
+import sys
+import time
+from bemoss_lib.utils.BEMOSSAgent import BEMOSSAgent
+from bemoss_lib.utils.BEMOSS_globals import *
+import settings
 #from . import settings
+import json
 
 
 utils.setup_logging()
 _log = logging.getLogger(__name__)
 __version__ = '3.0'
 
-class ListenerAgent(Agent):
+
+
+class VIPAgent(BEMOSSAgent):
     '''Listens to everything and publishes a heartbeat according to the
     heartbeat period specified in the settings module.
     '''
 
     def __init__(self, config_path, **kwargs):
-        super(ListenerAgent, self).__init__(**kwargs)
+        super(VIPAgent, self).__init__(**kwargs)
         self.config = utils.load_config(config_path)
-        self._agent_id = self.config['agentid']
+        self.agent_id = self.config['agentid']
+        context = zmq.Context()
+        self.pub_socket = context.socket(zmq.PUB)
+        self.pub_socket.bind(PUB_ADDRESS)
+        self.sub_socket = context.socket(zmq.SUB)
+        self.sub_socket.bind(SUB_ADDRESS)
+        topicfilter = ""
+        self.sub_socket.setsockopt(zmq.SUBSCRIBE, '')
 
-    # @Core.receiver('onsetup')
-    # def onsetup(self, sender, **kwargs):
-    #     # Demonstrate accessing a value from the config file
-    #     _log.info(self.config['message'])
-    #     self._agent_id = self.config['agentid']
-    #
-    # @Core.periodic(2)
-    # def send_to_self(self):
-    #     #self.vip.pubsub.publish('pubsub', 'listener', None, {'message': 'Hello Listener'})
-    #     #print 'publishing'
-    #     pass
-    #
-    # @Core.receiver('onstart')
-    # def onstart(self, sender, **kwargs):
-    #     self.vip.heartbeat.start_with_period(15)
-    #     self.vip.pubsub.publish('pubsub','to/networkagent/test_topic/hello/from/listeneragent')
-    #
-    #
-    # @PubSub.subscribe('pubsub', '/ui/agent/misc/bemoss/approvalhelper_get_device_username')
-    # def get_device_username(self, peer, sender, bus, topic, headers, message):
-    #     print "yay! got it"
 
-    @PubSub.subscribe('pubsub', 'to/tsdagent/insert')
-    def on_match(self, peer, sender, bus,  topic, headers, message):
-        '''Use match_all to receive all messages and print them out.'''
-        if sender == 'pubsub.compat':
-            message = compat.unpack_legacy_message(headers, message)
-        _log.debug(
-            "Peer: %r, Sender: %r:, Bus: %r, Topic: %r, Headers: %r, "
-            "Message: %r", peer, sender, bus, topic, headers, message)
+
+
+    @Core.receiver('onsetup')
+    def onsetup(self, sender, **kwargs):
+        # Demonstrate accessing a value from the config file
+        pass
+    @Core.periodic(2)
+    def send_to_self(self):
+        #self.vip.pubsub.publish('pubsub', 'listener', None, {'message': 'Hello Listener'})
+        #print 'publishing'
+        pass
+
+    @Core.receiver('onstart')
+    def onstart(self, sender, **kwargs):
+        while True: #main program loop for checking coming message
+            try:
+                recv_message = self.sub_socket.recv(flags=zmq.NOBLOCK)
+                if recv_message:
+                    topic, messagedata = recv_message.split(ZMQ_SEPARATOR)
+                    messagedata = json.loads(messagedata)
+                    self.vip.pubsub.publish('pubsub',topic,message=messagedata)
+                    print topic, messagedata
+            except zmq.Again:
+                pass
+            gevent.sleep(0.3)
+        pass
+
+    @PubSub.subscribe('pubsub', 'to/ui/')
+    def get_device_username(self, peer, sender, bus, topic, headers, message):
+        print "yay! got it"
+        print topic
+        print message
+        self.pub_socket.send_string(topic+ZMQ_SEPARATOR+json.dumps(message))
 
 
 def main(argv=sys.argv):
     '''Main method called by the eggsecutable.'''
     try:
-        utils.vip_main(ListenerAgent)
+        utils.vip_main(VIPAgent)
     except Exception as e:
         _log.exception('unhandled exception')
 

@@ -53,7 +53,7 @@ import os
 from volttron.platform.agent import utils
 from volttron.platform.messaging import headers as headers_mod
 import datetime
-from bemoss_lib.databases.cassandraAPI import cassandraDB
+
 
 from volttron.platform.vip.agent import Core
 from Agents.BasicAgent.basic.agent import BasicAgent
@@ -268,7 +268,7 @@ class ThermostatAgent(BasicAgent):
                             self.Device.setDeviceStatus({"thermostat_mode":self.Device.get_variable('thermostat_mode'),setpoint:setpoint_value,"hold":self.Device.get_variable('hold')})
                             thermovars = dict(self.Device.variables)
                             thermovars['user']='radio-hack'
-                            cassandraDB.insert(self.agent_id,thermovars,self.log_variables)
+                            self.TSDInsert(self.agent_id,thermovars,self.log_variables)
                         except:
                             print('Error @ setDeviceStatus after Radiothermostat getDeviceSchedule')
                 else:
@@ -555,7 +555,7 @@ class ThermostatAgent(BasicAgent):
             # self.updateDBall()
             self.updatePostgresDB()
         #insert the new data into cassandraDB
-        cassandraDB.insert(self.agent_id, UIdata, self.log_variables)
+        self.TSDInsert(self.agent_id, UIdata, self.log_variables)
         self.bemoss_publish('update_response', return_entity, message)
 
     def isPostmsgValid(self, _data):  # check validity of postmsg
@@ -765,7 +765,7 @@ class ThermostatAgent(BasicAgent):
             print "_device_control_msg " + str(_device_control_msg)
             self.Device.setDeviceStatus(json.loads(json.dumps(_device_control_msg)))
             self.variables['user']='anti-tampering'
-            cassandraDB.insert(self.agent_id,self.variables,self.log_variables)
+            self.TSDInsert(self.agent_id,self.variables,self.log_variables)
             print "{} >> set points have been tampered but already set back to the authorized settings" \
                 .format(self.agent_id)
 

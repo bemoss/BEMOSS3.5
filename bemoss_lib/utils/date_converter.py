@@ -3,6 +3,7 @@ import pytz
 import datetime
 #TODO read this from settings file
 import settings
+import time
 
 UTC = pytz.UTC
 bemoss_tmzone = pytz.timezone(settings.TIME_ZONE)
@@ -22,3 +23,15 @@ def UTCToLocal(UTC_date):
 
 def toLocal(user_date):
     return user_date.astimezone(bemoss_tmzone)
+
+def serialize(date):
+    return str(time.mktime(date.timetuple())) + "*" + str(date.tzinfo)
+
+def deserialize(date):
+    timestamp, tz = date.split('*')
+    dt = datetime.datetime.fromtimestamp(float(timestamp))
+    if tz != "None":
+        tz = pytz.timezone(tz)
+        return tz.localize(dt)
+    else:
+        return dt

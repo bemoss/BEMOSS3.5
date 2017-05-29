@@ -23,7 +23,7 @@ import re
 import settings
 from bemoss_lib.utils.db_helper import *
 from bemoss_lib.utils.BEMOSS_globals import *
-from bemoss_lib.databases.cassandraAPI import cassandraDB
+#from bemoss_lib.databases.cassandraAPI import cassandraDB
 import subprocess
 # address_list = ['tcp://192.168.10.77:9000','tcp://192.168.10.77:9001','tcp://192.168.10.77:9002']
 # node_list = ['Node1','Node2','Node3']
@@ -216,7 +216,7 @@ class MultiNodeAgent(BEMOSSAgent):
                 self.offline_variables['related_to'] = None
                 self.offline_variables['event_id'] = uuid.uuid4()
                 self.offline_variables['logged_time'] = datetime.utcnow()
-                cassandraDB.customInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
+                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
                                          tablename=self.offline_table)
                 time = date_converter.UTCToLocal(datetime.utcnow())
                 message = str(node_name) + ': ' + 'node-offline. Reason: possibly communiation-error'
@@ -263,7 +263,7 @@ class MultiNodeAgent(BEMOSSAgent):
                 self.offline_variables['related_to'] = None
                 self.offline_variables['event_id'] = uuid.uuid4()
                 self.offline_variables['logged_time'] = datetime.utcnow()
-                cassandraDB.customInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
+                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
                                          tablename=self.offline_table)
                 time = date_converter.UTCToLocal(datetime.utcnow())
                 message = str(node_name) + ': ' + 'node-online. Reason: possibly communiation-restored'

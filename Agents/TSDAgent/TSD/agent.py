@@ -58,64 +58,94 @@ from __future__ import absolute_import
 from datetime import datetime
 import logging
 import sys
+from collections import deque
 
+import gevent
 from volttron.platform.vip.agent import Agent, Core, PubSub, compat
 from volttron.platform.agent import utils
 from volttron.platform.messaging import headers as headers_mod
+import zmq
+from zmq.eventloop.zmqstream import ZMQStream
 
+import random
+import sys
+import time
+from bemoss_lib.utils.BEMOSSAgent import BEMOSSAgent
+from bemoss_lib.utils.BEMOSS_globals import *
+import settings
 #from . import settings
+import json
+from bemoss_lib.utils import date_converter
+from bemoss_lib.databases.cassandraAPI import cassandraDB
 
+import uuid
 
 utils.setup_logging()
 _log = logging.getLogger(__name__)
 __version__ = '3.0'
 
-class ListenerAgent(Agent):
+
+
+class TSDAgent(Agent):
     '''Listens to everything and publishes a heartbeat according to the
     heartbeat period specified in the settings module.
     '''
 
     def __init__(self, config_path, **kwargs):
-        super(ListenerAgent, self).__init__(**kwargs)
+        super(TSDAgent, self).__init__(**kwargs)
         self.config = utils.load_config(config_path)
-        self._agent_id = self.config['agentid']
-
+        self.agent_id = self.config['agentid']
+        self.insert_message_queue = deque()
+        self.custom_insert_message_queue = deque()
+    #
     # @Core.receiver('onsetup')
     # def onsetup(self, sender, **kwargs):
     #     # Demonstrate accessing a value from the config file
-    #     _log.info(self.config['message'])
-    #     self._agent_id = self.config['agentid']
-    #
-    # @Core.periodic(2)
-    # def send_to_self(self):
-    #     #self.vip.pubsub.publish('pubsub', 'listener', None, {'message': 'Hello Listener'})
-    #     #print 'publishing'
     #     pass
-    #
-    # @Core.receiver('onstart')
-    # def onstart(self, sender, **kwargs):
-    #     self.vip.heartbeat.start_with_period(15)
-    #     self.vip.pubsub.publish('pubsub','to/networkagent/test_topic/hello/from/listeneragent')
-    #
-    #
-    # @PubSub.subscribe('pubsub', '/ui/agent/misc/bemoss/approvalhelper_get_device_username')
-    # def get_device_username(self, peer, sender, bus, topic, headers, message):
-    #     print "yay! got it"
 
     @PubSub.subscribe('pubsub', 'to/tsdagent/insert')
-    def on_match(self, peer, sender, bus,  topic, headers, message):
-        '''Use match_all to receive all messages and print them out.'''
-        if sender == 'pubsub.compat':
-            message = compat.unpack_legacy_message(headers, message)
-        _log.debug(
-            "Peer: %r, Sender: %r:, Bus: %r, Topic: %r, Headers: %r, "
-            "Message: %r", peer, sender, bus, topic, headers, message)
+    def insert(self, peer, sender, bus, topic, headers, message):
+        self.insert_message_queue.append(message)
+        print "Insert Message queued for: " + message['agentID'] + " Total Queue: " + str(len(self.insert_message_queue))
 
+    @PubSub.subscribe('pubsub', 'to/tsdagent/custominsert')
+    def customInsert(self, peer, sender, bus, topic, headers, message):
+        self.custom_insert_message_queue.append(message)
+        print "CustomInsert message queued for: " + message['tablename']+ " Total Queue: " + str(len(self.custom_insert_message_queue))
+
+    def deserialize_date(self,message):
+        for key, val in message['all_vars'].items():
+            if message['log_vars'][key] == "TIMESTAMP":
+                message['all_vars'][key] = date_converter.deserialize(val)
+            if message['log_vars'][key] == "UUID":
+                try:
+                    message['all_vars'][key] = uuid.UUID(val)
+                except ValueError:
+                    message['all_vars'][key] = None
+
+    @Core.periodic(5)
+    def do_insertion_jobs(self):
+        while self.insert_message_queue or self.custom_insert_message_queue:
+            print "Inserting: ", len(self.insert_message_queue), len(self.custom_insert_message_queue)
+            try:
+                if self.insert_message_queue:
+                    message = self.insert_message_queue.popleft()
+                    self.deserialize_date(message)
+                    cassandraDB.insert(message['agentID'], message['all_vars'], message['log_vars'],
+                                       cur_timeLocal=message['cur_timeLocal'], tablename=message['tablename'])
+                if self.custom_insert_message_queue:
+                    message = self.custom_insert_message_queue.popleft()
+                    self.deserialize_date(message)
+                    cassandraDB.customInsert(message['all_vars'], message['log_vars'], tablename=message['tablename'])
+            except Exception as er:
+                print er
+                print "TSD data entry failure"
+            time.sleep(0.001)
 
 def main(argv=sys.argv):
     '''Main method called by the eggsecutable.'''
     try:
-        utils.vip_main(ListenerAgent)
+        utils.vip_main(TSDAgent)
     except Exception as e:
         _log.exception('unhandled exception')
 

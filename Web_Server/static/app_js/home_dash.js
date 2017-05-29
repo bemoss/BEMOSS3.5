@@ -65,8 +65,8 @@ $( document ).ready(function() {
          if (topic) {
              topic = topic.split('/');
              //console.log(topic);
-             //from/devicediscoveryagent/auto_discovery_status
-             if (topic[1] == 'devicediscoveryagent' && topic[2] == 'auto_discovery_status') {
+             //to/ui/from/devicediscoveryagent/auto_discovery_status
+             if (topic[3] == 'devicediscoveryagent' && topic[4] == 'auto_discovery_status') {
                  update_discovery_status(message);
              }
          }
