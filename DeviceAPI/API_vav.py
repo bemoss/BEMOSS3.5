@@ -118,9 +118,9 @@ class API(ModbusAPI):
             client = connection(self.address,port=502)
             client.connect()
             if BEMOSS_ONTOLOGY.HEAT_SETPOINT.NAME in postmsg.keys():
-                result=client.write_register(6,int(self.far2cel(float(postmsg.get('heat_setpoint')))),unit=self.slave_id)
+                result=client.write_register(6,int(self.far2cel(float(postmsg.get('heat_setpoint'))* 100.0)),unit=self.slave_id)
             if BEMOSS_ONTOLOGY.COOL_SETPOINT.NAME in postmsg.keys():
-                result2=client.write_register(6,int(self.far2cel(float(postmsg.get('cool_setpoint')))),unit=self.slave_id)
+                result2=client.write_register(6,int(self.far2cel(float(postmsg.get('cool_setpoint'))* 100.0)),unit=self.slave_id)
             if BEMOSS_ONTOLOGY.OVERRIDE.NAME in postmsg.keys():
                 if postmsg.get('override') == 'ON' or postmsg.get('override') == True:
                     client.write_register(159,1,unit=self.slave_id)
@@ -149,7 +149,7 @@ def main():
     #print Prolon.variables
 
     #Step3: change device operating set points
-    #Prolon.setDeviceStatus({'flap_override':'ON','flap_position':20})
+    Prolon.setDeviceStatus({'flap_override':'ON','flap_position':20,'heat_setpoint':90})
     #Prolon.setDeviceStatus({'fan_status':'ON'})
 
     #Prolon.getDeviceStatus()

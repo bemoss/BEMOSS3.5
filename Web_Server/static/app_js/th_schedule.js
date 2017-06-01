@@ -786,6 +786,7 @@ $( document ).ready(function() {
             for (var j = 0; j < sch_apply.length; j++) {
 
                 var new_tr_id = sch_apply[j]["id"];
+                document.getElementById("nickname_" + parent + "_schedule_" + new_tr_id).value = sch_apply[j]['nickname'];
 
                 $("#td_tp_"+parent+"_"+new_tr_id).empty();
                 var cell3 = document.getElementById("td_tp_"+parent+"_"+new_tr_id);

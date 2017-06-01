@@ -60,6 +60,10 @@ $( document ).ready(function() {
 
         var tr_id = $('#holidays tbody tr:last').attr('id');
         console.log( tr_id);
+        if (tr_id==undefined)
+        {
+        tr_id="holiday_0";
+        }
         tr_id = tr_id.split("_");
         tr_id = tr_id[1];
 
