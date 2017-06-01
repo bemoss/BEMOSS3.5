@@ -145,6 +145,10 @@ $( document ).ready(function() {
     });
 
     $('.widget-content').on('click', "button[id^='add_']" , function(e) {
+        if (this.id!="add_new_holiday"){
+
+
+
         e.preventDefault();
 
         var tp_id = this.id;
@@ -171,7 +175,7 @@ $( document ).ready(function() {
                         message: { text: 'Holiday added to BEMOSS.' },
                         type: 'blackgloss',
                         fadeOut: { enabled: true, delay: 5000 }
-                    }).show();
+                    }).show();window.location.reload();
                 }
             },
             error: function (data) {
@@ -183,7 +187,7 @@ $( document ).ready(function() {
             }
         });
 
-    });
+   } });
 
     $("#bloc_submit").click(function(e) {
         e.preventDefault();
