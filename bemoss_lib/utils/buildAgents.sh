@@ -62,9 +62,6 @@ volttron-pkg package $1/Agents/BasicAgent
 #Install Platform agent
 ./scripts/core/pack_install.sh $1/Agents/PlatformMonitorAgent $1/Agents/PlatformMonitorAgent/platformmonitoragent.launch.json platformmonitoragent
 
-#Install AppLauncher Agent
-./scripts/core/pack_install.sh $1/Agents/AppLauncherAgent $1/Agents/AppLauncherAgent/applauncheragent.launch.json applauncheragent
-
 #Install ApprovalHelper Agent
 ./scripts/core/pack_install.sh $1/Agents/ApprovalHelperAgent $1/Agents/ApprovalHelperAgent/approvalhelperagent.launch.json approvalhelperagent
 

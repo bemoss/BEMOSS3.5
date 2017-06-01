@@ -133,17 +133,26 @@
                                 <h3>Fault Detection</h3>
                             </div>
                             <div class="widget-content">
-
                                 <div class="row">
                                     <div class="text-left bottom-buffer ">
                                         <p>This app will look at temperature history of a thermostat, as well as outdoor temperature history,
                                             and if it detects that the current temperature profile is anamolous it will generate a notification
                                             to alert the user about the abnormal behavior.
                                         </p>
+                                    {% if available_thermostats %}
+                                        <p>
+                                            <select id="drop-thermostats">
+                                                {% for thermo in available_thermostats %}
+                                                <option value="{{ thermo.agent_id }}">{{ thermo.nickname }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </p>
                                         <button class="btn btn-warning" id="fault_add">Start New</button>
+                                    {% else %}
+                                        There are no thermostat available for fault detection.
+                                    {% endif %}
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -179,17 +188,19 @@
           <td {% if app.status|lower == 'stopped' %} style="color:red;" {% endif %}>{{ app.status }}</td>
           <td>
           <!-- TODO: create a column 'app_display_info' in application table instead of using the following logic-->
-              {% if app.app_type.app_name == 'IBLC' %}
-                  {% ifequal app.app_data|get_item_in_dict:'target' None %}
+              {% if app.app_type.app_name == 'iblc' %}
+                  {% if 'target' not in app.app_data %}
                         Target illuminance not set yet.
                   {% else %}
                     Target illuminance set to {{ app.app_data|get_item_in_dict:'target' }} Lux.
-                  {% endifequal %}
+                  {% endif %}
+              {% else %}
+                {{ app.app_data.description }}
               {% endif %}
 
           </td>
           <td>{{ app.start_time | as_local_time}}</td>
-            <td>X</td>
+            <td><a href="command/delete/{{ app.app_agent_id }}">X</a></td>
         </tr>
       {%  endfor  %}
         </tbody>

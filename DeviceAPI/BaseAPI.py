@@ -144,7 +144,7 @@ class baseAPI:
                 if ont.TYPE in ['float','double']:
                     try:
                         val = float(data[variable_name])
-                    except ValueError:
+                    except (TypeError, ValueError):
                         val = None
                 elif ont.TYPE in ['string','text']:
                     val = str(data[variable_name])

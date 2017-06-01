@@ -49,7 +49,7 @@
 {% load timedelta %}
 {% load device_count_in_zone %}
 {% load get_dict %}
-
+{% load timerange %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -99,69 +99,132 @@
                     </div>
                 </div>
 
-            <div class="content container">
-                <h4>Please select the thermostat for which HVAC anamoly needs to be detected.</h4>
-            </div>
-
             <div class="row">
         <div class="col-md-6 col-xs-12 col-sm-12">
       <div class="widget">
             <div class="widget-header"> <i class="icon-globe"></i>
-              <h3>Thermostat</h3>
-            </div>
-
-            <div class="widget-content eq_height_hvac">
-                 <div class="control-group">
-                    <div class="controls span2">
-                        {% for thermostat in available_thermostats %}
-                            <label class="radio-inline"><input type="radio" name="thradio"
-                                                               value="{{thermostat.agent_id}}" id="{{thermostat.agent_id }}"
-                                    {% if thermostat.agent_id == app_info.app_data.thermostat %} checked="" {% endif %}>
-                                {{ thermostat.nickname  }}</label>
-                        {% endfor %}
-                    </div>
-
-                </div>
+              <h3>Thermostat: {{ thermostat.nickname }}</h3>
             </div>
           </div>
         <div class="widget">
             <div class="widget-header"> <i class="icon-globe"></i>
-              <h3>Sensitivity</h3>
+              <h3>Select Desired Alerts</h3>
             </div>
-
             <div class="widget-content eq_height_hvac">
-                <div class="control-group">
-                 <div class="controls span2">
-                     {%  for iter in 3|times %}
-                        {% cycle "low" "medium" "high" as sensitivity silent%}
-                                     <label class="radio-inline"><input type="radio" name="snradio"
-                                                                        value="{{ sensitivity }}" id="{{ sensitivity }}"
-                                     {% if app_info.app_data.sensitivity == sensitivity %} checked="" {% endif %}>
-                                       {% cycle "Low" "Medium" "High" %} </label>
-                     {% endfor %}
+            <input type="checkbox" id="chk_profile_trigger_enabled"
+                 {% if app_info.app_data.profile_trigger_enabled == None or app_info.app_data.profile_trigger_enabled == True  %}checked {% endif %} >
+                Abnormal Temeprature behavior <br><br>
+            <input type="checkbox" id="chk_temp_low_trigger_enabled"
+                 {% if app_info.app_data.temp_low_trigger_enabled == None or app_info.app_data.temp_low_trigger_enabled == True  %}checked {% endif %} >
+                If temperature goes below:
+                <select id="drop_temperature_low" >
+                            {% strtemprange 55 5 65 as temps %}
+                            {% for temp in temps %}
+                                {% if app_info.app_data.trigger_values == None %}
+                              <option value={{ temp.val }} {%  if temp.val == 60 %} selected {% endif %} >{{ temp.str }}</option>
+                                {% else %}
+                                    {% get_value  app_info.app_data.trigger_values 'temperature_low' as trigger_value%}
+                                     <option value={{ temp }} {% if trigger_value == temp.val %} selected {% endif %} >{{ temp.str }}</option>
+                                {% endif %}
+                            {% endfor %}
+                             </select>
+                <br><br>
+            <input type="checkbox" id="chk_temp_high_trigger_enabled"
+                 {% if app_info.app_data.temp_high_trigger_enabled == None or app_info.app_data.temp_high_trigger_enabled == True  %}checked {% endif %} >
+                If temperature goes above:
+                <select id="drop_temperature_high" >
+                            {% strtemprange 80 5 90 as temps%}
+                            {% for temp in temps %}
+                                {% if app_info.app_data.trigger_values == None %}
+                              <option value={{ temp.val }} {%  if temp.val == 85 %} selected {% endif %} >{{ temp.str }}</option>
+                                {% else %}
+                                    {% get_value  app_info.app_data.trigger_values 'temperature_high' as trigger_value%}
+                                     <option value={{ temp }} {% if trigger_value == temp.val %} selected {% endif %} >{{ temp.str }}</option>
+                                {% endif %}
+                            {% endfor %}
+                             </select>
+                <br><br>
 
-                </div>
-                </div>
+
+
             </div>
           </div>
+{#        <div class="widget">#}
+{#            <div class="widget-header"> <i class="icon-globe"></i>#}
+{#              <h3>Hard Alert Trigger points</h3>#}
+{#            </div>#}
+{##}
+{#            <div class="widget-content eq_height_hvac">#}
+{#                <div class="control-group">#}
+{#                 <div class="controls span2">#}
+{#                    Enable this trigger <input type="checkbox" id="chk_hard_alert_enabled"#}
+{#                 {% if app_info.app_data.hard_alert_enabled == None or app_info.app_data.hard_alert_enabled == True  %}checked> {% endif %}> <br><br>#}
+{#                     {%  for iter in 3|times %}#}
+{#                        {% cycle "Temperature" "Cool Setpoint" "Heat Setpoint"%}#}
+{#                         {% cycle "temperature" "cool_setpoint" "heat_setpoint" as vartype silent %}#}
+{#                         {%  for iter2 in 2|times %}#}
+{#                             {% cycle "low" "high" as highlow%}#}
+{#                             <td>#}
+{##}
+{#                            </td>#}
+{#                         {% endfor %}#}
+{#                         <br>#}
+{#                     {% endfor %}#}
+{##}
+{#                </div>#}
+{#                </div>#}
+{#            </div>#}
+{#          </div>#}
+{#        <div class="widget">#}
+{#            <div class="widget-header"> <i class="icon-globe"></i>#}
+{#              <h3>Custom Temperature Deviation Alert</h3>#}
+{#            </div>#}
+{##}
+{#            <div class="widget-content eq_height_hvac">#}
+{#            Enable this trigger <input type="checkbox" id="chk_deviation_alert_enabled"#}
+{#          {% if app_info.app_data.deviation_alert_enabled == None or app_info.app_data.deviation_alert_enabled == True  %}checked> {% endif %}<br><br>#}
+{#                Temperature Deviation from Setpoint:#}
+{#            <select id="drop_deviation_value">#}
+{#            {% for t in 3|rangefromto:5 %}#}
+{#                <option value="{{ t }}" {%if app_info.app_data.deviation_alert_value == None and t == 3 or app_info.app_data.deviation_alert_value == t %}selected {% endif %}>{{ t }} F</option>#}
+{#            {% endfor %}#}
+{#            </select>#}
+{#            <br>#}
+{##}
+{#                <div class="control-group">#}
+{#                 <div class="controls span2">#}
+{#                 For more than this much time:#}
+{#                            {% strhourrange 2 4 as lsttime%}#}
+{#                             <select id="drop_deviation_delay" >{{ vartype }} {{ highlow }}#}
+{#                            {% for opttime in lsttime %}#}
+{#                                <option value={{ opttime.val }} {% if app_info.app_data.deviation_alert_delay == None and opttime.val == 2 or app_info.app_data.deviation_alert_delay == opttime.val %} selected {% endif %}>{{ opttime.str }}</option>#}
+{#                            {% endfor %}#}
+{#                             </select>#}
+{##}
+{#                </div>#}
+{#                </div>#}
+{#            </div>#}
+{#          </div>#}
     </div>
             <div class="col-md-6 col-xs-12 col-sm-12 ">
       <div class="widget">
             <div class="widget-header"> <i class="icon-star"></i>
-              <h3>Save and Start</h3>
+                {% ifequal app_info.status 'running' %}
+                    <h3>Save</h3>
+                {% else %}
+                    <h3>Save and Start</h3>
+                {% endifequal %}
             </div>
 
-            <div class="widget-content eq_height_lt">
+            <div class="widget-content ">
             <div class="control-group">
                     <div class="controls span2">
             <div class="text-left bottom-buffer">
                 {% ifequal app_info.status 'running' %}
-                <p>The application is currently running. <button class="btn btn-success" id="save_start">Save</button></p>
-
+                The application is currently running.<br> <button class="btn btn-success" id="save_start">Save</button>
                 {% else %}
-                <p>The application is not running. <button class="btn btn-success" id="save_start">Save and Start</button></p>
+                    <p>The application is not running. <br><button class="btn btn-success" id="save_start">Save and Start</button></p>
                 {% endifequal %}
-                <br>
             </div>
                     </div>
             </div>
@@ -172,11 +235,11 @@
             <div class="widget-header"> <i class="icon-star"></i>
               <h3>Fault Status</h3>
             </div>
-            <div class="widget-content eq_height_lt">
+            <div class="widget-content ">
             <div class="control-group">
                     <div class="controls span2">
             <div class="text-left bottom-buffer">
-                The Status is: {{ app_info.app_data.fault }}
+                {{ app_info.app_data.fault }}
 
             </div>
                     </div>

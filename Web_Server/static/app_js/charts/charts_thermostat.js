@@ -136,6 +136,8 @@ $(document).ready(function(){
 
               cool_setpoint = _data.cool_setpoint;
 
+              outdoor_temp = _data.weather_temperature;
+
               var new_data = [];
               options.legend.labels = [];
 
@@ -151,8 +153,8 @@ $(document).ready(function(){
                        new_data.push(heat_setpoint);
                    } else if (this.id == 'cool_set_point') {
                        new_data.push(cool_setpoint);
-                   } else if (this.id == 'outdoor_temperature'){
-                       new_data.push(outdoor_temperature)
+                   } else if (this.id == 'outdoor_temp'){
+                       new_data.push(outdoor_temp)
                    }
                    options.legend.labels.push(this.value);
                    options.axes.xaxis.min = temperature[0][0];

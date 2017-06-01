@@ -97,13 +97,16 @@ $( document ).ready(function() {
 
     $('#iblc_add').click( function(evt){
           evt.preventDefault();
-            var jsonText = JSON.stringify('iblc');
+            var message = {'app_name':'iblc','app_data':{}};
+            var jsonText = JSON.stringify(message);
             app_add(jsonText)
         });
 
     $('#fault_add').click( function(evt){
           evt.preventDefault();
-            var jsonText = JSON.stringify('fault_detection');
+          var thermostat = $('#drop-thermostats').find(":selected").val();
+            var message = {'app_name':'fault_detection','app_data':{'thermostat':thermostat}};
+            var jsonText = JSON.stringify(message);
             app_add(jsonText)
         });
     function app_add(type){
@@ -120,13 +123,13 @@ $( document ).ready(function() {
                     }).show();
                      setTimeout(function(){
                      window.location.reload();
-            }, 5000);
+            }, 1000);
                 },
                 error: function (data) {
                     $('.bottom-right').notify({
-                        message: {text: 'Communication Error. Try again later!'},
+                        message: {text: 'Communication Error. Try agaisn later!'},
                         type: 'blackgloss',
-                        fadeOut: {enabled: true, delay: 5000}
+                        fadeOut: {enabled: true, delay: 1000}
                     }).show();
                 }
             });

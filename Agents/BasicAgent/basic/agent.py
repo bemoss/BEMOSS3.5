@@ -184,6 +184,9 @@ class BasicAgent(BEMOSSAgent):
                                                                             self.Device.get_variable('api'),
                                                                             self.Device.get_variable('address')))
 
+        if 'default_monitor_interval' in self.Device.API_info()[0]:
+            self.device_monitor_time = self.Device.API_info()[0]['default_monitor_interval']
+
         self.curcon.execute(
             "UPDATE " + self.db_table_device + " SET dashboard_view=%s WHERE agent_id=%s",
             (json.dumps(self.Device.dashboard_view()), self.agent_id,))
@@ -406,7 +409,7 @@ class BasicAgent(BEMOSSAgent):
                 self.offline_variables['date_id'] = str(datetime.now().date())
                 self.offline_variables['time'] = datetime.utcnow()
                 self.offline_variables['event_id'] = temp
-                self.offline_variables['agent_id'] = nickname + ' (' + self.agent_id + ')'
+                self.offline_variables['agent_id'] = nickname
                 self.offline_variables['event'] = 'device-offline'
                 self.offline_variables['reason'] = 'communication-error'
                 self.offline_variables['related_to'] = None
@@ -433,7 +436,7 @@ class BasicAgent(BEMOSSAgent):
                 self.offline_variables['date_id'] = str(datetime.now().date())
                 self.offline_variables['time'] = datetime.utcnow()
                 self.offline_variables['event_id'] = uuid.uuid4()
-                self.offline_variables['agent_id'] = nickname + ' (' + self.agent_id + ')'
+                self.offline_variables['agent_id'] = nickname
                 self.offline_variables['event'] = 'device-online'
                 self.offline_variables['reason'] = 'communication-restored'
                 self.offline_variables['related_to'] = self.offline_id

@@ -143,7 +143,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
     #1. agent initialization
     def __init__(self,config_path, **kwargs):
-        kwargs['identity'] = 'platformmonitoragent'
+        kwargs['identity'] = 'platformmonitoragent2'
         super(PlatformMonitorAgent, self).__init__(**kwargs)
 
         # Step1: Agent Code
@@ -404,7 +404,16 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
         #Get #Get list of devices Serves to check if postgress is running
         try:
-            self.curcon.execute("SELECT agent_id,device_type_id, approval_status FROM "+db_table_device_info)
+            self.curcon.execute("SELECT agent_id, approval_status FROM "+db_table_device_info)
+            rows = self.curcon.fetchall()
+            self.curcon.execute("SELECT app_agent_id, status from application_running")
+            apps = self.curcon.fetchall()
+            for app in apps:
+                if app[1] in ['running','started']:
+                    rows.append([app[0],'APR'])
+                else:
+                    rows.append([app[0],'PND'])
+
         except Exception as er:
             print er
             print 'Postgresql has failed'
@@ -455,7 +464,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
         #self.cur contains agent_id,device_type_id, approval_status
         if self.curcon.rowcount != 0:
-            rows = self.curcon.fetchall()
+
             command_group = list() #list of commands to send to networkagent
             for row in rows:
                 self.curcon.execute("SELECT assigned_node_id,current_node_id FROM "+db_table_node_device+" WHERE agent_id=%s",
@@ -470,13 +479,13 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 nickname = db_helper.get_device_nickname(self.curcon,row[0])
                 if row[0] in agentstatusresult:
 
-                    if agentstatusresult[row[0]] in ['running','']:
+                    if agentstatusresult[row[0]] in ['running']:
                         #device agent just starting, or already started; see if it was dead before:
                         if row[0] in self.last_seen_dead:
                             #Agent back after dead; update db
                             self.last_seen_dead.pop(row[0])
                             try:
-                                offline_variables['agent_id']=nickname+' ('+row[0]+')'
+                                offline_variables['agent_id']=nickname
                                 offline_variables['date_id']=str(datetime.datetime.now().date())
                                 offline_variables['event']='start'
                                 offline_variables['event_id']=uuid.uuid4()
@@ -493,7 +502,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                     print er
                                     print 'Cassandra not available.'
 
-                        if row[2].upper() not in ['APR','APPROVED'] or new_node != self.mynode:
+                        if row[1].upper() not in ['APR','APPROVED'] or new_node != self.mynode:
                             #Stop the unapproved agent or agent on another node, if it is running
                             print 'Stopping unapproved agent: '+row[0]
                             os.system("volttron-ctl stop --tag " + row[0])
@@ -502,7 +511,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         continue
                     else:
                         #device agent has crashed; proceed to start it if it was approved and belong to this node:
-                        if new_node == self.mynode and row[2].upper() in ['APR', 'APPROVED']:
+                        if new_node == self.mynode and row[1].upper() in ['APR', 'APPROVED']:
                             #Agent dead, which was supposed to be alive
                             if row[0] not in self.last_seen_dead or self.retry_resurrection:
                                 print 'Found a dead agent, resurrecting: ' + row[0]
@@ -514,7 +523,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                         #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
                                         # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
                                         #logged_from, node_type and node_name already filled during initialization
-                                        offline_variables['agent_id']=nickname+' ('+row[0]+')'
+                                        offline_variables['agent_id']=nickname
                                         offline_variables['date_id']=str(datetime.datetime.now().date())
                                         offline_variables['event']='agent-crash'
                                         offline_variables['event_id']=uuid.uuid4()
@@ -538,7 +547,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 else:
                     #found device that doesn't even have agent installed. Possibly, agent from previous run,
                     # or agent in another the node. Start it if it is on the same node and approved
-                    if new_node == self.mynode and row[2].upper() in ['APR', 'APPROVED']:
+                    if new_node == self.mynode and row[1].upper() in ['APR', 'APPROVED']:
                         #the agent is supposed to be running on this node
                         _launch_file = os.path.join(Agents_Launch_DIR+row[0]+".launch")
                         try:
@@ -564,7 +573,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                 # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
                                 #logged_from, node_type and node_name already filled during initialization
                                 temp = uuid.uuid4()
-                                offline_variables['agent_id']=nickname+' ('+row[0]+')'
+                                offline_variables['agent_id']=nickname
                                 offline_variables['date_id']=str(datetime.datetime.now().date())
                                 offline_variables['event']='start'
                                 offline_variables['event_id']=temp
@@ -596,7 +605,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 self.bemoss_publish('status_change','networkagent',command_group)
 
         for agent, status in agentstatusresult.items():
-            if status not in ['running','']: # blank, '' represents just starting to load agents whose status hasn't updated yet
+            if status not in ['running']:
                 if agent not in self.last_seen_dead or self.retry_resurrection:
                     print 'Found a dead, non-device agent. Starting it up: '+agent
                     os.system("volttron-ctl start --tag " + agent)
@@ -762,10 +771,8 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
                         for event in eventlist:
                             event_count += 1
-                            report_lines += 'Event '+ str(event.event_id) +': At <b>'+str(date_converter.UTCToLocal(event.time))+' '+str(event.agent_id)+'</b> happen to be <b>'+str(event.event)+'</b> beacause of '+str(event.reason)+' as logged by '\
-                            +str(event.logged_by)+ ' on '+str(date_converter.UTCToLocal(event.logged_time))+' from BEMOSS '+str(event.node_type)+' named '+str(event.node_name)+'.'
-                            if event.related_to is not None:
-                                report_lines += ' Related to event '+str(event.related_to)
+                            report_lines += 'On'+str(date_converter.UTCToLocal(event.time).date()) + ', at '\
+                                            +str(date_converter.UTCToLocal(event.time).time())+'<b>'+str(event.agent_id) + ':' + str(event.event)+'</b>'
                             report_lines += '<br/>'
                             self.last_event_log_time = event.logged_time
 

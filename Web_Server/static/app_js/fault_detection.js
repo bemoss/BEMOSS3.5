@@ -97,15 +97,20 @@ $( document ).ready(function() {
 
     $('#save_start').click( function(evt){
           evt.preventDefault();
-          var thermostat = $("input:radio:checked[name*='thradio']")
 
-          var sensitivity = $("input:radio:checked[name*='snradio']")
+           var trigger_values = {}
+           triggers = ['temperature_low', 'temperature_high'];
+            for (var i = 0; i < 2; i++) {
+                trigger_values[triggers[i]] = parseInt($('#drop_'+triggers[i]).find(":selected").text());
+            }
 
+            var temp_low_trigger_enabled = $('#chk_temp_low_trigger_enabled').is(':checked');
+            var temp_high_trigger_enabled = $('#chk_temp_high_trigger_enabled').is(':checked');
+            var profile_trigger_enabled = $('#chk_profile_trigger_enabled').is(':checked');
 
-        if (thermostat.length > 0 && sensitivity.length > 0) {
-            thermostat = thermostat[0].value;
-            sensitivity = sensitivity[0].value;
-            data = {'app_id':app_id, 'app_data':{'thermostat':thermostat, 'sensitivity':sensitivity}};
+        if (1) {
+            data = {'app_id':app_id, 'app_data':{'trigger_values':trigger_values,'temp_low_trigger_enabled':temp_low_trigger_enabled,
+                'temp_high_trigger_enabled':temp_high_trigger_enabled,'profile_trigger_enabled':profile_trigger_enabled}};
              var jsonText = JSON.stringify(data);
             //alert(jsonText);
             console.log(jsonText);

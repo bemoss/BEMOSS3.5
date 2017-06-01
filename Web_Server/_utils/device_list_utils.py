@@ -85,7 +85,7 @@ def get_device_list_and_count(request,get_devices = True):
         device_type_list.append(device.device_type)
 
 
-    all_devices = DeviceMetadata.objects.all()
+    all_devices = DeviceMetadata.objects.all().order_by('nickname')
     approved_devices = Devicedata.objects.all()
 
     device_list = OrderedDict()
@@ -122,6 +122,8 @@ def get_device_list_and_count(request,get_devices = True):
 
     for device in all_devices:
         device_node = NodeDeviceStatus.objects.filter(agent_id=device.agent_id)
+
+        #correct the device.node if required
         if device.node != device_node:
             if device_node:
                 device.node = device_node[0].current_node

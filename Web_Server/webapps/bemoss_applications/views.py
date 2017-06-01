@@ -2,10 +2,12 @@ import json
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 
 from datetime import datetime
+
+from django.core.urlresolvers import reverse
 
 from webapps.bemoss_applications.models import ApplicationRunning, ApplicationRegistered
 from webapps.deviceinfos.models import DeviceMetadata
@@ -20,9 +22,16 @@ from bemoss_lib.utils.BEMOSS_globals import *
 def application_main(request):
     # Display the main page of bemoss applications
 
+    hvac_fault_apps = ApplicationRunning.objects.filter(app_type__app_name='fault_detection')
+    used_thermostat_ids = []
+    for app in hvac_fault_apps:
+        used_thermostat_ids.append(app.app_data['thermostat'])
+
+    available_thermostas = DeviceMetadata.objects.filter(approval_status='APR', device_type_id=1,
+                                                          device_model__startswith='CT').exclude(agent_id__in=used_thermostat_ids)
 
     apps = ApplicationRunning.objects.all()
-    return_data = {'apps': apps}
+    return_data = {'apps': apps, 'available_thermostats':available_thermostas}
     return_data.update(get_device_list_and_count(request))
     return render(request, 'applications/applications.html', return_data)
 
@@ -32,17 +41,36 @@ def application_add(request):
         _data = request.body
         _data = json.loads(_data)
 
-        registered_app = ApplicationRegistered.objects.filter(app_name__iexact=_data)
+        registered_app = ApplicationRegistered.objects.filter(app_name__iexact=_data['app_name'])
+        thermostat = DeviceMetadata.objects.get(agent_id=_data['app_data']['thermostat'])
+
+        data = {'thermostat':thermostat.agent_id,'description':"For: " + thermostat.nickname }
         if registered_app:
             registered_app = registered_app[0]
             no = ApplicationRunning.objects.filter(app_type=registered_app).count()+1
             new_app = ApplicationRunning(start_time=datetime.now(),status='stopped',
-                                      app_type=registered_app, app_data={'display_info':'Not Started'}, app_agent_id='some_name')
+                                      app_type=registered_app, app_data=data, app_agent_id='some_name')
             new_app.save()
             new_app.app_agent_id = registered_app.app_name + str(new_app.id)
             new_app.save()
             if request.is_ajax():
                 return HttpResponse(json.dumps("success"))
+
+
+def application_remove(request,app_agent_id):
+    running_app = ApplicationRunning.objects.filter(app_agent_id=app_agent_id)
+    if running_app:
+        running_app.delete()
+        message = dict()
+        message[STATUS_CHANGE.AGENT_ID] = app_agent_id
+        message[STATUS_CHANGE.NODE] = "0"
+        message[STATUS_CHANGE.AGENT_STATUS] = 'stop'
+        message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.PERMANENT
+        message['is_app'] = True
+        topic = 'to/networkagent/status_change/from/ui'
+        vip_publish(topic, [message])
+
+    return redirect('application-main')
 
 @login_required(login_url='/login/')
 def application_individual(request, app_agent_id):
@@ -69,9 +97,11 @@ def application_individual(request, app_agent_id):
 
 def fault_detection_info(app_agent_id):
     data = {}
-    available_thermostats = DeviceMetadata.objects.filter(approval_status='APR', device_type_id=1, device_model__startswith='CT')
+
     app_info = ApplicationRunning.objects.get(app_agent_id=app_agent_id)
-    data.update({'available_thermostats': available_thermostats,'app_info': app_info, 'app_id': app_agent_id})
+    thermostat_agent_id = app_info.app_data['thermostat']
+    thermostat = DeviceMetadata.objects.filter(agent_id=thermostat_agent_id)[0]
+    data.update({'thermostat': thermostat,'app_info': app_info, 'app_id': app_agent_id})
     return data
 
 def illuminance_based_control(app_agent_id):

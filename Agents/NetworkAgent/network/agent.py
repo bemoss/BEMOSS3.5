@@ -191,10 +191,17 @@ class NetworkAgent(BEMOSSAgent):
             if STATUS_CHANGE.NODE in entry:
                 requested_node_id = int(entry[STATUS_CHANGE.NODE])
             agent_id = entry[STATUS_CHANGE.AGENT_ID]
+
+            self.curcon.execute('select agent_id from device_info where agent_id=%s',(agent_id,))
+            if self.curcon.rowcount:
+                is_app = False
+            self.curcon.execute('select app_agent_id from application_running where app_agent_id=%s',(agent_id,))
+            if self.curcon.rowcount:
+                is_app = True
+
             if 'is_app' in entry:
                 is_app = entry['is_app']
-            else:
-                is_app = False
+
 
             zone_assignment_type = ZONE_ASSIGNMENT_TYPES.TEMPORARY #default zone assignment type
 
@@ -212,7 +219,7 @@ class NetworkAgent(BEMOSSAgent):
                     if not is_app:
                         self.initialize_devicedata(agent_id)
                     self.launch_agent(agent_id,installed,is_app)
-            elif running and (requested_node_id != self.my_node_id or agent_status!= 'start'):
+            elif running and (requested_node_id != self.my_node_id or agent_status == 'stop'):
                 self.stopAgent(agent_id)
                 continue
             else:
@@ -330,7 +337,12 @@ class NetworkAgent(BEMOSSAgent):
     def stopAgent(self, agent_id):
         env_path = settings.PROJECT_DIR + '/env/bin/'
         os.system(  # ". env/bin/activate"
-            env_path + "volttron-ctl stop --tag " + agent_id)
+            env_path + "volttron-ctl stop --tag " + agent_id+"; volttron-ctl remove --tag " + agent_id)
+        _launch_file = Agents_Launch_DIR + "/" + agent_id + '.launch'
+        try:
+            os.remove(_launch_file)
+        except OSError:
+            pass
 
 
 def main(argv=sys.argv):

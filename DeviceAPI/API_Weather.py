@@ -75,7 +75,7 @@ class API(baseAPI):
                 'device_type_id' : 4,'api_name': 'API_Weather','html_template':'sensors/bemoss_weather_sensor.html',
                 'agent_type':'BasicAgent','identifiable' : False, 'authorizable': False, 'is_cloud_device' : False,
                 'schedule_weekday_period' : 4,'schedule_weekend_period' : 4, 'allow_schedule_period_delete' : False,
-                'chart_template': 'charts/charts_bemoss_weather_sensor.html'}]
+                'chart_template': 'charts/charts_bemoss_weather_sensor.html','default_monitor_interval':300}]
 
     def dashboard_view(self):
         return {"top": BEMOSS_ONTOLOGY.RELATIVE_HUMIDITY.NAME, "center": {"type": "number", "value": BEMOSS_ONTOLOGY.TEMPERATURE.NAME},
@@ -182,7 +182,7 @@ def main():
     log_variables = {"sky_condition": 'text', "pressure": 'float', "v_wind": 'float', "temperature": 'float',
                      "humidity": 'float'}
     #w = WeatherAPI.getDeviceStatus()
-    #WeatherAPI.fillHistoricalData(datetime.datetime(2017,5,23),datetime.datetime(2017,5,24),cassandraDB,log_variables,agent_id=settings.weather_agent)
+    #WeatherAPI.fillHistoricalData(datetime.datetime(2017,5,11),datetime.datetime(2017,5,23),cassandraDB,log_variables,agent_id=settings.weather_agent)
 
     #CT50Thermostat.identifyDevice()
     # scheduleData = {'Enabled': True, 'monday':[['Morning', 50, 83, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]], 'tuesday':[['Morning', 360 , 70, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]],'wednesday':[['Morning', 300 , 70, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]],'thursday':[['Morning', 360 , 70, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]],'friday':[['Morning', 360 , 70, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]],'saturday':[['Morning', 360 , 70, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]],'sunday':[['Morning', 360 , 70, 80],['Day',480, 72, 82],['Evening',960, 71, 84],['Night',1000, 69, 72]],}

@@ -169,9 +169,9 @@ def returnsCharts(request,data_variables,get_weather=False):
 
     agent_id = get_agent_id_from_mac(mac)
     if get_weather:
-        varlist, rs = retrieve(agent_id,weather_agent=settings.weather_agent)
+        varlist, rs = retrieve(agent_id,startTime=from_date,endTime=to_date,weather_agent=settings.weather_agent)
     else:
-        varlist, rs = retrieve(agent_id)
+        varlist, rs = retrieve(agent_id,startTime=from_date,endTime=to_date)
     #varlist, rs = retrieve(agent_id, weather_agent="weatheragent22101", )
     json_result =dict()
     for key,val in data_variables.items():
@@ -190,18 +190,22 @@ def charts_device(request, mac):
     chart_page = supported_device.chart_template
     agent_id = get_agent_id_from_mac(mac)
     data = Devicedata.objects.get(agent_id=agent_id)
-    if supported_device.device_type.device_type == "HVAC":
-        get_weather = True
-    else:
-        get_weather = False
+
 
     data_variables = dict()
     for item in data.data.keys():
         data_variables[item] = item
 
-    weather_vars = ['weather_temperature', 'weather_humidity', 'weather_pressure', 'weather_v_wind', 'weather_sky_condition']
-    for v in weather_vars:
-        data_variables[v] = v
+    if supported_device.device_type.device_type == "HVAC":
+        get_weather = True
+        weather_vars = ['weather_temperature', 'weather_humidity', 'weather_pressure', 'weather_v_wind',
+                        'weather_sky_condition']
+        for v in weather_vars:
+            data_variables[v] = v
+    else:
+        get_weather = False
+
+
     if request.method == 'GET':
         return returnChartsPage(request, context, mac, data_variables, chart_page, get_weather=get_weather)
     elif request.method == 'POST':

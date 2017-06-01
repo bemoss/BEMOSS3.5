@@ -91,7 +91,7 @@ $(document).ready(function(){
 
         function update_plot_temp(_data) {
 
-            _outdoor_temp = _data.outdoor_temperature;
+            _outdoor_temp = _data.temperature;
 
             var new_data = [];
 
@@ -688,7 +688,7 @@ $(document).ready(function(){
         var timeOut_wind;
 
         function update_plot_wind(_data) {
-            _wind = _data.wind;
+            _wind = _data.v_wind;
 
             var new_data = [];
 
