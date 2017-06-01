@@ -108,14 +108,15 @@ $( document ).ready(function() {
                        lsensors.push(this.value);
                    }
           });
-            var devices = [app_id, lightings, lsensors];
-           var jsonText = JSON.stringify(devices);
-            //alert(jsonText);
-            console.log(jsonText);
+
 
         if (lsensors.length > 0 && lightings.length > 0) {
+            var data = {'app_id':app_id, 'app_data':{'lightings':lightings, 'lsensors':lsensors}};
+           var jsonText = JSON.stringify(data);
+            //alert(jsonText);
+            console.log(jsonText);
                 $.ajax({
-                    url: '/application/save_start/',
+                    url: '/application/command/save_start/',
                     type: 'POST',
                     data: jsonText,
                     dataType: 'json',
@@ -146,17 +147,17 @@ $( document ).ready(function() {
         }
 	   });
 
-    $('#caliberate').click( function(evt){
+    $('#calibrate').click( function(evt){
           evt.preventDefault();
             var jsonText = JSON.stringify(app_id);
             $.ajax({
-                url: '/application/caliberate/',
+                url: '/application/command/calibrate/',
                 type: 'POST',
                 data: jsonText,
                 dataType: 'json',
                 success: function (data) {
                     $('.bottom-right').notify({
-                        message: {text: 'Your lighting system will be caliberated shortly.'},
+                        message: {text: 'Your lighting system will be calibrated shortly.'},
                         type: 'blackgloss',
                         fadeOut: {enabled: true, delay: 5000}
                     }).show();
@@ -180,7 +181,7 @@ $( document ).ready(function() {
             var msg = [app_id, target];
             var jsonText = JSON.stringify(msg);
             $.ajax({
-                url: '/application/update_target/',
+                url: '/application/command/update_target/',
                 type: 'POST',
                 data: jsonText,
                 dataType: 'json',

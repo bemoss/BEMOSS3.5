@@ -62,9 +62,6 @@ volttron-pkg package $1/Agents/BasicAgent
 #Install Platform agent
 ./scripts/core/pack_install.sh $1/Agents/PlatformMonitorAgent $1/Agents/PlatformMonitorAgent/platformmonitoragent.launch.json platformmonitoragent
 
-#Install AppLauncher Agent
-./scripts/core/pack_install.sh $1/Agents/AppLauncherAgent $1/Agents/AppLauncherAgent/applauncheragent.launch.json applauncheragent
-
 #Install ApprovalHelper Agent
 ./scripts/core/pack_install.sh $1/Agents/ApprovalHelperAgent $1/Agents/ApprovalHelperAgent/approvalhelperagent.launch.json approvalhelperagent
 
@@ -94,11 +91,13 @@ volttron-pkg package $1/Agents/BasicAgent
 #Install Apps
 #cd $1/Applications/code/Thermostat_Scheduler
 #sudo python installapp.py
-cd $1/Applications/code/Lighting_Scheduler
-python installapp.py
-cd $1/Applications/code/Plugload_Scheduler
-python installapp.py
-cd $1/Applications/code/IlluminanceBasedLightingControl
-python installapp.py
+#cd $1/Applications/code/Lighting_Scheduler
+#python installapp.py
+#cd $1/Applications/code/Plugload_Scheduler
+#python installapp.py
+#cd $1/Applications/code/IlluminanceBasedLightingControl
+#python installapp.py
+#cd $1/Applications/code/Fault_Detection
+#python installapp.py
 #sudo chmod 777 -R ~/workspace
 #echo "BEMOSS App installation complete!"

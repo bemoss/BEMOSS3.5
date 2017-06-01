@@ -53,7 +53,7 @@ $(document).ready(function(){
 	
 
     var indoor_temp = temperature;
-
+    var outdoor_temp = outdoor_temperature;
 
 	  //Plot options
 	  var options = {
@@ -136,7 +136,10 @@ $(document).ready(function(){
 
               cool_setpoint = _data.cool_setpoint;
 
+              outdoor_temp = _data.weather_temperature;
+
               var new_data = [];
+              options.legend.labels = [];
 
               $.each($('input:checked'), function(index, value){
 
@@ -150,6 +153,8 @@ $(document).ready(function(){
                        new_data.push(heat_setpoint);
                    } else if (this.id == 'cool_set_point') {
                        new_data.push(cool_setpoint);
+                   } else if (this.id == 'outdoor_temp'){
+                       new_data.push(outdoor_temp)
                    }
                    options.legend.labels.push(this.value);
                    options.axes.xaxis.min = temperature[0][0];

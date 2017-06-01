@@ -79,9 +79,6 @@ class SchedulerAgent(Agent):
         self.agent_id = get_config('agent_id')
         self.clock_time = 60  # schedule is updated every minute
         self.debug_agent = False
-        self.topic_ui_app = '/to/scheduler/' + self.agent_id + '/update/from/ui'
-        self.topic_app_ui = '/to/ui/' + self.agent_id + '/update/from/scheduler'
-
         self.timeStatusBrightnessColor = kwargs
         self.timeStatusBrightnessColor.clear()
         self.flag_time_to_change_status = False
@@ -97,17 +94,26 @@ class SchedulerAgent(Agent):
         self.curcon = db_helper.db_connection()
 
         try:
-            app_agent_id = self.app_name + '_' + self.agent_id
-            self.curcon.execute("SELECT schedule FROM schedule_data WHERE agent_id=%s", (self.agent_id,))
+            app_agent_id = self.agent_id
+            self.curcon.execute("select app_data from application_running where app_agent_id=%s", (self.agent_id,))
+            if self.curcon.rowcount:
+                self.app_data = self.curcon.fetchone()[0]
+                self.device_agent_id = self.app_data['device_agent_id']
+                self.topic_ui_app = '/to/' + self.agent_id + '/update/from/ui'
+                self.topic_app_ui = '/to/ui/update/from/' + self.agent_id
+            else:
+                raise ValueError("No entry in application running for this scheduler")
+
+            self.curcon.execute("SELECT schedule FROM schedule_data WHERE agent_id=%s", (self.device_agent_id,))
             if self.curcon.rowcount != 0:
                 _new_schedule_object = self.curcon.fetchone()[0]
                 self.current_schedule_object = _new_schedule_object['lighting']
                 # 3. get currently active schedule
                 self.active_scheduler_mode = list()
-                print '{} for Agent: {} >> new active schedule are as follows:'.format(self.app_name, self.agent_id)
-                for each1 in self.current_schedule_object[self.agent_id]:
+                print '{} for Agent: {} >> new active schedule are as follows:'.format(self.app_name, self.device_agent_id)
+                for each1 in self.current_schedule_object[self.device_agent_id]:
                     if each1 == 'active':
-                        for each2 in self.current_schedule_object[self.agent_id][each1]:
+                        for each2 in self.current_schedule_object[self.device_agent_id][each1]:
                             self.active_scheduler_mode.append(each2)
 
                 for index in range(len(self.active_scheduler_mode)):
@@ -117,12 +123,15 @@ class SchedulerAgent(Agent):
                 self.set_query_mode_all_day()
                 self.schedule_first_run = True
                 # ******************************************* IMPORTANT
-                print("{} for Agent: {} >> DONE getting data from applications_running".format(self.app_name, self.agent_id))
+                print("{} for Agent: {} >> DONE getting data from applications_running".format(self.app_name, self.device_agent_id))
             else:
-                print("{} for Agent: {} >> has no previous setting before".format(self.app_name, self.agent_id))
+                print("{} for Agent: {} >> has no previous setting before".format(self.app_name, self.device_agent_id))
+
+
+
         except:
             print("{} for Agent: {} >> error getting data from applications_running"
-                  .format(self.app_name, self.agent_id))
+                  .format(self.app_name, self.device_agent_id))
 
     #2. agent setup method
     @Core.receiver('onsetup')
@@ -149,10 +158,10 @@ class SchedulerAgent(Agent):
                 self.old_day = self.new_day
                 #******************************************* IMPORTANT
                 print '{} for Agent: {} >> today: {} is  a new day (yesterday: {}), load new schedule for today'\
-                    .format(self.app_name, self.agent_id, self.new_day, self.old_day)
+                    .format(self.app_name, self.device_agent_id, self.new_day, self.old_day)
             else:
                 print '{} for Agent: {} >> today: {} is  a new day (yesterday: {}), but no schedule has been set yet'\
-                    .format(self.app_name, self.agent_id, self.new_day, self.old_day)
+                    .format(self.app_name, self.device_agent_id, self.new_day, self.old_day)
         else: #same day no reset is required
             pass
 
@@ -166,31 +175,31 @@ class SchedulerAgent(Agent):
         #4. if next schedule comes up, run self.schedule_action()
         if self.time_now_sec >= self.time_next_schedule_sec:
             if self.debug_agent: print "{} for Agent: >> {} now _time_now_sec= {}, self.time_next_schedule_sec ={}"\
-                .format(self.app_name, self.agent_id, self.time_now_sec, self.time_next_schedule_sec)
-            print "{} for Agent: {} >> is now woken up".format(self.app_name, self.agent_id)
+                .format(self.app_name, self.device_agent_id, self.time_now_sec, self.time_next_schedule_sec)
+            print "{} for Agent: {} >> is now woken up".format(self.app_name, self.device_agent_id)
             self.schedule_action()
 
 
     def updateScheduleBehavior(self,peer, sender, bus, topic,headers,message):
         _time_receive_update_from_ui = datetime.datetime.now()
-        print "{} for Agent: {} >> got new update from UI at {}".format(self.app_name, self.agent_id,
+        print "{} for Agent: {} >> got new update from UI at {}".format(self.app_name, self.device_agent_id,
                                                                         _time_receive_update_from_ui)
         #1. get path to the new launch file from the message sent by UI
         try:
             _data = json.loads(message)
-            app_agent_id = self.app_name + "_" + self.agent_id
+            app_agent_id = self.agent_id
             print "app_agent_id = {}".format(app_agent_id)
-            self.curcon.execute("SELECT schedule FROM schedule_data WHERE agent_id=%s", (self.agent_id,))
+            self.curcon.execute("SELECT schedule FROM schedule_data WHERE agent_id=%s", (self.device_agent_id,))
             if self.curcon.rowcount != 0:
                 _new_schedule_object = self.curcon.fetchone()[0]
                 self.current_schedule_object = _new_schedule_object['lighting']
 
             #3. get currently active schedule
             self.active_scheduler_mode = list()
-            print '{} for Agent: {} >> new active schedule are as follows:'.format(self.app_name, self.agent_id)
-            for each1 in self.current_schedule_object[self.agent_id]:
+            print '{} for Agent: {} >> new active schedule are as follows:'.format(self.app_name, self.device_agent_id)
+            for each1 in self.current_schedule_object[self.device_agent_id]:
                 if each1 == 'active':
-                    for each2 in self.current_schedule_object[self.agent_id][each1]:
+                    for each2 in self.current_schedule_object[self.device_agent_id][each1]:
                         self.active_scheduler_mode.append(each2)
 
             for index in range(len(self.active_scheduler_mode)):
@@ -204,24 +213,24 @@ class SchedulerAgent(Agent):
             #reply message from app to ui
             _headers = {
                 'AppName': self.app_name,
-                'AgentID': self.agent_id,
+                'AgentID': self.device_agent_id,
                 headers_mod.CONTENT_TYPE: headers_mod.CONTENT_TYPE.JSON,
-                headers_mod.FROM: self.agent_id,
+                headers_mod.FROM: self.device_agent_id,
                 headers_mod.TO: 'ui'
             }
             _message = 'success'
             self.vip.pubsub.publish('pubsub', self.topic_app_ui, _headers, _message)
             print '{} for Agent: {} >> DONE update new active schedule received from UI'\
-                .format(self.app_name, self.agent_id)
+                .format(self.app_name, self.device_agent_id)
         except:
             print "{} for Agent: {} >> ERROR update new schedule received from UI at {}"\
-                .format(self.app_name, self.agent_id, _time_receive_update_from_ui)
+                .format(self.app_name, self.device_agent_id, _time_receive_update_from_ui)
             print "{} for Agent: {} >> possible ERRORS are as follows: "\
-                .format(self.app_name, self.agent_id, _time_receive_update_from_ui)
+                .format(self.app_name, self.device_agent_id, _time_receive_update_from_ui)
             print "{} for Agent: {} >> ERROR 1 : path to update schedule sent by UI is incorrect "\
-                .format(self.app_name, self.agent_id, _time_receive_update_from_ui)
+                .format(self.app_name, self.device_agent_id, _time_receive_update_from_ui)
             print "{} for Agent: {} >> ERROR 2 : content inside schedule setting file (JSON) sent by UI" \
-                  " is incorrect ".format(self.app_name, self.agent_id, _time_receive_update_from_ui)
+                  " is incorrect ".format(self.app_name, self.device_agent_id, _time_receive_update_from_ui)
 
     #Helper methods --------------------------------------
     def set_query_mode_all_day(self):
@@ -233,17 +242,17 @@ class SchedulerAgent(Agent):
                 self.holiday_description = self.curcon.fetchone()[0]
                 print '---------------------------------'
                 print "{} for Agent: {} >> Hoorey! today is a holiday: {}"\
-                    .format(self.app_name, self.agent_id, self.holiday_description)
+                    .format(self.app_name, self.device_agent_id, self.holiday_description)
                 self.todayHoliday = True
             else:
                 print '---------------------------------'
-                print "{} for Agent: {} >> Today is not a holiday".format(self.app_name, self.agent_id)
+                print "{} for Agent: {} >> Today is not a holiday".format(self.app_name, self.device_agent_id)
                 self.todayHoliday = False
 
             #2. select schedule according to the day
             if self.todayHoliday is True:
                 self.today = self.find_day()
-                print "{} for Agent: {} >> mode: holiday".format(self.app_name, self.agent_id)
+                print "{} for Agent: {} >> mode: holiday".format(self.app_name, self.device_agent_id)
                 self.query_schedule_mode = 'holiday'
                 self.query_schedule_point = 'holiday'
                 self.get_schedule_time_status_brightness_color()
@@ -260,12 +269,12 @@ class SchedulerAgent(Agent):
         self.today = self.find_day()
         if 'everyday' in self.active_scheduler_mode:
             print '---------------------------------'
-            print "{} for Agent: {} >> mode: everyday".format(self.app_name, self.agent_id)
+            print "{} for Agent: {} >> mode: everyday".format(self.app_name, self.device_agent_id)
             self.query_schedule_mode = 'everyday'
             self.query_schedule_point = self.today
         elif 'weekdayweekend' in self.active_scheduler_mode:
             print '---------------------------------'
-            print '{} for Agent: {} >> mode: weekdayweekend'.format(self.app_name, self.agent_id)
+            print '{} for Agent: {} >> mode: weekdayweekend'.format(self.app_name, self.device_agent_id)
             self.query_schedule_mode = 'weekdayweekend'
             # find whether today is a weekday or weekend
             if self.today in self.weekday_list:
@@ -278,7 +287,7 @@ class SchedulerAgent(Agent):
     def get_schedule_time_status_brightness_color(self):
         #1. get time-related schedule including: 1.status 2.brightness 3.color
         self.newTimeScheduleChange = list()
-        for eachtime in self.current_schedule_object[self.agent_id]['schedulers'][self.query_schedule_mode][self.query_schedule_point]:
+        for eachtime in self.current_schedule_object[self.device_agent_id]['schedulers'][self.query_schedule_mode][self.query_schedule_point]:
             #time that scheduler need to change a light setting
             self.newTimeScheduleChange.append(int(eachtime['at']))
             #dictionary relate time with 1.status 2.brightness 3.color
@@ -315,17 +324,17 @@ class SchedulerAgent(Agent):
         #3. get the schedule: reordered time and corresponding mode and temperature setting
         if self.todayHoliday is True:
             print "{} for Agent: {} >> Today is {} and here is the schedule for holiday:"\
-                .format(self.app_name, self.agent_id, self.holiday_description)
+                .format(self.app_name, self.device_agent_id, self.holiday_description)
         else:
             if self.query_schedule_mode is 'everyday':
                 print "{} for Agent: {} >> Today is {} and here is the schedule for today:"\
-                    .format(self.app_name, self.agent_id, self.today)
+                    .format(self.app_name, self.device_agent_id, self.today)
             elif self.query_schedule_point is 'weekday':
                 print "{} for Agent: {} >> Today is {} and here is the schedule for the weekday:"\
-                    .format(self.app_name, self.agent_id, self.today)
+                    .format(self.app_name, self.device_agent_id, self.today)
             elif self.query_schedule_point is 'weekend':
                 print "{} for Agent: {} >> Today is {} and here is the schedule for the weekend:"\
-                    .format(self.app_name, self.agent_id, self.today)
+                    .format(self.app_name, self.device_agent_id, self.today)
         for index in range(len(self.newTimeScheduleChange)):
             _time = self.newTimeScheduleChange[index]
             _hour = int(_time/60)
@@ -335,14 +344,14 @@ class SchedulerAgent(Agent):
             _brightness = _status_brightness_color[1]
             _color = _status_brightness_color[2]
             print "{} for Agent: {} >> At {} hr {} min status: {}, brightness: {}, color: {}"\
-                .format(self.app_name, self.agent_id, str(_hour), str(_minute), str(_status), str(_brightness), str(_color))
+                .format(self.app_name, self.device_agent_id, str(_hour), str(_minute), str(_status), str(_brightness), str(_color))
         print ''
 
     def schedule_action(self):
         '''before call this method make sure that self.timeStatusBrightnessColor
         and self.newTimeScheduleChange has been updated!'''
         print '{} for Agent: {} >> current time {} hr {} min {} sec (decimal = {})'\
-            .format(self.app_name, self.agent_id, self.htime, self.mtime, self.stime, str(self.now_decimal))
+            .format(self.app_name, self.device_agent_id, self.htime, self.mtime, self.stime, str(self.now_decimal))
 
         # 1.2 check current and past schedule
         _pastSchedule = list()  # list to save times of previous schedules
@@ -364,7 +373,7 @@ class SchedulerAgent(Agent):
             self.colorToChange_current = self.status_brightness_color_current[2]
             self.flag_time_to_change_status = True
             print "{} for Agent: {} >> Here is the new schedule: at {} hr {} min status: {}, " \
-                  "brightness: {}, color: {}".format(self.app_name, self.agent_id, self.hour_current_schedule,
+                  "brightness: {}, color: {}".format(self.app_name, self.device_agent_id, self.hour_current_schedule,
                                                      self.minute_current_schedule, str(self.statusToChange_current)
                                                      .upper(), str(self.brightnessToChange_current),
                                                      str(self.colorToChange_current))
@@ -382,41 +391,41 @@ class SchedulerAgent(Agent):
                 self.flag_time_to_change_status = True
 
                 print "{} for Agent: {} >> previous schedule is at {} hr {} min status: {}, brightness: {}," \
-                      " color: {}".format(self.app_name, self.agent_id, str(self.hour_current_schedule),
+                      " color: {}".format(self.app_name, self.device_agent_id, str(self.hour_current_schedule),
                                           str(self.minute_current_schedule), str(self.statusToChange_current).upper()
                                           , str(self.brightnessToChange_current), str(self.colorToChange_current))
 
             else:  # previous schedule from old setting file does not exist
                 print "{} for Agent: {} >> There is no previous schedule from old setting file".format(self.app_name,
-                                                                                                       self.agent_id)
-                print '{} for Agent: {} >> Let''s check for the next schedule'.format(self.app_name, self.agent_id)
+                                                                                                       self.device_agent_id)
+                print '{} for Agent: {} >> Let''s check for the next schedule'.format(self.app_name, self.device_agent_id)
 
         #2.  take action based on current time
         # 2.1 case 1: time to change schedule is triggered
         if self.flag_time_to_change_status is True:
             if self.debug_agent: print "{} for Agent: {} >> is changing the lighting status, brightness, and color"\
-                .format(self.app_name, self.agent_id)
+                .format(self.app_name, self.device_agent_id)
             try:
                 _headers = {
-                    headers_mod.FROM: self.agent_id,
+                    headers_mod.FROM: self.device_agent_id,
                     headers_mod.CONTENT_TYPE: headers_mod.CONTENT_TYPE.JSON,
                 }
                 # case1: only 'status' is changed
                 self.curcon.execute("SELECT current_node_id FROM node_device WHERE agent_id=%s",
-                                 (self.agent_id,))
+                                 (self.device_agent_id,))
                 if self.curcon.rowcount != 0:
                     zone_id = str(self.curcon.fetchone()[0])
                 else:
                     zone_id = 999  # default core id TODO this has to be changed
-                _topic_Agent_UI_tail = self.building_name + '/' + str(zone_id) + '/' + self.agent_id
-                topic_app_agent = 'to/' + self.agent_id + '/update/from/lightingscheduler'
+                _topic_Agent_UI_tail = self.building_name + '/' + str(zone_id) + '/' + self.device_agent_id
+                topic_app_agent = 'to/' + self.device_agent_id + '/update/from/lightingscheduler'
 
                 if str(self.brightnessToChange_current) == "None" and str(self.colorToChange_current) == "None":
                     if str(self.statusToChange_current) != "None": #send only status
                         _status_to_publish = str(self.statusToChange_current).upper()
                         _content = {"status": _status_to_publish}
                         print "{} for Agent: {} >> published message to IEB with status: {}"\
-                            .format(self.app_name, self.agent_id, _status_to_publish)
+                            .format(self.app_name, self.device_agent_id, _status_to_publish)
                         self.vip.pubsub.publish('pubsub', topic_app_agent, _headers, json.dumps(_content))
                     else: # nothing to publish
                         pass
@@ -427,7 +436,7 @@ class SchedulerAgent(Agent):
                         _brightness_to_publish = int(self.brightnessToChange_current)
                         _content = {"status": _status_to_publish, "brightness": _brightness_to_publish}
                         print "{} for Agent: {} >> published message to IEB with status: {}, brightness: {}"\
-                            .format(self.app_name, self.agent_id, _status_to_publish, _brightness_to_publish)
+                            .format(self.app_name, self.device_agent_id, _status_to_publish, _brightness_to_publish)
                         self.vip.pubsub.publish('pubsub', topic_app_agent, _headers, _content)
                     elif str(self.statusToChange_current) != "None" and str(self.colorToChange_current) != "None":
                         _status_to_publish = str(self.statusToChange_current).upper()
@@ -436,7 +445,7 @@ class SchedulerAgent(Agent):
                         _color_to_publish = _color_temp2
                         _content = {"status": _status_to_publish, "color": _color_to_publish}
                         print "{} for Agent: {} >> published message to IEB with status: {}, color: {}"\
-                            .format(self.app_name, self.agent_id, _status_to_publish, _color_to_publish)
+                            .format(self.app_name, self.device_agent_id, _status_to_publish, _color_to_publish)
                         self.vip.pubsub.publish('pubsub', topic_app_agent, _headers, _content)
                     else:  # nothing to publish
                         pass
@@ -449,13 +458,13 @@ class SchedulerAgent(Agent):
                     _color_to_publish = _color_temp2
                     _content = {"status": _status_to_publish, "color": _color_to_publish, "brightness": _brightness_to_publish}
                     print "{} for Agent: {} >> published message to IEB with status: {}, brightness: {}, color: {}"\
-                        .format(self.app_name, self.agent_id, _status_to_publish, _brightness_to_publish, _color_to_publish)
+                        .format(self.app_name, self.device_agent_id, _status_to_publish, _brightness_to_publish, _color_to_publish)
                     self.vip.pubsub.publish('pubsub', topic_app_agent, _headers, json.dumps(_content))
 
                 self.flag_time_to_change_status = False
             except:
                 print "{} for Agent: {} >> ERROR changing status of a light"\
-                    .format(self.app_name, self.agent_id)
+                    .format(self.app_name, self.device_agent_id)
         # 2.2 case2: time to change schedule is not triggered
         else:
             pass
@@ -477,7 +486,7 @@ class SchedulerAgent(Agent):
             self.brightnessToChange_next = self.status_brightness_color_next[1]
             self.colorToChange_next = self.status_brightness_color_next[2]
             print "{} for Agent: {} >> Here is the next schedule: at {} hr {} min status: {}, brightness: {}, color: {}".\
-                    format(self.app_name, self.agent_id, self.hour_next_schedule, self.minute_next_schedule,
+                    format(self.app_name, self.device_agent_id, self.hour_next_schedule, self.minute_next_schedule,
                            str(self.statusToChange_next).upper(), self.brightnessToChange_next, self.colorToChange_next)
             self.time_next_schedule_sec = int(_time_next_schedule*60)
             _time_to_wait = self.time_next_schedule_sec - self.time_now_sec
@@ -494,9 +503,9 @@ class SchedulerAgent(Agent):
                 _min_to_wait = 0
                 _sec_to_wait = _time_to_wait
             print "{} for Agent: {} >> is going to sleep now until next schedule come up in {} hr {} min {} sec"\
-                .format(self.app_name, self.agent_id, _hr_to_wait, _min_to_wait, _sec_to_wait)
+                .format(self.app_name, self.device_agent_id, _hr_to_wait, _min_to_wait, _sec_to_wait)
         else:
-            print "{} for Agent: {} >> There is no next schedule".format(self.app_name, self.agent_id)
+            print "{} for Agent: {} >> There is no next schedule".format(self.app_name, self.device_agent_id)
             self.time_next_schedule_sec = int(24*3600)
         print '---------------------------------'
 

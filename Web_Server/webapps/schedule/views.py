@@ -15,6 +15,9 @@ from webapps.deviceinfos.models import DeviceMetadata
 from webapps.deviceinfos.models import SupportedDevices
 from webapps.device.models import Devicedata
 from webapps.schedule.models import schedule_data
+from bemoss_lib.utils.BEMOSS_globals import *
+from webapps.bemoss_applications.models import ApplicationRunning, ApplicationRegistered
+
 
 import json
 from _utils import config_helper
@@ -190,12 +193,14 @@ def update_device_schedule(request):
         "auth_token": "bemoss",
         "user": _data['user']
     }
-    ieb_topic = '/to/scheduler/' + device_id + '/update/from/ui'
-    ieb_topic2 = 'to/scheduler/from/ui/' + device_id + '/update'
+    ieb_topic = '/to/scheduler_' + device_id + '/update/from/ui'
+    ieb_topic2 = '/to/scheduler_'+device_id+'/from/ui/update'
     print ieb_topic
     vip_publish(ieb_topic, json.dumps(message_to_agent))
     vip_publish(ieb_topic2, json.dumps(message_to_agent))
     result = 'success'
+
+
 
     if request.is_ajax():
         return HttpResponse(json.dumps(result))
@@ -230,33 +235,29 @@ def activate_schedule(request):
     device_info = device_info.split('/')
     device_type = device_info[1]
     device_id = device_info[2]
+    app_agent_id = 'scheduler_'+device_id
+    registered_app = ApplicationRegistered.objects.filter(app_name__iexact=device_type + '_scheduler')
+    if registered_app:
+        registered_app = registered_app[0]
+        new_app = ApplicationRunning(start_time=datetime.now(), status='running',
+                                     app_type=registered_app, app_data={'display_info': 'Started',"device_agent_id":device_id},
+                                     app_agent_id='scheduler_'+device_id)
+        new_app.save()
 
-    try:
-        _json_data = schedule_data.objects.get(agent_id=device_id).schedule
-    except ObjectDoesNotExist:
-        _json_data = {device_type: {
-            device_id: {
-                "active": ['everyday', 'holiday'],
-                "inactive": [],
-                "schedulers": __.THERMOSTAT_DEFAULT_SCHEDULE_NEW
-            }}}
+        message = dict()
+        message[STATUS_CHANGE.AGENT_ID] = app_agent_id
+        message[STATUS_CHANGE.NODE] = "0"
+        message[STATUS_CHANGE.AGENT_STATUS] = 'start'
+        message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.PERMANENT
+        message['is_app'] = True
+        topic = 'to/networkagent/status_change/from/ui'
+        vip_publish(topic, [message])
+        _data_to_send = {"status": "success"}
 
-    _json_data[device_type][device_id]['active'] = _data['active']
-    _json_data[device_type][device_id]['inactive'] = _data['inactive']
-    content = json.dumps(_json_data)
-
-    message_to_agent = {
-        "auth_token": "bemoss",
-        "content": content
-    }
-    ieb_topic = 'to/applauncheragent/' + device_type + '_scheduler/' + device_id + '/launch'
-    print ieb_topic
-    vip_publish(ieb_topic, json.dumps(message_to_agent))
-
-    _data_to_send = {"status": "success"}
-
-    if request.is_ajax():
-            return HttpResponse(json.dumps(_data_to_send), content_type='application/json')
+        if request.is_ajax():
+                return HttpResponse(json.dumps(_data_to_send), content_type='application/json')
+    else:
+        return HttpResponse("This scheduler is not registered")
 
 @login_required(login_url='/login/')
 def update_schedule_status_to_browser(request):

@@ -58,6 +58,7 @@ django.setup()
 
 from webapps.alerts.models import PriorityLevels, NotificationChannels, AlertTypes, PossibleEvents
 from webapps.deviceinfos.models import DeviceType, Miscellaneous
+from webapps.bemoss_applications.models import ApplicationRegistered
 # from webapps.buildingmap.models import Building_Zone, GlobalSetting
 from django.contrib.auth.models import Group, Permission, User
 from webapps.accounts.models import UserProfile
@@ -132,20 +133,25 @@ dt4.save()
 dt7 = DeviceType(id=7, device_type='Other')
 dt7.save()
 
-evt = PossibleEvents(event_name="device-offline",event_description="A device becomes offline because of communication problem")
+evt = PossibleEvents(id=1,event_name="device-offline",event_description="A device becomes offline because of communication problem")
 evt.save()
 
-evt1 = PossibleEvents(event_name="device-online",event_description="A device becomes online because of communication restore")
+evt1 = PossibleEvents(id=2,event_name="device-online",event_description="A device becomes online because of communication restore")
 evt1.save()
 
-evt2 = PossibleEvents(event_name="node-offline",event_description="A BEMOSS node becomes offline because of communication problem or node crash")
+evt2 = PossibleEvents(id=3,event_name="node-offline",event_description="A BEMOSS node becomes offline because of communication problem or node crash")
 evt2.save()
 
-evt3 = PossibleEvents(event_name="node-online",event_description="A BEMOSS node becomes online because of communication restoration or node restart")
+evt3 = PossibleEvents(id=4,event_name="node-online",event_description="A BEMOSS node becomes online because of communication restoration or node restart")
 evt3.save()
 
-evt = PossibleEvents(event_name="device-offline",event_description="A device becomes offline because of communication problem")
-evt.save()
+
+evt4 = PossibleEvents(id=5,event_name="hvac-fault",event_description="An anamoly has been detected on a HVAC device")
+evt4.save()
+
+evt5 = PossibleEvents(id=6,event_name="hvac-fault-cleared",event_description="An anamoly has cleared")
+evt5.save()
+
 
 
 #Event Trigger
@@ -159,6 +165,11 @@ et2.save()
 et2.associated_events.add(evt2,evt3)
 et2.save()
 
+
+et3 = AlertTypes(id=3, alert_description="HVAC fault", alert_name="hvac_fault")
+et3.save()
+et3.associated_events.add(evt4,evt5)
+et3.save()
 #
 # et4 = EventTrigger(id=4, device_type_id=9, event_trigger_desc="Any BEMOSS Node Offline", event_trigger_id="BEMOSSOffline", event_trigger_class="desc_prio")
 # et4.save()
@@ -169,11 +180,28 @@ et2.save()
 # et6 = EventTrigger(id=6, device_type_id=9, event_trigger_desc="System Failure", event_trigger_id="SystemFailure", event_trigger_class="desc_prio")
 # et6.save()
 
+app = ApplicationRegistered(application_id=1,app_name='plugload_scheduler',description="Plugload schulding app",registered_time=datetime.datetime.now(),
+                            app_folder='Plugload_Scheduler')
+app.save()
+app = ApplicationRegistered(application_id=2,app_name='lighting_scheduler',description="Lighting schulding app",registered_time=datetime.datetime.now(),
+                            app_folder='Lighting_Scheduler')
+app.save()
+
+app = ApplicationRegistered(application_id=3,app_name='iblc',description="Illuminance based lighting controller app",registered_time=datetime.datetime.now(),
+                            app_folder='IlluminanceBasedLightingControl')
+app.save()
+
+
+app = ApplicationRegistered(application_id=4,app_name='fault_detection',description="Thermostat Fault Detection",registered_time=datetime.datetime.now(),
+                            app_folder='Fault_Detection')
+app.save()
+
+
 #Miscellaneous table update with auto_discovery
-auto_disc = Miscellaneous(key='auto_discovery', value='ON')
+auto_disc = Miscellaneous(id=1, key='auto_discovery', value='OFF')
 auto_disc.save()
 # Set default zipcode
-zipcode = Miscellaneous(key='zipcode', value='22203')
+zipcode = Miscellaneous(id=2, key='zipcode', value='22203')
 zipcode.save()
 
 

@@ -118,7 +118,7 @@
                         {% for eachlight in lights %}
                             <label class="checkbox">
                             <input type="checkbox" id="lt_{{ eachlight.nickname }}" value="{{ eachlight.nickname }}"
-                            {% if eachlight.nickname in app_info.app_data|get_item_in_dict:'lights' %} checked {% endif %}> {{ eachlight.nickname }}
+                            {% if eachlight.nickname in app_info.app_data|get_item_in_dict:'lightings' %} checked {% endif %}> {{ eachlight.nickname }}
                             </label><br>
                         {% endfor %}
                     </div>
@@ -138,7 +138,7 @@
             {% for eachsensor in sensors %}
                 <label class="checkbox">
                 <input type="checkbox" id="ss_{{ eachsensor.nickname }}" value="{{ eachsensor.nickname }}"
-                {% if eachsensor.nickname in app_info.app_data|get_item_in_dict:'sensors' %} checked {% endif %}>{{ eachsensor.nickname }}
+                {% if eachsensor.nickname in app_info.app_data|get_item_in_dict:'lsensors' %} checked {% endif %}>{{ eachsensor.nickname }}
                 </label><br>
             {% endfor %}
                     </div></div>
@@ -189,10 +189,10 @@
                                         <p>Please click the 'Calibrate' button below to initialize parameters of the
                                             illuminance-based control system.  The caliberation examines the illuminance
                                             under different brightness level, which takes about 10 minutes.</p>
-                                        <button id="caliberate" {% if 'caliberating' in app_info.app_data %}
-                                                class="btn btn-success" disabled >Caliberating
+                                        <button id="calibrate" {% if 'calibrating' in app_info.app_data %}
+                                                class="btn btn-success" disabled >calibrating
                                                 {% else %}
-                                                class="btn btn-warning" >Caliberate{% endif %}</button>
+                                                class="btn btn-warning" >calibrate{% endif %}</button>
                                     </div>
                                 </div>
                                 {% if 'sensitivity' in app_info.app_data %}

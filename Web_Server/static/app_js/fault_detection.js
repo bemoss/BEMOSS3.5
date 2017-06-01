@@ -95,45 +95,57 @@ $( document ).ready(function() {
     $(".eq_height_DER").height(ht);
     $(".eq_height_cam").height(ht);
 
-    $('#iblc_add').click( function(evt){
+    $('#save_start').click( function(evt){
           evt.preventDefault();
-            var message = {'app_name':'iblc','app_data':{}};
-            var jsonText = JSON.stringify(message);
-            app_add(jsonText)
-        });
 
-    $('#fault_add').click( function(evt){
-          evt.preventDefault();
-          var thermostat = $('#drop-thermostats').find(":selected").val();
-            var message = {'app_name':'fault_detection','app_data':{'thermostat':thermostat}};
-            var jsonText = JSON.stringify(message);
-            app_add(jsonText)
-        });
-    function app_add(type){
-        $.ajax({
-                url: '/application/app_add/',
-                type: 'POST',
-                data: type,
-                dataType: 'json',
-                success: function (data) {
-                    $('.bottom-right').notify({
-                        message: {text: 'Your application has been added in database.'},
-                        type: 'blackgloss',
-                        fadeOut: {enabled: true, delay: 5000}
-                    }).show();
-                     setTimeout(function(){
-                     window.location.reload();
-            }, 1000);
-                },
-                error: function (data) {
-                    $('.bottom-right').notify({
-                        message: {text: 'Communication Error. Try agaisn later!'},
-                        type: 'blackgloss',
-                        fadeOut: {enabled: true, delay: 1000}
-                    }).show();
-                }
-            });
-    }
+           var trigger_values = {}
+           triggers = ['temperature_low', 'temperature_high'];
+            for (var i = 0; i < 2; i++) {
+                trigger_values[triggers[i]] = parseInt($('#drop_'+triggers[i]).find(":selected").text());
+            }
+
+            var temp_low_trigger_enabled = $('#chk_temp_low_trigger_enabled').is(':checked');
+            var temp_high_trigger_enabled = $('#chk_temp_high_trigger_enabled').is(':checked');
+            var profile_trigger_enabled = $('#chk_profile_trigger_enabled').is(':checked');
+
+        if (1) {
+            data = {'app_id':app_id, 'app_data':{'trigger_values':trigger_values,'temp_low_trigger_enabled':temp_low_trigger_enabled,
+                'temp_high_trigger_enabled':temp_high_trigger_enabled,'profile_trigger_enabled':profile_trigger_enabled}};
+             var jsonText = JSON.stringify(data);
+            //alert(jsonText);
+            console.log(jsonText);
+                $.ajax({
+                    url: '/application/command/save_start/',
+                    type: 'POST',
+                    data: jsonText,
+                    dataType: 'json',
+                    success: function (data) {
+                        $('.bottom-right').notify({
+                            message: {text: 'Your configuration has been saved and application is started.'},
+                            type: 'blackgloss',
+                            fadeOut: {enabled: true, delay: 5000}
+                        }).show();
+                         setTimeout(function(){
+                         window.location.reload();
+                }, 5000);
+                    },
+                    error: function (data) {
+                        $('.bottom-right').notify({
+                            message: {text: 'Communication Error. Try again later!'},
+                            type: 'blackgloss',
+                            fadeOut: {enabled: true, delay: 5000}
+                        }).show();
+                    }
+                });
+        } else {
+            $('.bottom-right').notify({
+                            message: {text: 'Please select at least a thermostat and sensitivity.'},
+                            type: 'blackgloss',
+                            fadeOut: {enabled: true, delay: 5000}
+                        }).show();
+        }
+	   });
+
 
 
 });

@@ -163,6 +163,15 @@ SECRET_KEY = 'b4nr@$=^2)_g!_vz-nm_1$_!!jfh&2yn$6#a9klqyh28g*vjl%'
 # Alexa Authentication PIN:
 ALEXA_KEY = '93712'
 
+#Weather Underground Key
+WUNDERGROUND_KEY = 'underground-key'
+
+#Default Zipcode
+zip_code = 22203
+
+#don't change this
+weather_agent = 'BEMO_WUG' + str(zip_code)
+
 FIND_DEVICE_SETTINGS = {
     'findWiFi': True,
     'findWiFiNest': True,

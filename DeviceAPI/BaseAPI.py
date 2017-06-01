@@ -140,7 +140,17 @@ class baseAPI:
             if data[variable_name]=="":
                 continue
             if variable_name in self.ontology().keys():
-                self.set_variable(self.ontology()[variable_name].NAME, data[variable_name])
+                ont = self.ontology()[variable_name]
+                if ont.TYPE in ['float','double']:
+                    try:
+                        val = float(data[variable_name])
+                    except (TypeError, ValueError):
+                        val = None
+                elif ont.TYPE in ['string','text']:
+                    val = str(data[variable_name])
+                else:
+                    val = data[variable_name]
+                self.set_variable(ont.NAME, val)
 
     # def getDeviceSchedule(self):
     #     if required
