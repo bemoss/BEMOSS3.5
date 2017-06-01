@@ -662,7 +662,6 @@ $( document ).ready(function() {
         root = root[2];
         var json_root = {};
         json_root[root] = [];
-
         var noOfRows = $("#" + root + "_schedule tbody").children().length;
         for (var j = 0; j <= noOfRows - 1; j++) {
             var tr_id = '#' + root + '_schedule tbody tr:eq(' + j + ') td:first';
@@ -729,7 +728,7 @@ $( document ).ready(function() {
 
 
                 cell1.innerHTML = new_tr_id;
-                cell2.innerHTML = '<input type="text" id="nickname_' + table.parentNode.id + '_' + new_tr_id + '" name="nickname" style="width:100%" value="Period' + new_tr_id + '"/>';
+                cell2.innerHTML = '<input type="text" id="nickname_' + table.parentNode.id + '_' + new_tr_id + '" name="nickname" style="width:100%" value="' + sch_apply[j]["nickname"] + '"/>';
 
                 var previous_row = parseInt(noOfRows) - 1;
                 var previous_value = $("#tp" + "_" + table.parentNode.id + "_" + tr_id).val();
@@ -751,10 +750,10 @@ $( document ).ready(function() {
                 cell3.appendChild(c3content);
                 if (sch_apply[j]["status"] == "OFF") {
                     cell4.innerHTML = '<span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_' + table.parentNode.id + '_' + new_tr_id + '"> OFF </button>&nbsp;' +
-                        '<button class="btn btn-sm btn-default on_off_left" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
+                        '<button class="btn btn-sm btn-default on_off_right" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
                 } else {
                     cell4.innerHTML = '<span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_' + table.parentNode.id + '_' + new_tr_id + '"> OFF </button>&nbsp;' +
-                        '<button class="btn btn-sm btn-success on_off_left" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
+                        '<button class="btn btn-sm btn-success on_off_right" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
                 }
 
                 cell5.innerHTML = '<button class="btn btn-sm btn-danger delete_td" type="button" id="delete_' + table.parentNode.id + '_' + new_tr_id + '"> x </button>';

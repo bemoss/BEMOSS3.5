@@ -813,7 +813,7 @@ $( document ).ready(function() {
 
 
 		cell1.innerHTML = new_tr_id;
-		cell2.innerHTML = '<input type="text" id="nickname_' + table.parentNode.id + '_' + new_tr_id + '" name="nickname" style="width:100%" value="Period'+ new_tr_id +'"/>';
+		cell2.innerHTML = '<input type="text" id="nickname_' + table.parentNode.id + '_' + new_tr_id + '" name="nickname" style="width:100%" value="' + sch_apply[j]["nickname"] + '"/>';
 
         var previous_row = parseInt(noOfRows)-1;
         var previous_value = $("#tp" + "_" + table.parentNode.id + "_" + tr_id).val();
@@ -836,11 +836,11 @@ $( document ).ready(function() {
 
         if (sch_apply[j]["status"] == "OFF") {
                     cell4.innerHTML = '<span id="on_off_div"><button class="btn btn-sm btn-success on_off_left" type="button" id="off_' + table.parentNode.id + '_' + new_tr_id + '"> OFF </button>&nbsp;' +
-                        '<button class="btn btn-sm btn-default on_off_left" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
+                        '<button class="btn btn-sm btn-default on_off_right" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
                     cell5.innerHTML = '<span id="brightness_div"><div class="slider" id="brightness_' + table.parentNode.id + '_' + new_tr_id + '"></div>';
         } else {
             cell4.innerHTML = '<span id="on_off_div"><button class="btn btn-sm btn-default on_off_left" type="button" id="off_' + table.parentNode.id + '_' + new_tr_id + '"> OFF </button>&nbsp;' +
-                '<button class="btn btn-sm btn-success on_off_left" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
+                '<button class="btn btn-sm btn-success on_off_right" type="button" id="on_' + table.parentNode.id + '_' + new_tr_id + '"> ON </button></span>';
             cell5.innerHTML = '<span id="brightness_div"><div class="slider" id="brightness_' + table.parentNode.id + '_' + new_tr_id + '" aria-disabled="false">' +
                 '<div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width:'+bri+'%;"></div>' +
                 '<a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left:'+bri+'%;"></a></div>';
