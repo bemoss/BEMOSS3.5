@@ -694,11 +694,7 @@
 
 	                  </tbody>
 	                </table>
-                	<div class="row">
-	                	<div class="text-center">
-	                		<button type="button" class="btn btn-default add_new_period" id="add_new_period_holiday"><i class="icon-ok"></i> Add New Period</button>
-                		</div>
-                	</div>
+
                   	</div>
 					</div>
 					</div>
@@ -711,9 +707,7 @@
               <div class="form-actions">
                   <div class="text-center">
                 <button class="btn btn-primary individual" type="submit" id="submit_holiday">Save Holiday Schedule Changes</button>
-                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
-                      <a class="btn btn-primary" href="/report_thschh/{{ mac_address }}" id="report_holiday">Export to Spreadsheet</a></div>
-                 {% endifequal %}
+                
 
                   </div>
 				</form>
@@ -731,7 +725,7 @@
 		</div>
 	</div>
 
-	<div class="bottom-nav footer">2013 - 2014 &copy; Building Energy
+	<div class="bottom-nav footer">2013 - 2017 &copy; Building Energy
 		Management Open Source Software.</div>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

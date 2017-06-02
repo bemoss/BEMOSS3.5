@@ -200,13 +200,14 @@
                                                     {% endif %}
                                                 {% endifequal %}
                                             </div>
+                                                {% ifequal request.user.groups.all.0.name|lower 'admin' %}
                                             <a href="#">
                                             <div class="stats-footer text-center" data-backdrop="false"
                                                  data-target="#{{ device.agent_id}}" data-toggle="modal">View/Edit
                                                 Information
                                             </div>
                                             </a>
-
+                                                 {% endifequal %}
                                     </div>
                                         </a>
                                     <div style="display: none;" aria-hidden="true" aria-labelledby="myModalLabel"

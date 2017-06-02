@@ -899,9 +899,7 @@
               <div class="form-actions">
                   <div class="text-center">
                 <button class="btn btn-primary individual" type="submit" id="submit_holiday">Save Holiday Schedule Changes</button>
-                {% if request.user.get_profile.group.name|lower == 'admin' %}
-                      <a class="btn btn-primary" href="/report_ltschh/{{ mac_address }}" id="report_everyday">Export to Spreadsheet</a></div>
-                 {% endif %}
+
 
                   </div>
 				</form>
@@ -919,7 +917,7 @@
 		</div>
 	</div>
 
-	<div class="bottom-nav footer">2013 - 2014 &copy; Building Energy
+	<div class="bottom-nav footer">2013 - 2017 &copy; Building Energy
 		Management Open Source Software.</div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 
