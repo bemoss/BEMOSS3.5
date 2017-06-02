@@ -185,12 +185,23 @@ class NetworkAgent(BEMOSSAgent):
             print "Headers: {headers}".format(headers=headers)
             print "Message: {message}\n".format(message=message)
 
-
         for entry in message:
             volttron_agents_status = agentstats()
             agent_status = entry[STATUS_CHANGE.AGENT_STATUS]
-            requested_node_id = int(entry[STATUS_CHANGE.NODE])
+            if STATUS_CHANGE.NODE in entry:
+                requested_node_id = int(entry[STATUS_CHANGE.NODE])
             agent_id = entry[STATUS_CHANGE.AGENT_ID]
+
+            self.curcon.execute('select agent_id from device_info where agent_id=%s',(agent_id,))
+            if self.curcon.rowcount:
+                is_app = False
+            self.curcon.execute('select app_agent_id from application_running where app_agent_id=%s',(agent_id,))
+            if self.curcon.rowcount:
+                is_app = True
+
+            if 'is_app' in entry:
+                is_app = entry['is_app']
+
 
             zone_assignment_type = ZONE_ASSIGNMENT_TYPES.TEMPORARY #default zone assignment type
 
@@ -205,9 +216,10 @@ class NetworkAgent(BEMOSSAgent):
 
             if agent_status == 'start' and requested_node_id == self.my_node_id:
                 if not running:
-                    self.initialize_devicedata(agent_id)
-                    self.launch_agent(agent_id,installed)
-            elif running and (requested_node_id != self.my_node_id or agent_status!= 'start'):
+                    if not is_app:
+                        self.initialize_devicedata(agent_id)
+                    self.launch_agent(agent_id,installed,is_app)
+            elif running and (requested_node_id != self.my_node_id or agent_status == 'stop'):
                 self.stopAgent(agent_id)
                 continue
             else:
@@ -245,7 +257,7 @@ class NetworkAgent(BEMOSSAgent):
                 (agent_id, json_temp, 'ONLINE', datetime.datetime.now(), None, json_temp))
             self.curcon.commit()
 
-    def launch_agent(self,agent_id, installed):
+    def launch_agent(self,agent_id, installed, is_app=False):
         #_launch_file = os.path.join(dir, launch_file)
         env_path = settings.PROJECT_DIR+'/env/bin/'
 
@@ -283,15 +295,29 @@ class NetworkAgent(BEMOSSAgent):
                     "agent_id": agent_id,
                 }
                 json.dump(data, outfile)
+            if not is_app:
+                self.curcon.execute("select device_model from device_info where agent_id=(%s)", (agent_id,))
+                if not self.curcon.rowcount:
+                    print "Bad agent_id name"
+                    return
+                device_model = self.curcon.fetchone()[0]
 
-            self.curcon.execute("select device_model from device_info where agent_id=(%s)", (agent_id,))
-            device_model = self.curcon.fetchone()[0]
-            self.curcon.execute("select agent_type from supported_devices where device_model=(%s)",(device_model,))
-            agent_folder = self.curcon.fetchone()[0]
+                self.curcon.execute("select agent_type from supported_devices where device_model=(%s)",(device_model,))
+                if not self.curcon.rowcount:
+                    print "Non supported device"
+                    return
+                agent_folder = self.curcon.fetchone()[0]
+                agent_path = "/Agents/" + agent_folder
+            else:
+                self.curcon.execute("select app_type_id from application_running where app_agent_id=(%s)", (agent_id,))
+                app_type_id = self.curcon.fetchone()[0]
+                self.curcon.execute("select app_folder from application_registered where application_id=(%s)", (app_type_id,))
+                agent_folder = self.curcon.fetchone()[0]
+                agent_path = "/Applications/code/" + agent_folder
 
         if not installed:
             os.system(#". env/bin/activate"
-                          env_path + "volttron-pkg package " + settings.PROJECT_DIR + "/Agents/"+agent_folder+";"+\
+                          env_path + "volttron-pkg package " + settings.PROJECT_DIR + agent_path+";"+\
                           env_path+"volttron-pkg configure "+platform.get_home()+"/packaged/"+agent_folder.lower()+"-3.0-py2-none-any.whl "+ _launch_file+";"+\
                           env_path+"volttron-ctl install "+agent_id+"="+platform.get_home()+"/packaged/"+agent_folder.lower()+"-3.0-py2-none-any.whl;"+\
                           env_path+"volttron-ctl start --tag " + agent_id + ";"+\
@@ -311,7 +337,12 @@ class NetworkAgent(BEMOSSAgent):
     def stopAgent(self, agent_id):
         env_path = settings.PROJECT_DIR + '/env/bin/'
         os.system(  # ". env/bin/activate"
-            env_path + "volttron-ctl stop --tag " + agent_id)
+            env_path + "volttron-ctl stop --tag " + agent_id+"; volttron-ctl remove --tag " + agent_id)
+        _launch_file = Agents_Launch_DIR + "/" + agent_id + '.launch'
+        try:
+            os.remove(_launch_file)
+        except OSError:
+            pass
 
 
 def main(argv=sys.argv):

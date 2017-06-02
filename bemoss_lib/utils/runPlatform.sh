@@ -50,7 +50,7 @@ cd $1/
 echo $i > $1/.temp/BEMOSS.pid
 #volttron-ctl start --tag devicediscoveryagent
 #sleep 2
-volttron-ctl start --tag applauncheragent
+#volttron-ctl start --tag applauncheragent
 sleep 2
 volttron-ctl start --tag approvalhelperagent
 sleep 2

@@ -78,7 +78,7 @@ class db_connection(object):
             self = args[0]
             while True:
                 try:
-                    print "Running db-operation-on: " + str(self.parent_ip)
+                    #print "Running db-operation-on: " + str(self.parent_ip)
                     return func(*args,**kwargs)
                 except psycopg2.OperationalError as er:
                     print er

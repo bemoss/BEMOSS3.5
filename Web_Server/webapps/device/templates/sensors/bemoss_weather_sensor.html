@@ -1,0 +1,157 @@
+{% load dashboard_extras %}
+{% load switch_case %}
+{% load device_count_in_zone %}
+{% load timedelta %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ device_data.node.node_name }}: Lighting Sensor - {{ device_data.nickname }}</title>
+<!--
+
+# Authors: BEMOSS Team
+# Version: 2.0
+# Email: aribemoss@gmail.com
+# Created: "2014-10-13 18:45:40"
+# Updated: "2015-02-13 15:06:41"
+
+
+Copyright © 2014 by Virginia Polytechnic Institute and State University
+All rights reserved
+
+Virginia Polytechnic Institute and State University (Virginia Tech) owns the copyright for the BEMOSS software and its
+associated documentation ("Software") and retains rights to grant research rights under patents related to
+the BEMOSS software to other academic institutions or non-profit research institutions.
+You should carefully read the following terms and conditions before using this software.
+Your use of this Software indicates your acceptance of this license agreement and all terms and conditions.
+
+You are hereby licensed to use the Software for Non-Commercial Purpose only.  Non-Commercial Purpose means the
+use of the Software solely for research.  Non-Commercial Purpose excludes, without limitation, any use of
+the Software, as part of, or in any way in connection with a product or service which is sold, offered for sale,
+licensed, leased, loaned, or rented.  Permission to use, copy, modify, and distribute this compilation
+for Non-Commercial Purpose to other academic institutions or non-profit research institutions is hereby granted
+without fee, subject to the following terms of this license.
+
+Commercial Use: If you desire to use the software for profit-making or commercial purposes,
+you agree to negotiate in good faith a license with Virginia Tech prior to such profit-making or commercial use.
+Virginia Tech shall have no obligation to grant such license to you, and may grant exclusive or non-exclusive
+licenses to others. You may contact the following by email to discuss commercial use:: vtippatents@vtip.org
+
+Limitation of Liability: IN NO EVENT WILL VIRGINIA TECH, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR REDISTRIBUTE
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO
+LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE
+OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF VIRGINIA TECH OR OTHER PARTY HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGES.
+
+For full terms and conditions, please visit https://bitbucket.org/bemoss/bemoss_os.
+
+Address all correspondence regarding this license to Virginia Tech's electronic mail address:: vtippatents@vtip.org
+
+    -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<link href="/static/css/bootstrap.css" rel="stylesheet" media="screen">
+<link href="/static/css/thin-admin.css" rel="stylesheet" media="screen">
+<link href="/static/css/font-awesome.css" rel="stylesheet" media="screen">
+<link href="/static/style/style.css" rel="stylesheet">
+<link href="/static/style/dashboard.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/static/style/jquery.jqplot.min.css" />
+    <link media="screen" rel="stylesheet" href="/static/font-awesome-4.0.3/css/font-awesome.min.css">
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+<!-- Notify CSS -->
+<link href="/static/css/bootstrap-notify/bootstrap-notify.css" rel="stylesheet">
+
+<!-- Custom Styles -->
+<link href="/static/css/bootstrap-notify/styles/alert-bangtidy.css" rel="stylesheet">
+<link href="/static/css/bootstrap-notify/styles/alert-blackgloss.css" rel="stylesheet">
+<script>
+    var lti = {{ device_data.data.illuminance }};
+    var agent_id = "{{ device_data.agent.agent_id }}";
+</script>
+</head>
+<body>
+{% include 'common/top_nav.html' %}
+<div class="wrapper">
+{% include 'common/side_nav.html' %}
+  <div class="page-content">
+
+    <form action="" method="post">
+  	{% csrf_token %}
+    <div class="content container">
+      <div class="row">
+        <div class="col-md-12">
+          <h2 class="page-title">{{device_info.node.node_name}} : {{device_info.nickname}}</h2>
+        </div>
+      </div>
+        <div class="row">
+            {% for iteration in 5|times %}
+            <div class="col-lg-2 col-md-2">
+
+                            <!--<div class="text-center"><h3><div id="chart9" style="width:300px; height:180px;"></div></h3></div>-->
+                            <div class="text-center">
+                                <div class="stats-heading h4"> {% cycle "Outdoor Temperature" "Humidity" "Wind" "Pressure" "Sky Condition" %}</div>
+                                {% cycle 'temperature' 'humidity' 'v_wind' 'pressure' 'sky_condition' as var silent %}
+                                {% cycle ' F' ' %' ' mi/hr' ' inHg' '' as unit silent%}
+
+                                <div class="stats-body-sen text-center sh6" id="illumination" h6>{{ device_data.data|get_item_in_dict:var }} {{ unit }} </div>
+
+                            </div>
+
+            <br/>
+            <br/>
+          </div>
+            {% endfor %}
+      	</div>
+            <div class="col-lg-4"></div>
+        </div>
+    <div class="row">
+     <div class="col-lg-8">
+          <div class="widgetcontainer">
+                <!--row start-->
+                <div class="row">
+                <div class="col-md-3">
+                    <a href={% url 'charts-view-device-chart' device_data.agent.mac_address %}><button type="button" class="btn btn-default btn-danger" ><i class="icon-bar-chart"></i> View Past Usage and Set Points</button></a>
+
+                </div>
+                    </div>
+                <!--row end-->
+            </div>
+          </div>
+<div class="col-lg-2"></div>
+    </div>
+    <div class="row">
+      <div class="col-md-10 col-xs-12 col-sm-6">
+          <div class="widget-content" id="statistics_view" hidden>
+            <div id="chart10" style="width:100%; height:350px"></div>
+          </div>
+      </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="bottom-nav footer"> 2013-2017 &copy; Building Energy Management Open Source Software. </div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="/static/js/jquery.js"></script> 
+<script src="/static/js/bootstrap.min.js"></script> 
+<script type="text/javascript" src="/static/js/left_nav_slider.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/jquery-1.10.2.js"></script>
+<script class="include" type="text/javascript" src="/static/javascript/gauge.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
+<script class="include" type="text/javascript" src="/static/app_js/lighting_sensor.js"></script>
+<script type="text/javascript" src="/static/app_js/make_current.js"></script>
+
+<!--switcher html start-->
+{% include 'common/theme_changer.html' %}
+
+
+
+
+
+
+</body>
+</html>

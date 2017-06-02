@@ -140,3 +140,7 @@ def lookup(my_dict,key):
 @register.filter
 def times(count):
     return range(1,int(count+1))
+
+@register.filter
+def rangefromto(start,end):
+    return range(start,end)

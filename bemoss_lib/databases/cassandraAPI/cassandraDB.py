@@ -59,6 +59,7 @@ from uuid import UUID
 #Global variables
 bCluster, bSpace, keyspace_name, replication_factor = None, None, None, None
 
+import time
 
 
 @catcherror('Could not get replication')
@@ -349,13 +350,13 @@ def delete(agentID,startDate=None, endDate=None, tablename=None):
 
 
 
-def retrieve(agentID, vars=None, startTime=None, endTime=None,export=False,tablename=None):
+def retrieve(agentID, vars=None, startTime=None, endTime=None,export=False,tablename=None,weather_agent=None):
     """Function to retrieve Data from the active cassandra cluster. \n
     :param agentID: must supply, since each agentID is associated with a table in database.
     :param vars: supplied as a list of strings. It represents the variables to be retrieved from the table.
           eg. ['time','temperature','heat_setpoint']. If any of the variables don't match the column name, the result
           will contain -1. If not supplied, the default is to return the complete row \n\n
-    :param startTime: the time in localtime zone (the timezone of the node), in datetime.datetime format. It marks the
+    :param startTime: the time in localtime zone (the timeweather_agentzone of the node), in datetime.datetime format. It marks the
             beginning for the range. If not supplied, will be taken 24-hours before endTime
     :param endTime: the time in localtime zone (the timezone of the node), in datetime.datetime format.It marks the end of the
             range. If not supplied, will be taken as the currentTime.
@@ -395,17 +396,67 @@ def retrieve(agentID, vars=None, startTime=None, endTime=None,export=False,table
             raise
         vars = [var[0] for var in result]
 
+    weather_vars = ['time','temperature','humidity','pressure','v_wind','sky_condition']
+
     varStr = ', '.join(vars) #to get rid of the last ', '
-    daterange = pandas.date_range(startTimeUTC,endTimeUTC)
+    weatherStr = ', '.join(weather_vars)
+    daterange = pandas.date_range(startTimeUTC-datetime.timedelta(days=1),endTimeUTC+datetime.timedelta(days=1)) #pad with extra days, just in case date_id was stored as local date
     total_result = []
+    total_weather_result = []
     try:
         for day in daterange:
 
             date_local = str(day.date())
             result = bSpace.execute('select {0} from {1} WHERE agent_id=%s AND date_id=%s AND time >= %s AND time <= %s'.format(varStr, tablename),[agentID,date_local,startTimeUTC,endTimeUTC])
-            total_result += result
+            if result:
+                result = numpy.array(list(result))
+                if total_result == []:
+                    total_result = result
+                else:
+                    total_result = numpy.vstack((total_result, result))
 
-        total_result = numpy.array(total_result)
+            if weather_agent:
+                weather_result = bSpace.execute('select {0} from {1} WHERE agent_id=%s AND date_id=%s AND time >= %s AND time <= %s'.format(weatherStr, "B"+weather_agent.lower()),[weather_agent,date_local,startTimeUTC,endTimeUTC])
+                if weather_result:
+                    weather_result = numpy.array(list(weather_result))
+                    backup_result = numpy.array(weather_result)
+                    weather_result[:, 0] = [time.mktime(x.timetuple()) for x in weather_result[:,0]]
+                    if total_weather_result == []:
+                        total_weather_result = weather_result
+                    else:
+                        total_weather_result = numpy.vstack((total_weather_result, weather_result))
+
+        if weather_agent:
+            #Interpolate the Weather data to get values at data-points
+            intp_weather = []
+            for row in total_result:
+                unix_time = time.mktime(row[vars.index('time')].timetuple())
+                intp_weather.append([])
+                for wvars in weather_vars[1:]:
+                    try:
+                        if len(total_weather_result) == 0:
+                            raise  ValueError('No weather data found for this day')
+
+                        indx = numpy.searchsorted(list(total_weather_result[:, 0]), unix_time)
+                        if indx >= len(list(total_weather_result[:, 0])):
+                            indx -= 1
+                        if abs(total_weather_result[indx,0] - unix_time) > 2*60*60: #if no weather data within 2-hour in either side, put None
+                            raise ValueError('No weather data near this time')
+                        try:
+                            intp_weather[-1] += [float(numpy.interp(unix_time, list(total_weather_result[:, 0]),
+                                     list(total_weather_result[:, weather_vars.index(wvars)])))]
+                        except TypeError: #string types can't be interpolated
+                            intp_weather[-1] += [total_weather_result[indx, weather_vars.index(wvars)]]
+
+                    except ValueError as Er:
+                        print Er
+                        intp_weather[-1] += [None]
+
+            vars += ['weather_' + x for x in weather_vars[1:]]  # append weather vars (except time)  to the vars
+            if len(total_result) and len(intp_weather):
+                intp_weather = numpy.array(intp_weather,dtype='O')
+                total_result = numpy.concatenate((total_result,intp_weather),axis=1)
+
 
         # If there is no data, return an empty list []
         if len(total_result) == 0:

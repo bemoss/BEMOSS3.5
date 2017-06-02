@@ -226,7 +226,7 @@ $( document ).ready(function() {
          if (topic) {
              topic = topic.split('/');
              console.log(topic);
-             if (topic[1] == 'scheduler' && topic[2] == agent_id && topic[3] == 'update' && topic[4] == 'response') {
+             if (topic[3] == 'scheduler' && topic[4] == agent_id && topic[5] == 'update' && topic[6] == 'response') {
 
                  var message_upd = _data['message'];
                  var popup = false;

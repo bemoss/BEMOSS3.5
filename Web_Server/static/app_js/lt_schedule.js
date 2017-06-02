@@ -267,8 +267,8 @@ $( document ).ready(function() {
              topic = topic.split('/');
              console.log(topic);
               // from/agent_id/device_status_response
-         // from/agent_id/device_update_response
-             if (topic[1] == device_data.agent_id && topic[2] == 'update_response') {
+         // to/ui/from/agent_id/device_update_response
+             if (topic[3] == device_data.agent_id && topic[4] == 'update_response') {
 
                  var message_upd = _data['message'];
                  var popup = false;

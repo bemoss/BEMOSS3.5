@@ -187,6 +187,10 @@ class BEMOSS_ONTOLOGY:
         ALTERNATE_NAMES = ['soc']
         SPOKEN_NAMES = ['state of charge']
 
+    class SKY_CONDITION:
+        NAME = "sky_condition"
+        TYPE = "text"
+
     class STATUS:
         NAME = 'status'
         TYPE = 'text'
