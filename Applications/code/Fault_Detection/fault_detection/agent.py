@@ -353,7 +353,7 @@ class FaultDetectionAgent(BEMOSSAgent):
     def checkAnamoly(self, current_points, model):
 
         if not (current_points[-1][0] - current_points[0][0]) / (
-                    1000 * 60.0) >= 60:  # make sure there is 60 minute worth of data
+                    1000 * 60.0) >= 30:  # make sure there is 30 minute worth of data
             raise ValueError('not-enough-data')
         current_slope = self.getRate(np.array(current_points))
         if not current_slope:
@@ -386,8 +386,6 @@ class FaultDetectionAgent(BEMOSSAgent):
                 raise ValueError('not-enough-historical-data')
         else:
             return False
-
-
 
     def checkDeviation(self,temperature_points):
         temperature_points = np.array(temperature_points)

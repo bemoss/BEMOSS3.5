@@ -41,12 +41,13 @@ def application_add(request):
         _data = request.body
         _data = json.loads(_data)
 
-        registered_app = ApplicationRegistered.objects.filter(app_name__iexact=_data['app_name'])
-        thermostat = DeviceMetadata.objects.get(agent_id=_data['app_data']['thermostat'])
-
-        data = {'thermostat':thermostat.agent_id,'description':"For: " + thermostat.nickname }
+        registered_app = ApplicationRegistered.objects.get(app_name__iexact=_data['app_name'])
+        if registered_app.app_name == 'fault_detection':
+            thermostat = DeviceMetadata.objects.get(agent_id=_data['app_data']['thermostat'])
+            data = {'thermostat':thermostat.agent_id,'description':"For: " + thermostat.nickname }
+        else:
+            data = {}
         if registered_app:
-            registered_app = registered_app[0]
             no = ApplicationRunning.objects.filter(app_type=registered_app).count()+1
             new_app = ApplicationRunning(start_time=datetime.now(),status='stopped',
                                       app_type=registered_app, app_data=data, app_agent_id='some_name')
