@@ -180,6 +180,7 @@ def update_device_schedule(request):
     device_id = device_info[2]
     device_type = device_info[1]
     device_zone = device_info[0]
+    activate_schedule(device_type,device_id)
     schedule_type = ''
     if 'everyday' in str(_data):
         schedule_type = 'everyday'
@@ -229,21 +230,24 @@ def save_schedule(device_id, device_type, _data, schedule_type, user):
 
 
 
-def activate_schedule(request):
-    _data = json.loads(request.body)
-    device_info = _data['device_info']
-    device_info = device_info.split('/')
-    device_type = device_info[1]
-    device_id = device_info[2]
+def activate_schedule(device_type,device_id):
     app_agent_id = 'scheduler_'+device_id
     registered_app = ApplicationRegistered.objects.filter(app_name__iexact=device_type + '_scheduler')
     if registered_app:
         registered_app = registered_app[0]
-        new_app = ApplicationRunning(start_time=datetime.now(), status='running',
-                                     app_type=registered_app, app_data={'display_info': 'Started',"device_agent_id":device_id},
+        device = DeviceMetadata.objects.filter(agent_id=device_id)
+        try:
+            app = ApplicationRunning.objects.get(app_agent_id='scheduler_'+device_id)
+        except ApplicationRunning.DoesNotExist:
+            app = ApplicationRunning(start_time=datetime.now(), status='running',
+                                     app_type=registered_app, app_data={"device_agent_id":device_id},
                                      app_agent_id='scheduler_'+device_id)
-        new_app.save()
 
+        app.status = 'running'
+        if device:
+            app.app_data['description'] = 'For: ' + device[0].nickname
+
+        app.save()
         message = dict()
         message[STATUS_CHANGE.AGENT_ID] = app_agent_id
         message[STATUS_CHANGE.NODE] = "0"
@@ -252,12 +256,7 @@ def activate_schedule(request):
         message['is_app'] = True
         topic = 'to/networkagent/status_change/from/ui'
         vip_publish(topic, [message])
-        _data_to_send = {"status": "success"}
 
-        if request.is_ajax():
-                return HttpResponse(json.dumps(_data_to_send), content_type='application/json')
-    else:
-        return HttpResponse("This scheduler is not registered")
 
 @login_required(login_url='/login/')
 def update_schedule_status_to_browser(request):
