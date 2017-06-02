@@ -222,15 +222,6 @@ else:
 
 
 
-cur.execute("select * from information_schema.tables where table_name=%s", ('application_registered',))
-print bool(cur.rowcount)
-if bool(cur.rowcount):
-    cur.execute("DELETE FROM application_registered")
-    conn.commit()
-else:
-    pass
-
-
 cur.execute("select * from information_schema.tables where table_name=%s", ('passwords_manager',))
 print bool(cur.rowcount)
 if bool(cur.rowcount):
