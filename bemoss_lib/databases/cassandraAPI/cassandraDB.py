@@ -445,11 +445,11 @@ def retrieve(agentID, vars=None, startTime=None, endTime=None,export=False,table
                         try:
                             intp_weather[-1] += [float(numpy.interp(unix_time, list(total_weather_result[:, 0]),
                                      list(total_weather_result[:, weather_vars.index(wvars)])))]
-                        except TypeError: #string types can't be interpolated
+                        except (ValueError, TypeError): #string types can't be interpolated
                             intp_weather[-1] += [total_weather_result[indx, weather_vars.index(wvars)]]
 
                     except ValueError as Er:
-                        print Er
+                        #print Er
                         intp_weather[-1] += [None]
 
             vars += ['weather_' + x for x in weather_vars[1:]]  # append weather vars (except time)  to the vars

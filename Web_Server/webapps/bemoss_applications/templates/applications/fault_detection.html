@@ -209,22 +209,22 @@
             <div class="col-md-6 col-xs-12 col-sm-12 ">
       <div class="widget">
             <div class="widget-header"> <i class="icon-star"></i>
-                {% ifequal app_info.status 'running' %}
+                {% if app_info.status == 'running' or app_info.status == 'started' %}
                     <h3>Save</h3>
                 {% else %}
                     <h3>Save and Start</h3>
-                {% endifequal %}
+                {% endif %}
             </div>
 
             <div class="widget-content ">
             <div class="control-group">
                     <div class="controls span2">
             <div class="text-left bottom-buffer">
-                {% ifequal app_info.status 'running' %}
-                The application is currently running.<br> <button class="btn btn-success" id="save_start">Save</button>
+                {% if app_info.status == 'running' or app_info.status == 'started' %}
+                The application is currently {{ app_info.status }}.<br> <button class="btn btn-success" id="save_start">Save</button>
                 {% else %}
-                    <p>The application is not running. <br><button class="btn btn-success" id="save_start">Save and Start</button></p>
-                {% endifequal %}
+                    <p>The application is {{ app_info.status }}. <br><button class="btn btn-success" id="save_start">Save and Start</button></p>
+                {% endif %}
             </div>
                     </div>
             </div>
