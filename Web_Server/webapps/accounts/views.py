@@ -49,7 +49,7 @@ under Contract DE-EE0006352
 #__lastUpdated__ = "2016-03-14 11:23:33"
 '''
 from django.shortcuts import render
-
+from bemoss_lib.communication.Email import EmailService
 from django.db import transaction
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate, login
@@ -296,10 +296,18 @@ def approve_users(request):
             user.groups.add(user_group)
             user.save()
             try:
-                send_mail(_.EMAIL_USER_APPROVED_SUBJECT,
-                      _.EMAIL_USER_MESSAGE.format(user.first_name + ' ' + user.last_name,
-                                                  request.get_host()), _.EMAIL_FROM_ADDRESS,
-                      [user.email], fail_silently=True)
+                emailService = EmailService()
+                email_fromaddr = settings.NOTIFICATION['email']['fromaddr']
+                email_username = settings.NOTIFICATION['email']['username']
+                email_password = settings.NOTIFICATION['email']['password']
+                email_mailServer = settings.NOTIFICATION['email']['mailServer']
+                _email_subject=_.EMAIL_USER_APPROVED_SUBJECT
+                recipient=[user.email]
+                text=_.EMAIL_USER_MESSAGE
+                new_text = text.format(user.first_name)
+                emailService.sendEmail(email_fromaddr, recipient, email_username, email_password,
+                                       _email_subject , new_text, email_mailServer, html=True)
+
             except Exception as er:
                 print er
 
