@@ -190,7 +190,7 @@
           <!-- TODO: create a column 'app_display_info' in application table instead of using the following logic-->
               {% if app.app_type.app_name == 'iblc' %}
                   {% if 'target' not in app.app_data %}
-                        Target illuminance not set yet.
+                        Target illuminance not set.
                   {% else %}
                     Target illuminance set to {{ app.app_data|get_item_in_dict:'target' }} Lux.
                   {% endif %}
