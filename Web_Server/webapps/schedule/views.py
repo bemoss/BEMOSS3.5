@@ -192,10 +192,11 @@ def update_device_schedule(request):
 
     message_to_agent = {
         "auth_token": "bemoss",
-        "user": _data['user']
+        "user": _data['user'],
+        "content": content
     }
-    ieb_topic = '/to/scheduler_' + device_id + '/update/from/ui'
-    ieb_topic2 = '/to/scheduler_'+device_id+'/from/ui/update'
+    ieb_topic = 'to/scheduler_' + device_id + '/update/from/ui'
+    ieb_topic2 = 'to/scheduler_'+device_id+'/from/ui/update'
     print ieb_topic
     vip_publish(ieb_topic, json.dumps(message_to_agent))
     vip_publish(ieb_topic2, json.dumps(message_to_agent))
