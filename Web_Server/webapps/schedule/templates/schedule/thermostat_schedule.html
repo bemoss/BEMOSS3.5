@@ -625,9 +625,9 @@
                   <div class="text-center">
 
                       <button class="btn btn-primary individual" type="submit" id="submit_everyday">Save Daily Schedule Changes</button>
-        {% ifequal request.user.groups.all.0.name|lower 'admin' %}
-                      <a class="btn btn-primary" href="/report_thschd/{{ mac_address }}" id="report_everyday">Export to Spreadsheet</a></div>
-        {% endifequal %}
+
+                      </div>
+        
                 </div>
 
 				</form>
