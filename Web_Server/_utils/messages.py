@@ -54,10 +54,10 @@ EMAIL_USER_PASSWORD_CHANGE = 'BEMOSS Password Reset'
 EMAIL_USER_PASSWORD_MESSAGE = 'Dear {}, \n\nYour BEMOSS password has been reset. \n' \
                      'The new password is \n\n  {} \n - BEMOSS Team.'
 
-EMAIL_USER_MESSAGE = 'Dear {}, \n\nYour BEMOSS account is now active. \n Please login at ' \
-                     'http://{}. \n\n - BEMOSS Team.'
+EMAIL_USER_MESSAGE = 'Dear {}, \n\nYour BEMOSS account is now active. \n Please login now. \n\n - BEMOSS Team.'
 
 EMAIL_FROM_ADDRESS = 'aribemoss@gmail.com'
 
 SERVER_STARTUP = 'Django version 1.10 \nServer is running at http://{}:{}/ \nQuit the server with CONTROL-C.'
+
 

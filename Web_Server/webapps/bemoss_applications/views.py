@@ -27,8 +27,7 @@ def application_main(request):
     for app in hvac_fault_apps:
         used_thermostat_ids.append(app.app_data['thermostat'])
 
-    available_thermostas = DeviceMetadata.objects.filter(approval_status='APR', device_type_id=1,
-                                                          device_model__startswith='CT').exclude(agent_id__in=used_thermostat_ids)
+    available_thermostas = DeviceMetadata.objects.filter(approval_status='APR', device_type_id=1).exclude(agent_id__in=used_thermostat_ids)
 
     apps = ApplicationRunning.objects.all()
     return_data = {'apps': apps, 'available_thermostats':available_thermostas}
@@ -129,6 +128,10 @@ def save_and_start(request):
         _data = request.body
         _data = json.loads(_data)
         app_agent_id = _data['app_id']
+        app = ApplicationRunning.objects.get(app_agent_id=app_agent_id)
+        app.status = 'started'
+        app.save()
+
         app_data = _data['app_data']
         save_app_data(app_agent_id, app_data)
         # 2. Start application

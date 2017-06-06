@@ -4,16 +4,11 @@ import json
 import logging
 from volttron.platform.vip.agent import Agent, Core
 from volttron.platform.agent import utils
-from volttron.platform.messaging import headers as headers_mod
-import time
 import datetime
-import settings
 from bemoss_lib.utils import db_helper
 import psycopg2
 import numpy as np
-from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
 
 utils.setup_logging()
 _log = logging.getLogger(__name__)
@@ -139,7 +134,8 @@ class FaultDetectionAgent(BEMOSSAgent):
         slope_and_points = self.getSlopesAndPoints(result, vars)
 
         def train_models(slope_history):
-
+            if len(slope_history) < 3:
+                return None
             #slope_histroy = list of tuples: (avg_outdoor, slope, std_err,temperature_profile[0,0])
             sh = np.matrix(slope_history)
             lnmodel = LinearRegression()
@@ -156,10 +152,16 @@ class FaultDetectionAgent(BEMOSSAgent):
             ln_std = stats.tstd(ln_residue)
 
             ln_mean = stats.tmean(ln_residue)
+            new_sh = None
             for i in range(len(ln_residue)):
-                if ln_residue[i] > ln_mean + 1.5*ln_std:
-                    sh = np.delete(sh,i,axis=0)
+                if ln_residue[i] < ln_mean + 3*ln_std:
+                    #sh = np.delete(sh,i,axis=0)
+                    if new_sh is None:
+                        new_sh = sh[i,:]
+                    else:
+                        new_sh = np.vstack((new_sh,sh[i,:]))
 
+            sh = new_sh
             #redo the fit
             error_inverse = np.array(1 / sh[:, 2])[:, 0]
 
@@ -367,6 +369,9 @@ class FaultDetectionAgent(BEMOSSAgent):
             return False
 
         model = self.models[model]
+        if not model:
+            raise ValueError('not-enough-historical-data')
+
         p = model['ln_model'].predict(current_slope[0])[0][0]
         current_ln_residue = (p - current_slope[1]) ** 2
 

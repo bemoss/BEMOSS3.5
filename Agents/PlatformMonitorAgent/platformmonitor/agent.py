@@ -795,12 +795,12 @@ class PlatformMonitorAgent(BEMOSSAgent):
 
 
     @catcherror('email send function failed')
-    def send_email(self,reciepient,subject,text):
-        emailService.sendEmail(email_fromaddr, reciepient, email_username, email_password, _email_subject+' '+subject, text, email_mailServer,html=True)
+    def send_email(self,recipient,subject,text):
+        emailService.sendEmail(email_fromaddr, [recipient], email_username, email_password, _email_subject+' '+subject, text, email_mailServer,html=True)
 
     @catcherror('SMS function failed')
-    def send_sms(self, reciepient, text):
-        smsService.sendSMS(email_fromaddr, reciepient, email_username, email_password, text, email_mailServer)
+    def send_sms(self, recipient, text):
+        smsService.sendSMS(email_fromaddr, recipient, email_username, email_password, text, email_mailServer)
 
 
 def main(argv=sys.argv):

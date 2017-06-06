@@ -134,14 +134,14 @@ class ThermostatAgent(BasicAgent):
             print "{} >> cannot update anti_tampering field of thermostat data".format(self.agent_id)
 
         # TODO: changes need to be done on UI side.
-        topic_ui_app = 'to/scheduler/from/ui/' + self.agent_id + '/update'
+        topic_ui_app = 'to/scheduler_' + self.agent_id + '/update/'
 
         self.vip.pubsub.subscribe(peer='pubsub', prefix=topic_ui_app, callback=self.updateScheduleMsgFromUI)
 
 
     def updateScheduleMsgFromUI(self,peer, sender, bus, topic,headers,message):
         _data = json.loads(message)
-        schedule = json.loads(_data['content'])
+        schedule = _data['content']
         result = 'failure'
         topic_app_ui = 'to/ui/from/scheduler/' + self.agent_id + '/update/response'
         if self.device_supports_schedule:
@@ -327,16 +327,16 @@ class ThermostatAgent(BasicAgent):
                 else:
                     schpoints = dict(temp_schpoints)
 
+                transit = False
+                if schpoints != self.oldschpoints:
+                    transit = True
                 for v in ['heat_setpoint','cool_setpoint']:
-                    transit = False
-                    if schpoints != self.oldschpoints:
-                        transit = True
-
+                    
                     if v not in self.Device.variables:
                         #for the hidden setpoint, copy from schedule for the first time, or if hold is None, or
                         #if the schedule has just changed, and hold is temporary
                         if self.variables[v] is None or self.variables['hold'] in [0,'0'] \
-                                or (self.variables['hold'] in [1,'1'] and schpoints != self.oldschpoints):
+                                or (self.variables['hold'] in [1,'1'] and transit):
                             self.variables[v] = schpoints[v]
                             if transit is True:
                                 self.changed_variables[v] = self.log_variables[v]
@@ -488,42 +488,42 @@ class ThermostatAgent(BasicAgent):
             print "{} >> self.authorized_cool_setpoint {}".format(self.agent_id, self.authorized_cool_setpoint)
             print "{} >> self.authorized_fan_mode {}".format(self.agent_id, self.authorized_fan_mode)
             try:
-                if self.variables['bemoss_mode'].upper() in ['HEAT','COOL'] or self.device_supports_auto:
+                if self.variables['bemoss_mode'].upper() in ['HEAT','COOL','OFF','AUTO'] or self.device_supports_auto:
                     self.variables['thermostat_mode'] = self.variables['bemoss_mode']
                     setDeviceStatusResult = self.Device.setDeviceStatus(_data)  # convert received message from string to JSON
-                elif self.variables['bemoss_mode'].upper() == 'AUTO':
-                    #get new modes and set-points if necessary to implement Auto mode
-                    newmodes = self.manualAuto()
-                    if 'thermostat_mode' in newmodes and newmodes['thermostat_mode'] == 'HEAT':
-                        #If the thermostat mode needs to be changed to Heat, apply cool setpoint first, then heat setpoint
-                        cool_priority = 1
-                    else:
-                        cool_priority = 2
-
-                    for i in range(1,3): #apply cool_setpoints or heat_setpoints first depending upon priority
-                        #warning: Don't change the order of the ifs. It will break things.
-                        if i==2:
-                            time.sleep(5)
-                        if i==cool_priority:
-                            if 'cool_setpoint' in newmodes:
-                                _data['cool_setpoint'] = newmodes['cool_setpoint']
-                            _data['thermostat_mode'] = 'COOL'
-                            settings = {'thermostat_mode':'COOL','cool_setpoint':_data['cool_setpoint']\
-                                        ,'fan_mode':_data['fan_mode']}
-                            if 'hold' in _data:
-                                settings['hold']=_data['hold']
-                            setDeviceStatusResult = self.Device.setDeviceStatus(settings)
-
-
-                        else:
-                            if 'heat_setpoint' in newmodes:
-                                _data['heat_setpoint'] = newmodes['heat_setpoint']
-                            settings = {'thermostat_mode':'HEAT','heat_setpoint':_data['heat_setpoint']\
-                                        ,'fan_mode':_data['fan_mode']}
-                            if 'hold' in _data:
-                                settings['hold']=_data['hold']
-                            setDeviceStatusResult = self.Device.setDeviceStatus(settings)
-
+                # elif self.variables['bemoss_mode'].upper() == 'AUTO':
+                #     #get new modes and set-points if necessary to implement Auto mode
+                #     newmodes = self.manualAuto()
+                #     if 'thermostat_mode' in newmodes and newmodes['thermostat_mode'] == 'HEAT':
+                #         #If the thermostat mode needs to be changed to Heat, apply cool setpoint first, then heat setpoint
+                #         cool_priority = 1
+                #     else:
+                #         cool_priority = 2
+                #
+                #     for i in range(1,3): #apply cool_setpoints or heat_setpoints first depending upon priority
+                #         #warning: Don't change the order of the ifs. It will break things.
+                #         if i==2:
+                #             time.sleep(5)
+                #         if i==cool_priority:
+                #             if 'cool_setpoint' in newmodes:
+                #                 _data['cool_setpoint'] = newmodes['cool_setpoint']
+                #             _data['thermostat_mode'] = 'COOL'
+                #             settings = {'thermostat_mode':'COOL','cool_setpoint':_data['cool_setpoint']\
+                #                         ,'fan_mode':_data['fan_mode']}
+                #             if 'hold' in _data:
+                #                 settings['hold']=_data['hold']
+                #             setDeviceStatusResult = self.Device.setDeviceStatus(settings)
+                #
+                #
+                #         else:
+                #             if 'heat_setpoint' in newmodes:
+                #                 _data['heat_setpoint'] = newmodes['heat_setpoint']
+                #             settings = {'thermostat_mode':'HEAT','heat_setpoint':_data['heat_setpoint']\
+                #                         ,'fan_mode':_data['fan_mode']}
+                #             if 'hold' in _data:
+                #                 settings['hold']=_data['hold']
+                #             setDeviceStatusResult = self.Device.setDeviceStatus(settings)
+                #
 
 
                 else:

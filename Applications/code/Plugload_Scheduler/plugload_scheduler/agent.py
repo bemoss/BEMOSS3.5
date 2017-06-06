@@ -104,7 +104,7 @@ class SchedulerAgent(Agent):
                 self.app_data = self.curcon.fetchone()[0]
                 self.device_agent_id = self.app_data['device_agent_id']
                 self.topic_ui_app = '/to/' +self.agent_id + '/update/from/ui'
-                self.topic_app_ui = '/to/ui/update/from/' + self.agent_id
+                self.topic_app_ui = 'to/ui/update/from/' + self.agent_id
 
             else:
                 raise ValueError("No entry in application running for this scheduler")
