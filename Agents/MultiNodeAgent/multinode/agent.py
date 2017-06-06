@@ -517,9 +517,8 @@ class MultiNodeAgent(BEMOSSAgent):
         last_field = topic_list[-1]
         if last_field == 'republished': #it is already a republished message, no need to republish
             return
-        if to_entity in settings.SYSTEM_AGENTS:
-            self.disperseMessage(topic, headers, message) #republish to all nodes
-        elif to_entity in settings.PARENT_NODE_SYSTEM_AGENTS :
+
+        if to_entity in settings.PARENT_NODE_SYSTEM_AGENTS :
             if not self.is_parent:
                 self.republishToParent(topic,headers,message)
         else:
@@ -529,7 +528,8 @@ class MultiNodeAgent(BEMOSSAgent):
                 node_id = self.curcon.fetchone()[0]
                 if node_id != self.node_index:
                     self.server.send(jsonify(self.getNodeName(node_id) + '/republish/' + topic, message))
-
+            else:
+                self.disperseMessage(topic, headers, message) #republish to all nodes if we don't know where to send
 
     @PubSub.subscribe('pubsub','from/')
     def relayFromMessage(self, peer, sender, bus, topic, headers, message):
@@ -541,14 +541,15 @@ class MultiNodeAgent(BEMOSSAgent):
             return
         self.disperseMessage(topic, headers, message) #republish to all nodes
 
-    @PubSub.subscribe('pubsub', '')
-    def on_match(self, peer, sender, bus,  topic, headers, message):
-        '''Use match_all to receive all messages and print them out.'''
-        if sender == 'pubsub.compat':
-            message = compat.unpack_legacy_message(headers, message)
-        # _log.debug(
-        #     "Peer: %r, Sender: %r:, Bus: %r, Topic: %r, Headers: %r, "
-        #     "Message: %r", peer, sender, bus, topic, headers, message)
+    # @PubSub.subscribe('pubsub', '')
+    # def on_match(self, peer, sender, bus,  topic, headers, message):
+    #     '''Use match_all to receive all messages and print them out.'''
+    #     # if sender == 'pubsub.compat':
+    #     #     message = compat.unpack_legacy_message(headers, message)
+    #     # _log.debug(
+    #     #     "Peer: %r, Sender: %r:, Bus: %r, Topic: %r, Headers: %r, "
+    #     #     "Message: %r", peer, sender, bus, topic, headers, message)
+
 
 
 def main(argv=sys.argv):
