@@ -777,13 +777,7 @@
               <div class="form-actions">
                   <div class="text-center">
                 <button class="btn btn-primary individual" type="submit" id="submit_holiday">Save Holiday Schedule Changes</button>
-                 {% if request.user.get_profile.group.name|lower == 'admin' %}
-                    {% ifequal device_type_id '2WLS' %}
-                      <a class="btn btn-primary" href="/report_ltschh/{{ mac_address }}" id="report_everyday">Export to Spreadsheet</a></div>
-                    {% else %}
-                    <a class="btn btn-primary" href="/report_plschh/{{ mac_address }}" id="report_everyday">Export to Spreadsheet</a></div>
-                    {% endifequal %}
-                {% endif %}
+
 
 
                   </div>
