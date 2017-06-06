@@ -4,16 +4,11 @@ import json
 import logging
 from volttron.platform.vip.agent import Agent, Core
 from volttron.platform.agent import utils
-from volttron.platform.messaging import headers as headers_mod
-import time
 import datetime
-import settings
 from bemoss_lib.utils import db_helper
 import psycopg2
 import numpy as np
-from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
 
 utils.setup_logging()
 _log = logging.getLogger(__name__)
