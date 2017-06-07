@@ -76,6 +76,7 @@ class ThermostatAgent(BasicAgent):
         super(ThermostatAgent, self).__init__(**kwargs)
         # 1. initialize all agent variables
         self.variables = kwargs
+        self.authorized_variables = dict()
         if hasattr(self.Device, 'getDeviceSchedule'):
             self.device_supports_schedule = True
         else:
@@ -99,17 +100,20 @@ class ThermostatAgent(BasicAgent):
         self.oldschpoints = {}
         self.offline_id = None
         self.thermostat_mode = ''
+        self.setpoint_tampering_allowance = 2
+
+
         try:
             self.curcon.execute("SELECT device_model FROM device_info WHERE agent_id=%s", (self.agent_id,))
             self.device_model = self.curcon.fetchone()[0]
         except Exception as er:
             print er
             print 'Failure @ get device model in init.'
-        if self.device_supports_schedule:
-            try:
-                self.Device.getDeviceSchedule()
-            except:
-                print('Failure @ thermostatagent init getDeviceSchedule.')
+        # if self.device_supports_schedule:
+        #     try:
+        #         self.Device.getDeviceSchedule()
+        #     except:
+        #         print('Failure @ thermostatagent init getDeviceSchedule.')
 
     # 2. agent setup method
     @Core.receiver('onsetup')
@@ -238,11 +242,18 @@ class ThermostatAgent(BasicAgent):
             self.curcon.execute("insert into schedule_data (agent_id, schedule) VALUES (%s, %s)",(self.agent_id,_json_data))
             self.curcon.commit()
 
-
-
     # 3. deviceMonitorBehavior (TickerBehavior)
     def deviceMonitorBehavior(self):
         # step1: get current status of a thermostat, then map keywords and variables to agent knowledge
+        if self.first_time_update:
+            self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
+            if self.curcon.rowcount != 0:
+                data = self.curcon.fetchone()[0]
+                for k,v in data.items():
+                    self.variables[k]=v
+                    self.authorized_variables[k] = v
+
+
         try:
             self.Device.getDeviceStatus()
 
@@ -255,7 +266,7 @@ class ThermostatAgent(BasicAgent):
                 if 'CT30' in self.device_model or 'CT50' in self.device_model:
                     hour = datetime.datetime.now().hour
                     day = datetime.datetime.now().day
-                    if self.first_time_update or hour == 2 and self.get_sch_day != day:
+                    if self.Device.get_variable('scheduleData') is None or hour == 2 and self.get_sch_day != day:
                         self.Device.getDeviceSchedule()
                         self.get_sch_day = day
                         if self.Device.get_variable('thermostat_mode') == 'HEAT':
@@ -279,8 +290,13 @@ class ThermostatAgent(BasicAgent):
         except Exception as er:
             print er
             print("device connection is not successful")
-
+        
+        
+        
         self.changed_variables = dict()
+        self.tampered_variables_correction = dict()  #key=tampered variable name, value = its tampered value ; only for tampered variables
+        self.tampered_variables_values = dict()
+        self.tampered_schedule = dict() #key='scheduleData' , value its tampered value; present only if schedule is tampered
         try:
             self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
             if self.curcon.rowcount != 0:
@@ -290,11 +306,12 @@ class ThermostatAgent(BasicAgent):
         except Exception as er:
             print "Error accessing anti_tampering field", er
 
+        #self.device_tampering_detection()
+        #self.variables['scheduleData'] = self.Device.get_variable('scheduleData')# I added
         if self.device_supports_schedule:
             if self.get_variable('scheduleData') != self.Device.get_variable('scheduleData'):
-                self.variables['scheduleData'] = self.Device.get_variable('scheduleData')
-                if self.variables['anti_tampering'] == 'DISABLED' or self.first_time_update:
-                    self.authorized_scheduleData = self.variables['scheduleData']
+                if self.variables['anti_tampering'] == 'DISABLED' or self.get_variable('scheduleData') is None :
+                    self.variables['scheduleData'] = self.Device.get_variable('scheduleData')
                     try:
                         self.updateScheduleFromDevice()
                         print "Device schedule updated from Device", self.agent_id
@@ -302,112 +319,91 @@ class ThermostatAgent(BasicAgent):
                         print 'Schedule Update failed'
                         print er
 
-                elif self.variables['anti_tampering'] == 'ENABLED':
-                    print "Device Schedule Change detected."
-                    self.device_tampering_detection()
-                    pass  # device tampering will take care to set it back.
+                elif self.variables['anti_tampering'] == 'ENABLED': #schedule is tampered
+                    print "Device Schedule Tampering detected."
+                    self.tampered_schedule['scheduleData'] = self.variables['scheduleData']
 
         for v in self.log_variables:
             if v in self.Device.variables:
                 if v not in self.variables or self.variables[v] != self.Device.variables[v]:
-                    self.variables[v] = self.Device.variables[v]
-                    self.changed_variables[v] = self.log_variables[v]
+                    if v in ['cool_setpoint','heat_setpoint','thermostat_mode','fan_mode','hold']:
+                        validChange = False
+                        #if the cool_setpoint and heat_setpoint changed because of thermostat's schedule, then it is not tampering
+                        if v in ['cool_setpoint','heat_setpoint']:
+                            current_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now())
+                            ahead_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now()+datetime.timedelta(minutes=10))
+                            if self.Device.variables[v] in  [current_schedule_setpoints[v], ahead_schedule_setpoints[v]]:
+                                validChange = True #the setpoint matches the schedule, so its valid
+
+                            if v in self.authorized_variables:
+                                diff = self.Device.variables[v] - self.authorized_variables[v]
+                                if abs(diff) <= self.setpoint_tampering_allowance:
+                                    validChange = True #the difference in setpoint is less than tolerance, so we accept it as valid change
+                            else:
+                                validChange = True
+                                if self.get_variable(v) is None:
+                                    self.authorized_variables[v] = self.Device.variables[v]
+                                else:
+                                    self.authorized_variables[v] = self.variables[v]
+
+                            print self.authorized_variables
+                        if v in self.variables and self.variables[v] is not None and self.variables['anti_tampering']=="ENABLED" and not validChange:
+                            #tampering case
+                            if v in ['cool_setpoint', 'heat_setpoint']:
+                                sign = 1 if self.Device.variables[v] > self.variables[v] else -1
+                                self.variables[v] = self.authorized_variables[v] + self.setpoint_tampering_allowance*sign
+                                self.tampered_variables_values[v] = self.Device.variables[v]
+                                self.tampered_variables_correction[v] = self.variables[v]
+                                self.changed_variables[v] = self.log_variables[v]
+                            else:
+                                self.tampered_variables_values[v] = self.Device.variables[v]
+                                self.tampered_variables_correction[v] = self.variables[v]
+                        else:
+                            self.variables[v] = self.Device.variables[v]
+                            if self.variables['anti_tampering']=="DISABLED":
+                                self.authorized_variables[v] = self.variables[v]
+                            self.changed_variables[v] = self.log_variables[v]
+                    else:
+                        self.variables[v] = self.Device.variables[v]
             else:
                 if v not in self.variables:  # it won't be in self.variables either (in the first time)
                     self.changed_variables[v] = self.log_variables[v]
                     self.variables[v] = None
-
-        if self.device_supports_schedule:
-            temp_schpoints = self.Device.getScheduleSetpoint(datetime.datetime.now())
-            if temp_schpoints is not None:
-                if type(temp_schpoints) != dict: #it must be a list, if not dict, with [cool_setpoint,heat_setpoint]
-                    schpoints =  dict()
-                    schpoints['cool_setpoint']=temp_schpoints[0]
-                    schpoints['heat_setpoint']=temp_schpoints[1]
-                else:
-                    schpoints = dict(temp_schpoints)
-
-                transit = False
-                if schpoints != self.oldschpoints:
-                    transit = True
-                for v in ['heat_setpoint','cool_setpoint']:
-                    
-                    if v not in self.Device.variables:
-                        #for the hidden setpoint, copy from schedule for the first time, or if hold is None, or
-                        #if the schedule has just changed, and hold is temporary
-                        if self.variables[v] is None or self.variables['hold'] in [0,'0'] \
-                                or (self.variables['hold'] in [1,'1'] and transit):
-                            self.variables[v] = schpoints[v]
-                            if transit is True:
-                                self.changed_variables[v] = self.log_variables[v]
-                                # self.updateDB(self.db_table_device, v, 'agent_id', self.variables[v], self.agent_id)
-
-                if transit is True:
-                    self.updatePostgresDB()
-                self.oldschpoints = dict(schpoints)
+        
+        if 'scheduleData' in self.tampered_schedule:
+            self.Device.setDeviceSchedule(self.variables['scheduleData']) #original value is at self.variables
+        
+        if self.tampered_variables_correction:
+            self.Device.setDeviceStatus(self.tampered_variables_correction)
+            self.tampered_variables_values['user'] = 'Bad-guy'
+            self.TSDInsert(self.agent_id,self.tampered_variables_values,self.log_variables) #record the tampering in DB
+            for k,v in self.tampered_variables_values.items():
+                print "Tampered " + k + " to " + str(v)
 
         if self.first_time_update:
-
-            if self.get_variable('heat_setpoint') is None:
-                self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
-                if self.curcon.rowcount != 0:
-                    try:
-                        self.variables['heat_setpoint'] = self.curcon.fetchone()[0]['heat_setpoint']
-                    except KeyError:
-                        self.variables['heat_setpoint'] = 72
+            self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
+            if self.curcon.rowcount != 0:
+                data = self.curcon.fetchone()[0]
+                if self.get_variable('heat_setpoint') is None and 'heat_setpoint' in data:
+                    self.variables['heat_setpoint'] = data['heat_setpoint']
                 else:
                     self.variables['heat_setpoint'] = 72 # default when device is in cool mode, no heat_setpoint provided
-
-            if self.get_variable('cool_setpoint') is None:
-                self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
-                if self.curcon.rowcount != 0:
-                    try:
-                        self.variables['cool_setpoint'] = self.curcon.fetchone()[0]['cool_setpoint']
-                    except KeyError:
-                        self.variables['cool_setpoint'] = 75
+                
+                if self.get_variable('cool_setpoint') is None and 'cool_setpoint' in data:
+                    self.variables['cool_setpoint'] = data['cool_setpoint']
                 else:
-                    self.variables['cool_setpoint'] = 75 # default when device is in heat mode, no cool_setpoint provided
+                    self.variables['cool_setpoint'] = 72 # default when device is in cool mode, no cool_setpoint provided
 
-            # if self.get_variable('thermostat_mode') is not None:
-            #     self.authorized_bemoss_mode = self.get_variable('thermostat_mode')
-            # else:
-            #     pass
-            if self.get_variable('thermostat_mode') is not None:
-                self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
-
-                if self.curcon.rowcount != 0:
-                    try:
-                        mode = self.curcon.fetchone()[0]['thermostat_mode']
-                    except KeyError:
-                        mode = 'COOL'
-                    self.variables['bemoss_mode'] = mode
-                else:
-                    self.variables['bemoss_mode'] = self.variables['thermostat_mode']
-            else:
-                self.variables['bemoss_mode'] = 'COOL'
-
-            if self.get_variable('fan_mode') is not None:
-                self.authorized_fan_mode = self.get_variable('fan_mode')
-            else:
-                pass
-            # heat_setpoint and cool_setpoint should not be None because they are initialized already above
-            self.authorized_heat_setpoint = self.get_variable('heat_setpoint')
-            self.authorized_cool_setpoint = self.get_variable('cool_setpoint')
-            self.first_time_update = False
-            self.changed_variables = self.log_variables  # log everything the first time
+                self.first_time_update = False
+                self.changed_variables = self.log_variables  # log everything the first time
 
 
         self.onlineOfflineDetection()
-        try:
-            # put the last scan time on database
-            _time_stamp_last_scanned = str(datetime.datetime.now())
-            self.curcon.execute("UPDATE "+self.db_table_device+" SET last_scanned_time=%s "
-                             "WHERE agent_id=%s",
-                             (_time_stamp_last_scanned, self.agent_id))
-            self.curcon.commit()
-        except Exception as er:
-            print er
-            print("ERROR: {} failed to update bemoss database".format(self.agent_id))
+        _time_stamp_last_scanned = str(datetime.datetime.now())
+        self.curcon.execute("UPDATE "+self.db_table_device+" SET last_scanned_time=%s "
+                         "WHERE agent_id=%s",
+                         (_time_stamp_last_scanned, self.agent_id))
+        self.curcon.commit()
 
         if len(self.changed_variables) == 0:
             print 'nothing changed'
@@ -416,21 +412,13 @@ class ThermostatAgent(BasicAgent):
             print 'These things changed:'
             for key in self.changed_variables.keys():
                 print key +':'+str(self.variables[key])
+
         self.updateUI()
 
-        # step2: determine whether device is tampered by unauthorized action
-
-        if self.variables['anti_tampering'] == 'DISABLED':  # set points of device can be changed
-            print "{} >> allow user change thermostat settings".format(self.agent_id)
-            pass
-        else:
-            print "{} >> doesn't allow user change thermostat settings".format(self.agent_id)
-            self.device_tampering_detection()
-
-        # step3: update PostgresQL (meta-data) database
+        # update PostgresQL (meta-data) database
         self.updatePostgresDB()
 
-        # step4: update cassandra database
+        # update cassandra database
         self.saveCassandraDB()
 
     # 5. deviceControlBehavior (generic behavior)
@@ -442,92 +430,25 @@ class ThermostatAgent(BasicAgent):
         topic_list = topic.split('/')
         return_index = topic_list.index('from') + 1
         return_entity = topic_list[return_index]
-
         setDeviceStatusResult=True
         UIdata = dict()
-        if self.isPostmsgValid(message):  # check if the data is valid
+        try:
             # _data = json.dumps(message[0])
             _data = message
             UIdata = dict(_data)
-            if 'thermostat_mode' in UIdata: #convert thermostat_mode to bemoss_mode
-                UIdata['bemoss_mode']=UIdata.pop('thermostat_mode')
-
             if 'user' in _data:
                 self.variables['user'] = _data.pop('user')
             else:
                 self.variables['user'] = 'unknown-UI'
-                UIdata['user'] = 'unknonw-UI'
+                UIdata['user'] = 'unknown-UI'
 
             for k, v in _data.items():
-                if k == 'thermostat_mode':
-                    self.variables['bemoss_mode'] = _data.get('thermostat_mode')
+                if k in ['thermostat_mode','heat_setpoint','cool_setpoint','fan_mode','anti_tampering','hold']:
+                    self.variables[k] = v
+                    self.authorized_variables[k] = v
 
-                    for k2, v2 in _data.items():
-                        if k2 == 'heat_setpoint':
-                            self.authorized_heat_setpoint = _data.get('heat_setpoint')
-                            self.variables['heat_setpoint'] = _data.get('heat_setpoint')
-                        elif k2 == 'cool_setpoint':
-                            self.authorized_cool_setpoint = _data.get('cool_setpoint')
-                            self.variables['cool_setpoint'] = _data.get('cool_setpoint')
-                elif k == 'fan_mode':
-                    self.authorized_fan_mode = _data.get('fan_mode')
-                elif k == 'anti_tampering':
-                    self.variables['anti_tampering'] = _data.get('anti_tampering')
-                    # try:
-                    #     self.curcon.execute("UPDATE " + self.db_table_device + " SET override=%s WHERE agent_id=%s",
-                    #                  (self._override, self.agent_id))
-                    #     self.curcon.commit()
-                    # except Exception as er:
-                    #     print 'override value not updated in db ' + str(er)
-                elif k=='hold':
-                    self.variables['hold'] = _data.get('hold')
-                else:
-                    pass
-            print "{} >> self.authorized_bemoss_mode {}".format(self.agent_id, self.get_variable('bemoss_mode'))
-            print "{} >> self.authorized_heat_setpoint {}".format(self.agent_id, self.authorized_heat_setpoint)
-            print "{} >> self.authorized_cool_setpoint {}".format(self.agent_id, self.authorized_cool_setpoint)
-            print "{} >> self.authorized_fan_mode {}".format(self.agent_id, self.authorized_fan_mode)
             try:
-                if self.variables['bemoss_mode'].upper() in ['HEAT','COOL','OFF','AUTO'] or self.device_supports_auto:
-                    self.variables['thermostat_mode'] = self.variables['bemoss_mode']
-                    setDeviceStatusResult = self.Device.setDeviceStatus(_data)  # convert received message from string to JSON
-                # elif self.variables['bemoss_mode'].upper() == 'AUTO':
-                #     #get new modes and set-points if necessary to implement Auto mode
-                #     newmodes = self.manualAuto()
-                #     if 'thermostat_mode' in newmodes and newmodes['thermostat_mode'] == 'HEAT':
-                #         #If the thermostat mode needs to be changed to Heat, apply cool setpoint first, then heat setpoint
-                #         cool_priority = 1
-                #     else:
-                #         cool_priority = 2
-                #
-                #     for i in range(1,3): #apply cool_setpoints or heat_setpoints first depending upon priority
-                #         #warning: Don't change the order of the ifs. It will break things.
-                #         if i==2:
-                #             time.sleep(5)
-                #         if i==cool_priority:
-                #             if 'cool_setpoint' in newmodes:
-                #                 _data['cool_setpoint'] = newmodes['cool_setpoint']
-                #             _data['thermostat_mode'] = 'COOL'
-                #             settings = {'thermostat_mode':'COOL','cool_setpoint':_data['cool_setpoint']\
-                #                         ,'fan_mode':_data['fan_mode']}
-                #             if 'hold' in _data:
-                #                 settings['hold']=_data['hold']
-                #             setDeviceStatusResult = self.Device.setDeviceStatus(settings)
-                #
-                #
-                #         else:
-                #             if 'heat_setpoint' in newmodes:
-                #                 _data['heat_setpoint'] = newmodes['heat_setpoint']
-                #             settings = {'thermostat_mode':'HEAT','heat_setpoint':_data['heat_setpoint']\
-                #                         ,'fan_mode':_data['fan_mode']}
-                #             if 'hold' in _data:
-                #                 settings['hold']=_data['hold']
-                #             setDeviceStatusResult = self.Device.setDeviceStatus(settings)
-                #
-
-
-                else:
-                    setDeviceStatusResult = False
+                setDeviceStatusResult = self.Device.setDeviceStatus(_data)  # convert received message from string to JSON
                 #TODO need to do additional checking whether the device setting is actually success!!!!!!!!
             except Exception as er:
                 print "Agent id: "+self.agent_id
@@ -545,9 +466,8 @@ class ThermostatAgent(BasicAgent):
                 message = 'success'
             else:
                 message = 'failure'
-        else:
-            print("The POST message is invalid, check thermostat_mode, heat_setpoint, cool_setpoint "
-                  "setting and try again\n")
+        except Exception as er:
+            print("Some Error while controlling device " + str(er))
             message = 'failure'
             setDeviceStatusResult=False
 
@@ -558,46 +478,13 @@ class ThermostatAgent(BasicAgent):
         self.TSDInsert(self.agent_id, UIdata, self.log_variables)
         self.bemoss_publish('update_response', return_entity, message)
 
-    def isPostmsgValid(self, _data):  # check validity of postmsg
-        dataValidity = True
-        try:
-            # _data = json.dumps(postmsg)
-            if type(_data) in [str, unicode]:
-                _data = json.loads(_data)
-            for k, v in _data.items():
-                if k == 'thermostat_mode':
-                    #self.authorized_bemoss_mode = _data.get('thermostat_mode')
-                    if _data.get('thermostat_mode') == "HEAT":
-                        for k, v in _data.items():
-                            if k == 'heat_setpoint':
-                                self.authorized_heat_setpoint = _data.get('heat_setpoint')
-                            elif k == 'cool_setpoint':
-                                dataValidity = False
-                                break
-                            else:
-                                pass
-                    elif _data.get('thermostat_mode') == "COOL":
-                        for k, v in _data.items():
-                            if k == 'cool_setpoint':
-                                self.authorized_cool_setpoint = _data.get('cool_setpoint')
-                            elif k == 'heat_setpoint':
-                                dataValidity = False
-                                break
-                            else:
-                                pass
-                elif k == 'fan_mode':
-                    self.authorized_fan_mode = _data.get('fan_mode')
-                else:
-                    pass
-        except:
-            dataValidity = True
-            print("dataValidity failed to validate data comes from UI")
-        return dataValidity
 
     def updatePostgresDB(self):
         try:
             post_data = dict()
-            for k in self.log_variables.keys():
+
+
+            for k in self.log_variables.keys()+['scheduleData']:
                 if k == 'offline_count' or k == 'user':
                     pass
                 else:
@@ -616,162 +503,6 @@ class ThermostatAgent(BasicAgent):
             print er
             print("ERROR: {} failed to update the Postgresql.".format(self.agent_id))
 
-    def device_tampering_detection(self):
-        allowance = 0
-        self.unauthorized_settings = {}  # dict to store key value of unauthorized setting
-
-        if (self.device_supports_schedule and self.get_variable('scheduleData') != self.authorized_scheduleData
-            and self.authorized_scheduleData is not None and len(self.authorized_scheduleData) > 0):
-            print "Schedule (mode) has been tampered"
-            self._unauthorized_scheduleData = self.get_variable('scheduleData')
-            self.unauthorized_settings['scheduleData'] = self.get_variable('scheduleData')
-            self.set_variable('scheduleData', self.authorized_scheduleData)
-            self.Device.setDeviceSchedule(self.authorized_scheduleData)
-            return
-        if self.get_variable('bemoss_mode').upper() in ['HEAT','COOL']:
-            if self.get_variable('thermostat_mode')!= self.get_variable('bemoss_mode'):
-                # collect this result for alarm notification & device control
-                _unauthorized_bemoss_mode = self.get_variable('thermostat_mode')
-                print_out = "Unauthorized thermostat mode changed to " + str(_unauthorized_bemoss_mode)
-                print print_out
-                self.set_variable('thermostat_mode', self.get_variable('bemoss_mode'))
-                self.unauthorized_settings['thermostat_mode'] = self.get_variable('bemoss_mode')
-
-        if self.get_variable('fan_mode') != self.authorized_fan_mode \
-                and self.authorized_fan_mode is not None:
-            # collect this result for alarm notification & device control
-            _unauthorized_fan_mode = self.get_variable('fan_mode')
-            print_out = "Unauthorized fan mode changed to " + str(_unauthorized_fan_mode)
-            print print_out
-            self.set_variable('fan_mode', self.authorized_fan_mode)
-            self.unauthorized_settings['fan_mode'] = self.get_variable('fan_mode')
-
-        if self.get_variable('heat_setpoint') != self.authorized_heat_setpoint \
-                and self.authorized_heat_setpoint is not None:
-            validChange = False
-
-            #if the set-point change matches with the setpoint in the schedule, and we are close to the schedule change time, then this change is not treated as tampering
-            if self.get_variable('hold') in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE, BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
-                #This means run on schedule, or schedule_override, or no hold function
-                current_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now())
-                ahead_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now()+datetime.timedelta(minutes=10))
-                if self.get_variable('heat_setpoint') in  [current_schedule_setpoints[1], ahead_schedule_setpoints[1]]:
-                    self.authorized_heat_setpoint = self.get_variable('heat_setpoint')
-                    validChange = True
-
-            if validChange == False:
-                # collect this result for alarm notification & device control
-                if self.get_variable('cool_setpoint'):
-                    _unauthorized_change = self.get_variable('heat_setpoint') - self.authorized_heat_setpoint
-                else:
-                    _unauthorized_change = None
-                temp_tolerance = 2
-                if _unauthorized_change is None or (abs(_unauthorized_change) > temp_tolerance):
-                    _unauthorized_heat_setpoint = self.get_variable('heat_setpoint')
-                    print_out = "Unauthorized heat setpoint changed to " + str(_unauthorized_heat_setpoint)
-                    print print_out
-
-                    if _unauthorized_change is None:
-                        allowance = 0
-                    elif _unauthorized_change > 0:
-                        allowance = 2
-                    elif _unauthorized_change > 0:
-                        allowance = -2
-
-                    self.Device.variables['heat_setpoint'] = self.authorized_heat_setpoint + allowance
-                    self.set_variable('heat_setpoint', self.authorized_heat_setpoint + allowance)
-
-                    self.unauthorized_settings['heat_setpoint'] = _unauthorized_heat_setpoint
-                else:
-                    # Change within the range, allow the change.
-                    pass
-
-        if self.get_variable('cool_setpoint') != self.authorized_cool_setpoint \
-                and self.authorized_cool_setpoint is not None:
-            # collect this result for alarm notification & device control
-            validChange = False
-
-            #if the set-point change matches with the setpoint in the schedule, and we are close to the schedule change time, then this change is not treated as tampering
-            if self.get_variable('hold') in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE, BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
-                #This means run on schedule
-                current_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now())
-                ahead_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now()+datetime.timedelta(minutes=10))
-                if self.get_variable('cool_setpoint') in  [current_schedule_setpoints[0], ahead_schedule_setpoints[0]]:
-                    self.authorized_cool_setpoint = self.get_variable('cool_setpoint')
-                    validChange = True
-
-            if validChange == False:
-                temp_tolerance = 2
-                if self.get_variable('cool_setpoint'):
-                    _unauthorized_change = self.get_variable('cool_setpoint') - self.authorized_cool_setpoint
-                else:
-                    _unauthorized_change = None #assume None unauthorized change if there is no cool_setpoint defined
-                if _unauthorized_change is None or abs(_unauthorized_change) > temp_tolerance:
-                    _unauthorized_cool_setpoint = self.get_variable('cool_setpoint')
-                    print_out = "Unauthorized cool setpoint changed to " + str(_unauthorized_cool_setpoint)
-                    print print_out
-                    if _unauthorized_change is None:
-                        allowance = 0
-                    elif _unauthorized_change > 0:
-                        allowance = 2
-                    elif _unauthorized_change > 0:
-                        allowance = -2
-
-                    self.Device.variables['cool_setpoint'] = self.authorized_cool_setpoint + allowance
-                    self.set_variable('cool_setpoint', self.authorized_cool_setpoint + allowance)
-                    self.unauthorized_settings['cool_setpoint'] = _unauthorized_cool_setpoint
-                else:
-                    pass
-
-        if len(self.unauthorized_settings) != 0:
-
-
-            _tampering_device_msg = ""
-            _device_control_msg = {}
-            for k, v in self.unauthorized_settings.items():
-                if k == 'thermostat_mode':
-                    _tampering_device_msg += 'set point: {}, authorized setting: {}, tampering setting: {}\n' \
-                        .format(k, self.get_variable('bemoss_mode'), _unauthorized_bemoss_mode)
-                    _device_control_msg[k] = self.get_variable('bemoss_mode')
-                    if self.get_variable('bemoss_mode') == 'HEAT':
-                        if self.authorized_heat_setpoint != None:
-                            _device_control_msg['heat_setpoint'] = self.authorized_heat_setpoint + allowance
-                    elif self.get_variable('bemoss_mode') == 'COOL':
-                        if self.authorized_cool_setpoint != None:
-                            _device_control_msg['cool_setpoint'] = self.authorized_cool_setpoint + allowance
-                    else:
-                        pass
-                elif k == 'heat_setpoint':
-                    _tampering_device_msg += 'tampered parameter: {}, authorized setting: {}, tampering setting: {}\n' \
-                        .format(k, self.authorized_heat_setpoint, _unauthorized_heat_setpoint)
-                    if 'thermostat_mode' not in self.unauthorized_settings:
-                        _device_control_msg[k] = self.authorized_heat_setpoint + allowance
-                elif k == 'cool_setpoint':
-                    _tampering_device_msg += 'tampered parameter: {}, authorized setting: {}, tampering setting: {}\n' \
-                        .format(k, self.authorized_cool_setpoint, _unauthorized_cool_setpoint)
-                    if 'thermostat_mode' not in self.unauthorized_settings:
-                        _device_control_msg[k] = self.authorized_cool_setpoint + allowance
-                elif k == 'fan_mode':
-                    _tampering_device_msg += 'tampered parameter: {}, authorized setting: {}, tampering setting: {}\n' \
-                        .format(k, self.authorized_fan_mode, _unauthorized_fan_mode)
-                    _device_control_msg[k] = self.authorized_fan_mode
-                elif k == 'activeSchedule':
-                    _tampering_device_msg += 'tampered parameter: {}, authorized setting: {}, tampering setting:\
-                     {}\n'.format(k,self.authorized_scheduleData,self._unauthorized_scheduleData)
-                else:
-                    pass
-            # TODO 1 set all settings back to previous state
-            print "type(_device_control_msg)" + str(type(_device_control_msg))
-            print "_device_control_msg " + str(_device_control_msg)
-            self.Device.setDeviceStatus(json.loads(json.dumps(_device_control_msg)))
-            self.variables['user']='anti-tampering'
-            self.TSDInsert(self.agent_id,self.variables,self.log_variables)
-            print "{} >> set points have been tampered but already set back to the authorized settings" \
-                .format(self.agent_id)
-
-        else:
-            pass
-
     def getScheduleSetpoint(self,testDate):
         schData = self.get_variable('scheduleData')
         daysofweek=['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
@@ -783,14 +514,14 @@ class ThermostatAgent(BasicAgent):
 
         TodaysSchedule = schData[todayDay]
         YesterdaysSchedule = schData[yesterdayDay]
-        setPoints = YesterdaysSchedule[-1][2:] #yesterday's last setpoint
+        setPoints = {'cool_setpoint':YesterdaysSchedule[-1][2],'heat_setpoint':YesterdaysSchedule[-1][3]} #yesterday's last setpoint
         nowminute = testDate.hour*60+testDate.minute
         for entries in TodaysSchedule:
             if int(entries[1]) <= nowminute:
-                setPoints = [int(entries[2]), int(entries[3])]
+                setPoints = {'cool_setpoint':int(entries[2]), 'heat_setpoint':int(entries[3])}
             else:
                 break
-        return setPoints
+        return setPoints 
 
 
 

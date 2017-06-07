@@ -294,6 +294,7 @@ class API(baseAPI):
         return is_success
 
     def isPostmsgValid(self,postmsg):  # check validity of postmsg
+        return True
         dataValidity = True
         for k,v in postmsg.items():
             if k == BEMOSS_ONTOLOGY.THERMOSTAT_MODE.NAME:
