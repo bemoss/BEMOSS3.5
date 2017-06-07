@@ -217,11 +217,12 @@ class BasicAgent(BEMOSSAgent):
         self.update_ui_topic = 'to/'+self.agent_id+'/device_status'
         self.device_identify_topic = 'to/'+self.agent_id+'/identify'
         self.device_control_topic = 'to/'+self.agent_id+'/update'
+        self.skip_backup = True
 
     @Core.receiver('onsetup')
     def agent_setup(self, sender, **kwargs):
-        self.core.periodic(self.max_monitor_time, self.backupSaveData)
         self.core.periodic(self.device_monitor_time, self.deviceMonitorBehavior)
+        self.core.periodic(self.max_monitor_time, self.backupSaveData)
         self.vip.pubsub.subscribe(peer='pubsub', prefix=self.update_ui_topic, callback=self.updateUIBehavior)
         self.vip.pubsub.subscribe(peer='pubsub', prefix=self.device_identify_topic, callback=self.deviceIdentifyBehavior)
         self.vip.pubsub.subscribe(peer='pubsub', prefix=self.device_control_topic, callback=self.deviceControlBehavior)
@@ -234,6 +235,10 @@ class BasicAgent(BEMOSSAgent):
 
     def backupSaveData(self):
         print 'backup saving data'
+        if self.skip_backup: #skip the first call which happens at the agent start
+            self.skip_backup = False
+            return
+
         try:
             self.Device.getDeviceStatus()
             api_vars = dict(self.Device.variables)
