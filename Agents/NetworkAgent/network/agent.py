@@ -191,7 +191,7 @@ class NetworkAgent(BEMOSSAgent):
             if STATUS_CHANGE.NODE in entry:
                 requested_node_id = int(entry[STATUS_CHANGE.NODE])
             agent_id = entry[STATUS_CHANGE.AGENT_ID]
-
+            is_app=False
             self.curcon.execute('select agent_id from device_info where agent_id=%s',(agent_id,))
             if self.curcon.rowcount:
                 is_app = False
