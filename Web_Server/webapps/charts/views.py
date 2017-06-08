@@ -107,7 +107,11 @@ def returnChartsPage(request, context,mac,data_variables,page,get_weather=False)
         if not get_weather:
             varlist, rs = retrieve(agent_id)
         else:
-            varlist, rs = retrieve(agent_id, weather_agent=settings.weather_agent)
+            data = retrieve(agent_id, weather_agent=settings.weather_agent)
+            if data is not None:
+                varlist, rs=data
+            else:
+                varlist, rs = retrieve(agent_id)
     except Exception as er:
         print er
         print 'Cassandra data reading error'
@@ -227,84 +231,6 @@ def charts_device(request, mac):
 
     '''
 
-@login_required(login_url='/login/')
-def get_statistics_datetime_thermostat(request):
-    if request.method == 'POST':
-        data_variables = {'temperature':'temperature','heat_setpoint':'heat_setpoint','cool_setpoint':'cool_setpoint'}
-        return returnsCharts(request,data_variables,get_weather=True)
-
-
-@login_required(login_url='/login/')
-def get_statistics_datetime_vav(request):
-    if request.method == 'POST':
-        data_variables = {'temperature':'temperature', 'supply_temperature':'supply_temperature','heat_setpoint':'heat_setpoint', 'cool_setpoint':'cool_setpoint', 'flap_position':'flap_position'}
-        return returnsCharts(request,data_variables)
-
-
-@login_required(login_url='/login/')
-def get_statistics_datetime_rtu(request):
-    if request.method == 'POST':
-        data_variables = {'outside_temperature':'outside_temperature', 'return_temperature':'return_temperature', 'supply_temperature':'supply_temperature',
-                                      'heat_setpoint':'heat_setpoint', 'cool_setpoint':'cool_setpoint', 'cooling_mode':'cooling_mode', 'heating':'heating',
-                                      'outside_damper_position':'outside_damper_position', 'bypass_damper_position':'bypass_damper_position'}
-        return returnsCharts(request,data_variables)
-
-
-@login_required(login_url='/login/')
-def get_statistics_datetime_lighting(request):
-    if request.method == 'POST':
-        data_variables ={'status':'status', 'brightness':'brightness'}
-        return returnsCharts(request,data_variables)
-
-
-
-@login_required(login_url='/login/')
-def charts_plugload(request, mac):
-    print "inside cassandra view method for plugload"
-    context = RequestContext(request)
-    if request.method == 'GET':
-        data_variables = {'status':'status'}
-        device_metadata = [ob.device_control_page_info() for ob in DeviceMetadata.objects.filter(mac_address=mac)]
-        device_type_id = device_metadata[0]['device_model_id']
-        device_type_id = device_type_id.device_model_id
-
-        if device_type_id == '2WLS':
-            return returnChartsPage(context,mac,data_variables,'charts/charts_plugload.html')
-        else:
-            return returnChartsPage(context,mac,data_variables,'charts/charts_plugload.html')
-
-
-@login_required(login_url='/login/')
-def get_statistics_datetime_plugload(request):
-    if request.method == 'POST':
-        data_variables = {'status':'status'}
-        return returnsCharts(request,data_variables)
-
-
-@login_required(login_url='/login/')
-def get_statistics_datetime_wattstopper_plugload(request):
-    if request.method == 'POST':
-        data_variables = {'status':'status','power':'power'}
-        return returnsCharts(request,data_variables)
-
-
-@login_required(login_url='/login/')
-def charts_daylight_sensor(request, mac):
-    print "inside cassandra view method for day light sensor"
-    context = RequestContext(request)
-    if request.method == 'GET':
-        data_variables = {'status':'illuminance'}
-        return returnChartsPage(context,mac,data_variables,'charts/charts_light_sensor.html')
-
-
-@login_required(login_url='/login/')
-def get_statistics_datetime_daylight_sensor(request):
-    if request.method == 'POST':
-        data_variables = {'status':'illuminance'}
-        return returnsCharts(request,data_variables)
-
-
-
 def get_agent_id_from_mac(mac):
     device_metadata = [ob.device_control_page_info() for ob in DeviceMetadata.objects.filter(mac_address=mac)]
     print device_metadata
@@ -348,47 +274,60 @@ def export_time_series_data_spreadsheet(request, mac):
         _data = json.loads(_data)
         from_date = _data['from_dt']
         to_date = _data['to_dt']
-        print from_date
         agent_id = get_agent_id_from_mac(mac)
         data = Devicedata.objects.get(agent_id=agent_id)
         data_variables = dict()
         for item in data.data.keys():
             data_variables[item] = item
+        device_status = [ob.data_as_json() for ob in Devicedata.objects.filter(agent_id=agent_id)]
+        if device_status[0]["device_type"] == "hvac" or device_status[0]["device_type"] == "HVAC":
+            weather_agent = True
+        else:
+            weather_agent=False
         if not from_date and not to_date:
-            data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values())
+            data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values(),weather_agent=weather_agent)
         elif not to_date and from_date:
             from_date = datetime.datetime.strptime(from_date, '%Y/%m/%d %H:%M')
             data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values(),
-                                                  from_date)
+                                                  from_date,weather_agent=weather_agent)
         else:
             from_date = datetime.datetime.strptime(from_date, '%Y/%m/%d %H:%M')
             to_date = datetime.datetime.strptime(to_date, '%Y/%m/%d %H:%M')
             data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values(),
-                                                  from_date, to_date)
+                                                  from_date, to_date,weather_agent=weather_agent)
         _data = list()
         single_entry=dict()
+        if weather_agent:
+            data_variables["weather_temperature"] = "weather_temperature"
         for lst in rs:
 
             for variable in data_variables.values():
                     single_entry[variable]=lst[data_points.index(variable)]
 
             single_entry["time"] = lst[data_points.index('time')]
-            new_single = OrderedDict(sorted(single_entry.items(), key=lambda t:t[0]))
-            dreversed = OrderedDict()
-            for k in reversed(new_single):
-                dreversed[k] = new_single[k]
-            _data.append(dreversed)
-
+            preffered_key_order = ['time'] + sorted(single_entry.keys())
+            new_ordered_dict = OrderedDict()
+            for key in preffered_key_order:
+                new_ordered_dict[key] = single_entry[key]
+            _data.append(new_ordered_dict)
         if request.is_ajax():
             return HttpResponse(json.dumps(_data))
-
     else:
-        print
+        return []
 
 
 
-def retrieve_for_export(agentID, vars=None, startTime=None, endTime=None, tablename=None):
-    a,b = retrieve(agentID=agentID,vars=vars,startTime=startTime,endTime=endTime,export=True,tablename=tablename)
+def retrieve_for_export(agentID, vars=None, startTime=None, endTime=None, tablename=None,weather_agent=False):
+    if weather_agent:
+        data = retrieve(agentID=agentID,vars=vars,startTime=startTime,endTime=endTime,export=True,tablename=tablename,weather_agent=settings.weather_agent)
+        if data is not None:
+            a,b=data
+        else:
+            a, b = retrieve(agentID=agentID, vars=vars, startTime=startTime, endTime=endTime, export=True,
+                            tablename=tablename, weather_agent=None)
+    else:
+        a, b = retrieve(agentID=agentID, vars=vars, startTime=startTime, endTime=endTime, export=True,
+                        tablename=tablename, weather_agent=None)
     return a,b
 
 
