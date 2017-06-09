@@ -195,15 +195,8 @@ class BasicAgent(BEMOSSAgent):
         self.updateDB(self.db_table_device, 'dashboard_view', 'agent_id', json.dumps(self.Device.dashboard_view()),
                       self.agent_id)
 
-        #5. @params notification_info
-        self.send_notification = True
-        self.email_fromaddr = settings.NOTIFICATION['email']['fromaddr']
-        self.email_username = settings.NOTIFICATION['email']['username']
-        self.email_password = settings.NOTIFICATION['email']['password']
-        self.email_mailServer = settings.NOTIFICATION['email']['mailServer']
-        self.notify_heartbeat = settings.NOTIFICATION['heartbeat']
 
-        #6. topics define:
+        #5. topics define:
         self.update_ui_topic = 'to/'+self.agent_id+'/device_status'
         self.device_identify_topic = 'to/'+self.agent_id+'/identify'
         self.device_control_topic = 'to/'+self.agent_id+'/update'
@@ -230,8 +223,7 @@ class BasicAgent(BEMOSSAgent):
             return
 
         try:
-            self.Device.getDeviceStatus()
-            api_vars = dict(self.Device.variables)
+            api_vars = dict(self.variables)
             api_vars['user'] = 'backupsave'
             self.TSDInsert(self.agent_id, api_vars, self.log_variables)
             print('Every Data Pushed to cassandra')
