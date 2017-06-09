@@ -1,10 +1,19 @@
 from volttron.platform.vip.agent import Agent
 import time
-import datetime
+import pytz
+from datetime import datetime
 from bemoss_lib.utils import date_converter
+from bemoss_lib.utils import db_helper
+import uuid
+from bemoss_lib.utils.offline_table_init import *
+
+
 class BEMOSSAgent(Agent):
     def __init__(self, **kwargs):
         super(BEMOSSAgent, self).__init__(**kwargs)
+        self.multinode_data = db_helper.get_multinode_data()
+        self.node_name = self.multinode_data['this_node']
+        self.curcon = db_helper.db_connection()
 
     def bemoss_publish(self,topic,target,message,headers=None):
         topic1 = 'to/'+target+'/'+topic+'/from/'+self.agent_id
@@ -42,3 +51,33 @@ class BEMOSSAgent(Agent):
         message['tablename'] = tablename
         self.vip.pubsub.publish('pubsub', 'to/tsdagent/custominsert', message=message)
 
+    def EventRegister(self,event,reason=None,source=None,event_time=None,notify=True):
+        evt_vars = dict()
+
+        event_time = date_converter.localToUTC(event_time) if event_time else datetime.now(pytz.UTC)
+        source = source if source else self.agent_id
+        reason = reason if reason else 'Unknown'
+        logged_by = self.agent_id
+
+        evt_vars['date_id'] = str(event_time.date())
+        evt_vars['logged_time'] = datetime.now(pytz.UTC)
+        evt_vars['event_id'] = uuid.uuid4()
+        evt_vars['time'] = event_time
+        evt_vars['source'] = source
+        evt_vars['event'] = event
+        evt_vars['reason'] = reason
+        evt_vars['logged_by']=logged_by
+        evt_vars['node_name'] = self.node_name
+
+        #save to cassandra
+        self.TSDCustomInsert(all_vars=evt_vars, log_vars=EVENTS_TABLE_VARS,tablename=EVENTS_TABLE_NAME)
+        if notify:
+            #save to notification table
+            localTime = date_converter.UTCToLocal(event_time)
+            message = source + ' ' + event + '. Reason: ' + reason
+            self.curcon.execute("select id from possible_events where event_name=%s", (event,))
+            event_id = self.curcon.fetchone()[0]
+            self.curcon.execute(
+                "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
+                (localTime, False, event_id, message))
+            self.curcon.commit()

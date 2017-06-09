@@ -110,7 +110,6 @@ def DeviceDiscoveryAgent(config_path, **kwargs):
             super(DiscoveryAgent, self).__init__(**kwargs)
             # Connect to database
 
-            self.curcon = db_helper.db_connection()
             self.agent_id = agent_id
             sys.path.append(PROJECT_DIR)
 

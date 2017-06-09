@@ -90,9 +90,6 @@ class ApprovalHelperAgent(BEMOSSAgent):
         db_user = settings.DATABASES['default']['USER']
         db_password = settings.DATABASES['default']['PASSWORD']
 
-        self.curcon = db_helper.db_connection()
-
-
         def get_config(name):
             try:
                 kwargs.pop(name)
