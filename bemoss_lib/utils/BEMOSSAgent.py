@@ -1,18 +1,24 @@
 from volttron.platform.vip.agent import Agent
-import time
+import re
 import pytz
 from datetime import datetime
 from bemoss_lib.utils import date_converter
 from bemoss_lib.utils import db_helper
 import uuid
 from bemoss_lib.utils.offline_table_init import *
-
+import settings
+import os
 
 class BEMOSSAgent(Agent):
     def __init__(self, **kwargs):
         super(BEMOSSAgent, self).__init__(**kwargs)
         self.multinode_data = db_helper.get_multinode_data()
         self.node_name = self.multinode_data['this_node']
+        if not os.path.isfile(settings.MULTINODE_PARENT_IP_FILE):  # but parent file doesn't exists
+            parent_addr = self.multinode_data['known_nodes'][0]['address']
+            parent_ip = self.extract_ip(parent_addr)
+            with open(settings.MULTINODE_PARENT_IP_FILE, 'w') as f:
+                f.write(parent_ip)
         self.curcon = db_helper.db_connection()
 
     def bemoss_publish(self,topic,target,message,headers=None):
@@ -82,3 +88,7 @@ class BEMOSSAgent(Agent):
                 "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
                 (localTime, False, event_id, message))
             self.curcon.commit()
+
+    def extract_ip(self,addr):
+        return re.search(r'([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})', addr).groups()[0]
+
