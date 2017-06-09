@@ -163,8 +163,8 @@ def notifications(request):
     if request.user.groups.filter(name__iexact='admin').exists():
         Notification.objects.filter(seen=False).update(seen=True)
         all_notifications = Notification.objects.all().order_by('-dt_triggered')
-        if len(all_notifications) > 60: #TODO limit of how many old notifications to save in Postgresql
-            Notification.objects.filter(dt_triggered__lt=all_notifications[14].dt_triggered).delete()
+        if len(all_notifications) > 100: #TODO limit of how many old notifications to save in Postgresql
+            Notification.objects.filter(dt_triggered__lt=all_notifications[99].dt_triggered).delete()
         notifications = get_notifications(seen=True)
 
         usr = UserFullName.objects.filter(username=request.user)[0]

@@ -111,7 +111,7 @@
                                                     <th>ID</th>
                                                     <th class="col-md-2">Event</th>
                                                     <th class="col-md-8">Message</th>
-                                                    <th class="col-md-2">Triggered On</th>
+                                                    <th class="col-md-2" id="trigger_column">Triggered On</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -127,8 +127,6 @@
                                                 </tbody>
                                                 <tfoot>
                                                 <tr>
-                                                    <th></th>
-                                                    <th></th>
                                                     <th></th>
                                                     <th></th>
                                                     <th></th>
@@ -161,7 +159,9 @@
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function () {
         $('#example').dataTable({
-            "sPaginationType": "full_numbers"
+            "sPaginationType": "full_numbers",
+            "aaSorting": [[ 4, 'desc' ]]
+
         });
 
         var pathh = window.location.pathname;
