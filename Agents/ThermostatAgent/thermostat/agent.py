@@ -345,8 +345,10 @@ class ThermostatAgent(BasicAgent):
                                     self.authorized_variables[v] = self.Device.variables[v]
                                 else:
                                     self.authorized_variables[v] = self.variables[v]
+                        if v == 'hold':
+                            if self.Device.variables[v] == BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE and self.variables[v] == BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY:
+                                validChange = True
 
-                            print self.authorized_variables
                         if v in self.variables and self.variables[v] is not None and self.variables['anti_tampering']=="ENABLED" and not validChange:
                             #tampering case
                             if v in ['cool_setpoint', 'heat_setpoint']:
@@ -375,10 +377,18 @@ class ThermostatAgent(BasicAgent):
         
         if self.tampered_variables_correction:
             self.Device.setDeviceStatus(self.tampered_variables_correction)
-            self.tampered_variables_values['user'] = 'Bad-guy'
+            self.tampered_variables_values['user'] = 'Tamperer'
             self.TSDInsert(self.agent_id,self.tampered_variables_values,self.log_variables) #record the tampering in DB
+            self.tampered_variables_values.pop('user')
+
+            message = []
             for k,v in self.tampered_variables_values.items():
-                print "Tampered " + k + " to " + str(v)
+                message += [k + " to " + str(v)]
+            message = 'Tampered ' + ' and '.join(message)
+
+            self.curcon.execute("select nickname from device_info where agent_id=%s",(self.agent_id,))
+            nickname = self.curcon.fetchone()[0]
+            self.EventRegister('device-tampering',reason=message,source=nickname)
 
         if self.first_time_update:
             self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))

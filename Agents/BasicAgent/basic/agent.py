@@ -68,7 +68,6 @@ import uuid
 from volttron.platform.vip.agent import Agent, Core, PubSub, compat
 from volttron.platform.agent import utils
 from volttron.platform.messaging import headers as headers_mod
-from bemoss_lib.utils.offline_table_init import *
 from bemoss_lib.utils.encrypt import decrypt_value
 from bemoss_lib.communication.Email import EmailService
 from bemoss_lib.communication.sms import SMSService
@@ -110,10 +109,6 @@ class BasicAgent(BEMOSSAgent):
         self.agent_id = get_config('agent_id')
         self.device_monitor_time = int(settings.DEVICES['device_monitor_time'])
         self.max_monitor_time = int(settings.DEVICES['max_monitor_time'])
-        self.offline_variables = offline_variables
-        self.offline_variables['logged_by'] = self.agent_id
-        self.offline_table = offline_table
-        self.offline_log_variables = offline_log_variables
         self.already_offline = False
 
         #3. DB interfaces
@@ -129,11 +124,6 @@ class BasicAgent(BEMOSSAgent):
         self.db_table_temp_time_counter = settings.DATABASES['default']['TABLE_temp_time_counter']
         self.db_table_priority = settings.DATABASES['default']['TABLE_priority']
         self.zone_id = settings.PLATFORM['node']['zone']
-
-        # setup connection with db -> Connect to bemossdb database
-
-        self.curcon = db_helper.db_connection()
-
 
         # 2. @params device_info
             # TODO correct the launchfile in Device Discovery Agent
@@ -410,27 +400,7 @@ class BasicAgent(BEMOSSAgent):
                               self.agent_id)
                 # Save offline event in DB
                 nickname = db_helper.get_device_nickname(self.curcon, self.agent_id)
-                temp = uuid.uuid4()
-                self.offline_variables['date_id'] = str(datetime.now().date())
-                self.offline_variables['time'] = datetime.utcnow()
-                self.offline_variables['event_id'] = temp
-                self.offline_variables['agent_id'] = nickname
-                self.offline_variables['event'] = 'device-offline'
-                self.offline_variables['reason'] = 'communication-error'
-                self.offline_variables['related_to'] = None
-                self.offline_id = temp
-                self.offline_variables['logged_time'] = datetime.utcnow()
-                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
-                                         tablename=self.offline_table)
-
-                time = date_converter.UTCToLocal(datetime.utcnow())
-                message = str(self.agent_id) + ': ' + 'device-offline. Reason: communiation-error'
-                self.curcon.execute("select id from possible_events where event_name=%s", ('device-offline',))
-                event_id = self.curcon.fetchone()[0]
-                self.curcon.execute(
-                    "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
-                    (time, False, event_id, message))
-                self.curcon.commit()
+                self.EventRegister('device-offline',reason='communication-error',source=nickname)
 
         elif self.Device.get_variable('offline_count') == 0:
             self.updateDB(self.db_table_device, 'network_status', 'agent_id', 'ONLINE', self.agent_id)
@@ -438,26 +408,7 @@ class BasicAgent(BEMOSSAgent):
                 self.already_offline = False
                 # Save online event in DB
                 nickname = db_helper.get_device_nickname(self.curcon, self.agent_id)
-                self.offline_variables['date_id'] = str(datetime.now().date())
-                self.offline_variables['time'] = datetime.utcnow()
-                self.offline_variables['event_id'] = uuid.uuid4()
-                self.offline_variables['agent_id'] = nickname
-                self.offline_variables['event'] = 'device-online'
-                self.offline_variables['reason'] = 'communication-restored'
-                self.offline_variables['related_to'] = self.offline_id
-                self.offline_id = None
-                self.offline_variables['logged_time'] = datetime.utcnow()
-                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
-                                         tablename=self.offline_table)
-                time = date_converter.UTCToLocal(datetime.utcnow())
-
-                message = str(self.agent_id) + ': ' + 'device-online. Reason: communiation-restored'
-                self.curcon.execute("select id from possible_events where event_name=%s", ('device-online',))
-                event_id = self.curcon.fetchone()[0]
-                self.curcon.execute(
-                    "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
-                    (time, False, event_id, message))
-                self.curcon.commit()
+                self.EventRegister('device-online', reason='communication-restored', source=nickname)
 
     def updatePostgresDB(self):
         try:

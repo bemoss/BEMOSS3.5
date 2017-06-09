@@ -152,7 +152,11 @@ evt4.save()
 evt5 = PossibleEvents(id=6,event_name="hvac-fault-cleared",event_description="An anamoly has cleared")
 evt5.save()
 
+evt4 = PossibleEvents(id=5,event_name="hvac-fault",event_description="An anamoly has been detected on a HVAC device")
+evt4.save()
 
+evt6 = PossibleEvents(id=6,event_name="device-tampering",event_description="A device has been tampered with")
+evt6.save()
 
 #Event Trigger
 et1 = AlertTypes(id=1, alert_description="Device goes offline", alert_name="device_offline")
@@ -170,6 +174,11 @@ et3 = AlertTypes(id=3, alert_description="HVAC fault", alert_name="hvac_fault")
 et3.save()
 et3.associated_events.add(evt4,evt5)
 et3.save()
+
+et4 = AlertTypes(id=4, alert_description="Thermostat Tampering", alert_name="device_tampering")
+et4.save()
+et4.associated_events.add(evt4,evt5)
+et4.save()
 #
 # et4 = EventTrigger(id=4, device_type_id=9, event_trigger_desc="Any BEMOSS Node Offline", event_trigger_id="BEMOSSOffline", event_trigger_class="desc_prio")
 # et4.save()

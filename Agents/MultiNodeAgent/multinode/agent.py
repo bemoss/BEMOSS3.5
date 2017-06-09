@@ -21,7 +21,6 @@ from zmq.auth.thread import ThreadAuthenticator
 import json
 import re
 import settings
-from bemoss_lib.utils.db_helper import *
 from bemoss_lib.utils.BEMOSS_globals import *
 #from bemoss_lib.databases.cassandraAPI import cassandraDB
 import subprocess
@@ -30,6 +29,7 @@ import subprocess
 from bemoss_lib.utils.BEMOSSAgent import BEMOSSAgent
 from bemoss_lib.utils.offline_table_init import *
 from bemoss_lib.utils import date_converter
+from bemoss_lib.utils import db_helper
 
 utils.setup_logging()
 _log = logging.getLogger(__name__)
@@ -68,14 +68,9 @@ class MultiNodeAgent(BEMOSSAgent):
         self.is_parent = False
         self.last_sync_with_parent = datetime(1991, 1, 1) #equivalent to -ve infinitive
         self.parent_node = None
-        self.curcon = None #initialize database connection.
         self.recently_online_node_list = []  # initialize to lists to empty
         self.recently_offline_node_list = []  # they will be filled as nodes are discovered to be online/offline
 
-        self.offline_variables = offline_variables
-        self.offline_variables['logged_by'] = self.agent_id
-        self.offline_table = offline_table
-        self.offline_log_variables = offline_log_variables
 
     def getMultinodeData(self):
         self.multinode_data = db_helper.get_multinode_data()
@@ -208,25 +203,7 @@ class MultiNodeAgent(BEMOSSAgent):
             for node_name in node_name_list:
                 node_id = self.getNodeId(node_name)
                 #put the offline event into cassandra events log table, and also create notification
-                self.offline_variables['date_id'] = str(datetime.now().date())
-                self.offline_variables['time'] = datetime.utcnow()
-                self.offline_variables['agent_id'] = node_name
-                self.offline_variables['event'] = 'node-offline'
-                self.offline_variables['reason'] = 'communication-error'
-                self.offline_variables['related_to'] = None
-                self.offline_variables['event_id'] = uuid.uuid4()
-                self.offline_variables['logged_time'] = datetime.utcnow()
-                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
-                                         tablename=self.offline_table)
-                time = date_converter.UTCToLocal(datetime.utcnow())
-                message = str(node_name) + ': ' + 'node-offline. Reason: possibly communiation-error'
-                self.curcon.execute("select id from possible_events where event_name=%s", ('node-offline',))
-                event_id = self.curcon.fetchone()[0]
-                self.curcon.execute(
-                    "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
-                    (time, False, event_id, message))
-                self.curcon.commit()
-
+                self.EventRegister('node-offline',reason='communication-error',source=node_name)
                 # get a list of agents that were supposedly running in that offline node
                 self.curcon.execute("SELECT agent_id FROM " + node_devices_table + " WHERE assigned_node_id=%s",
                             (node_id,))
@@ -254,25 +231,7 @@ class MultiNodeAgent(BEMOSSAgent):
 
                 node_id = self.getNodeId(node_name)
 
-                # put the online event into cassandra events log table, and also create notification
-                self.offline_variables['date_id'] = str(datetime.now().date())
-                self.offline_variables['time'] = datetime.utcnow()
-                self.offline_variables['agent_id'] = node_name
-                self.offline_variables['event'] = 'node-online'
-                self.offline_variables['reason'] = 'communication-restored'
-                self.offline_variables['related_to'] = None
-                self.offline_variables['event_id'] = uuid.uuid4()
-                self.offline_variables['logged_time'] = datetime.utcnow()
-                self.TSDCustomInsert(all_vars=self.offline_variables, log_vars=self.offline_log_variables,
-                                         tablename=self.offline_table)
-                time = date_converter.UTCToLocal(datetime.utcnow())
-                message = str(node_name) + ': ' + 'node-online. Reason: possibly communiation-restored'
-                self.curcon.execute("select id from possible_events where event_name=%s", ('node-online',))
-                event_id = self.curcon.fetchone()[0]
-                self.curcon.execute(
-                    "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
-                    (time, False, event_id, message))
-                self.curcon.commit()
+                self.EventRegister('node-online',reason='communication-restored',source=node_name)
 
                 #get a list of agents that were supposed to be running in that online node
                 self.curcon.execute("SELECT agent_id FROM " + node_devices_table + " WHERE assigned_node_id=%s",
@@ -313,7 +272,7 @@ class MultiNodeAgent(BEMOSSAgent):
                 f.write(parent_ip)
             if self.curcon:
                 self.curcon.close() #close old connection
-            self.curcon = db_connection() #start new connection using new parent_ip
+            self.curcon = db_helper.db_connection() #start new connection using new parent_ip
             self.vip.pubsub.publish('pubsub','from/multinodeagent/update_parent')
 
     @Core.periodic(60)
@@ -354,7 +313,7 @@ class MultiNodeAgent(BEMOSSAgent):
         if self.is_parent:
             #if this is a parent node, update the node_info table
             if self.curcon is None: #if no database connection exists make connection
-                self.curcon = db_connection()
+                self.curcon = db_helper.db_connection()
 
             tbl_node_info =  settings.DATABASES['default']['TABLE_node_info']
             self.curcon.execute('select node_id from '+ tbl_node_info)

@@ -45,6 +45,7 @@ class FaultDetectionAgent(BEMOSSAgent):
         self.problems = []
         self.low_temp_anamoly = False
         self.high_temp_anamoly = False
+        self.thermostat_nickname = ''
     #2. agent setup method
 
 
@@ -62,6 +63,10 @@ class FaultDetectionAgent(BEMOSSAgent):
                 data = self.curcon.fetchone()[0]
                 for key, value in data.items():
                     self.data[key] = value
+            self.curcon.execute("select nickname from device_info where agent_id=%s",(self.agent_id))
+            if self.curcon.rowcount:
+                self.thermostat_nickname = self.curcon.fetchone()[0]
+
         except psycopg2.IntegrityError as er: #Database trouble
             #reconnect first
             self.curcon.database_connect()
@@ -314,17 +319,17 @@ class FaultDetectionAgent(BEMOSSAgent):
 
 
             if self.data['profile_trigger_enabled']:
-                anamoly, mode = self.check_profile_trigger()
+                anamoly, status = self.check_profile_trigger()
                 if anamoly:
                     if not self.profile_anamoly:
                         self.profile_anamoly = True
-                        self.add_notification('hvac-fault', 'Abnormal ' + mode)
-                    current_status += ['Abnormal ' + mode]
+                        self.add_notification('hvac-fault',  status)
+                    current_status += [status]
                 else:
                     if self.profile_anamoly:
                         self.profile_anamoly = False
                         self.add_notification('hvac-fault-cleared', 'Fault cleared')
-                    current_status +=[mode]
+                    current_status +=[status]
         else:
             current_status = ["Thermostat is offline, can't detect fault"]
 
@@ -461,30 +466,7 @@ class FaultDetectionAgent(BEMOSSAgent):
 
 
     def add_notification(self,event, reason):
-
-        temp = uuid.uuid4()
-        self.notification_variables['date_id'] = str(datetime.datetime.now().date())
-        self.notification_variables['time'] = datetime.datetime.utcnow()
-        self.notification_variables['event_id'] = temp
-        self.notification_variables['agent_id'] = self.agent_id
-        self.notification_variables['event'] = event
-        self.notification_variables['reason'] = reason
-        self.notification_variables['related_to'] = None
-        self.offline_id = temp
-        self.notification_variables['logged_time'] = datetime.datetime.utcnow()
-        not_vars = {'date_id': 'text', 'logged_time': 'TIMESTAMP', 'agent_id': 'text', 'event_id': 'UUID', 'time': 'TIMESTAMP',
-         'event': 'text', 'reason': 'text', 'related_to': 'UUID', 'logged_by': 'text', 'node_name': 'text'}
-        cassandraDB.customInsert(all_vars=self.notification_variables, log_vars=not_vars,
-                                 tablename="offline_events")
-
-        time = date_converter.UTCToLocal(datetime.datetime.utcnow())
-        message = str(self.agent_id) + ': ' + event + '. Reason: '+ reason
-        self.curcon.execute("select id from possible_events where event_name=%s", (event,))
-        event_id = self.curcon.fetchone()[0]
-        self.curcon.execute(
-            "insert into notification (dt_triggered, seen, event_type_id, message) VALUES (%s, %s, %s, %s)",
-            (time, False, event_id, message))
-        self.curcon.commit()
+        self.EventRegister(event,reason=reason,source=self.thermostat_nickname)
 
     def updateDB(self):
 
@@ -500,6 +482,7 @@ class FaultDetectionAgent(BEMOSSAgent):
 
         if new_thermostat != old_thermostat:
             self.train_model() #need to retrain model for new thermostat
+
 
         topic_list = topic.split('/')
         return_index = topic_list.index('from') + 1

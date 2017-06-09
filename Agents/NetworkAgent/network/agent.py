@@ -110,12 +110,6 @@ else:
     node_offline_timeout = 60000000  # arbitrary large number since it's not required for type "node"
 
 #offline_event var
-offline_table = 'offline_events'
-offline_log_variables = {'logged_time':'TIMESTAMP','agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text','reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-offline_log_partition_keys = ['date_id']
-offline_log_clustering_keys = ['logged_time','event_id']
-offline_variables=dict()
-
 
 
 class NetworkAgent(BEMOSSAgent):
@@ -132,10 +126,6 @@ class NetworkAgent(BEMOSSAgent):
 
         self.agent_id = get_config('agent_id')
 
-        offline_variables['node_type']=node_type
-        offline_variables['node_name']=node_name
-        offline_variables['logged_by']=self.agent_id
-
         self.building_name = building_name
         self.host_ip_address = my_ip_address
         self.db_host = db_host
@@ -143,7 +133,6 @@ class NetworkAgent(BEMOSSAgent):
         self.host_type = settings.PLATFORM['node']['type']
         self.host_building_name = building_name
 
-        self.curcon = db_helper.db_connection()
         self.my_node_id = db_helper.get_node_id()
 
         print "host_zone_id "+str(self.my_node_id)

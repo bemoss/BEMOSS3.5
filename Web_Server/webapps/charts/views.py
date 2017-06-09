@@ -175,7 +175,8 @@ def returnsCharts(request,data_variables,get_weather=False):
     #varlist, rs = retrieve(agent_id, weather_agent="weatheragent22101", )
     json_result =dict()
     for key,val in data_variables.items():
-        json_result[key] = parse_resultset(varlist,val,rs,to_date)
+        if key in varlist:
+            json_result[key] = parse_resultset(varlist,val,rs,to_date)
 
     if request.is_ajax():
             return HttpResponse(json.dumps(json_result))

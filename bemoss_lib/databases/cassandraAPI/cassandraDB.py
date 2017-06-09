@@ -443,8 +443,11 @@ def retrieve(agentID, vars=None, startTime=None, endTime=None,export=False,table
                         if abs(total_weather_result[indx,0] - unix_time) > 2*60*60: #if no weather data within 2-hour in either side, put None
                             raise ValueError('No weather data near this time')
                         try:
-                            intp_weather[-1] += [float(numpy.interp(unix_time, list(total_weather_result[:, 0]),
+                            res = [float(numpy.interp(unix_time, list(total_weather_result[:, 0]),
                                      list(total_weather_result[:, weather_vars.index(wvars)])))]
+                            if numpy.isnan(res[0]):
+                                raise ValueError('Cannot interpolate')
+                            intp_weather[-1] += res
                         except (ValueError, TypeError): #string types can't be interpolated
                             intp_weather[-1] += [total_weather_result[indx, weather_vars.index(wvars)]]
 

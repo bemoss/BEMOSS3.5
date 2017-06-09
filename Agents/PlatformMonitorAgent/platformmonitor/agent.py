@@ -80,6 +80,8 @@ from bemoss_lib.utils import date_converter
 import random
 from bemoss_lib.utils.BEMOSSAgent import BEMOSSAgent
 debug_agent = settings.DEBUG
+from bemoss_lib.utils.offline_table_init import *
+import pytz
 
 #1.Basic variables initialized
 
@@ -98,7 +100,6 @@ db_table_node_info = settings.DATABASES['default']['TABLE_node_info']
 multinode_data = db_helper.get_multinode_data()
 
 node_name = multinode_data['this_node']
-node_type = settings.PLATFORM['node']['type']
 
 myips = find_own_ip.getIPs()
 _email_subject = node_name+'@'+str(myips[0])
@@ -116,13 +117,6 @@ smsService = SMSService()
 notify_heartbeat = settings.NOTIFICATION['heartbeat']
 
 #Offline variables initialized
-offline_table = 'offline_events'
-offline_log_variables = {'logged_time':'TIMESTAMP','agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text','reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-offline_log_partition_keys = ['date_id']
-offline_log_clustering_keys = ['logged_time','event_id']
-offline_variables=dict()
-offline_variables['node_type']=node_type
-offline_variables['node_name']=node_name
 
 platform_table = 'platform_event'
 platform_log_variables = {'agent_id':'text','start_time':'TIMESTAMP','event_id':'UUID','date_id':'text','end_time':'TIMESTAMP'}
@@ -162,9 +156,6 @@ class PlatformMonitorAgent(BEMOSSAgent):
         self.poll_time = get_config('poll_time')
         self.backup_poll_time = get_config('backup_poll_time')
 
-
-
-        offline_variables['logged_by'] = self.agent_id
         platform_variables['agent_id'] = self.agent_id + '_' + self.node_name
         notification_variables['agent_id'] = self.agent_id
 
@@ -178,7 +169,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
         self.retry_resurrection = False
 
 
-        self.curcon = db_helper.db_connection()
+
 
 
     #2. agent setup method
@@ -189,8 +180,8 @@ class PlatformMonitorAgent(BEMOSSAgent):
         while retry:
             try:
                 retry = False
-                cassandraDB.createCustomTable(columns=offline_log_variables, partition_keys=offline_log_partition_keys,
-                                              clustering_keys=offline_log_clustering_keys,tablename=offline_table)
+                cassandraDB.createCustomTable(columns=EVENTS_TABLE_VARS, partition_keys=EVENTS_TABLE_PARTITION_KEYS,
+                                              clustering_keys=EVENTS_TABLE_CLUSTERING_KEYS, tablename=EVENTS_TABLE_NAME)
             except cassandraDB.AlreadyExists as er:
                 pass
             except cluster.NoHostAvailable as er:
@@ -236,42 +227,10 @@ class PlatformMonitorAgent(BEMOSSAgent):
             if len(result)>0:
                 last_entry = result[0]
                 #Platformmonitor just started. Save last failure and current restart info
-                #For reference:  {'agent_id':'text','start_time':'TIMESTAMP','event_id':'UUID','date_id':'text','end_time':'TIMESTAMP'}
-                #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                #logged_from, node_type and node_name already filled during initialization
-
                 #crash
-                offline_variables['time']=last_entry.end_time
-                offline_variables['reason']='shutdown'
-                offline_variables['date_id']=str(date_converter.UTCToLocal(last_entry.end_time).date())
-
-                #node-crash
-                temp1 = uuid.uuid4()
-                offline_variables['agent_id']=self.node_name+self.agent_id
-                offline_variables['event']='crashed'
-                offline_variables['event_id']=temp1
-                offline_variables['related_to'] = None
-                #save in DB; platform crash
-                offline_variables['logged_time']=datetime.datetime.utcnow()
-                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-
+                self.EventRegister('shutdown',source=self.node_name,event_time=last_entry.end_time,notify=False)
                 #restart
-
-                offline_variables['reason']='restart'
-                offline_variables['time']=datetime.datetime.utcnow()
-                offline_variables['date_id'] = str(datetime.datetime.now().date())
-
-                #platform-restart
-                temp3 = uuid.uuid4()
-                offline_variables['agent_id']=self.node_name+self.agent_id
-                offline_variables['event']='restarted'
-                offline_variables['event_id']=temp3
-                offline_variables['related_to'] = temp1
-
-                #save in DB; platform restart
-                offline_variables['logged_time']=datetime.datetime.utcnow()
-                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                self.EventRegister('restart',source=self.node_name,notify=False)
             else:
                 print 'Fresh boy'
 
@@ -281,7 +240,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
             platform_variables['date_id']=str(datetime.datetime.now().date())
             platform_variables['event_id']=uuid.uuid4()
             platform_variables['end_time']=datetime.datetime.utcnow()
-            offline_variables['logged_time']=datetime.datetime.utcnow()
+            platform_variables['logged_time']=datetime.datetime.utcnow()
             self.TSDCustomInsert(platform_variables,platform_log_variables,platform_table)
 
         self.core.periodic(self.poll_time, self.agentMonitorBehavior)
@@ -296,7 +255,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
         self.retry_resurrection = True
 
     #3. deviceMonitorBehavior (TickerBehavior)
-    @catcherror('agentMonitoring Failed @ platformmonitoragent')
+    #@catcherror('agentMonitoring Failed @ platformmonitoragent')
     def agentMonitorBehavior(self):
 
         #Check if cassandra is available and update platform-running end time
@@ -313,41 +272,16 @@ class PlatformMonitorAgent(BEMOSSAgent):
                     self.send_email('Cassandra Dead','Cassandra has gone offline. Please check asap. All logging has stopped')
                     self.last_seen_dead['cassandra']=datetime.datetime.now()
                     if self.cassandra_death_time is None:
-                        self.cassandra_death_time = datetime.datetime.utcnow()
-                        self.cassandra_death_date = str(datetime.datetime.now().date())
+                        self.cassandra_death_time = datetime.datetime.now(pytz.UTC)
                 #TODO start cassandra
         else:
             #Cassandra Online Again
             if 'cassandra' in self.last_seen_dead:
-                #Update the offline-table. Log both offline and online vent
-                temp=uuid.uuid4()
-                #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                #logged_from, node_type and node_name already filled during initialization
-
-                offline_variables['agent_id']='cassandra'
-                offline_variables['date_id']=self.cassandra_death_date
-                offline_variables['event']='crash'
-                offline_variables['event_id']=temp
-                offline_variables['time']=self.cassandra_death_time
-                offline_variables['reason']='crash'
-                offline_variables['related_to']=None
-                #safe offline event first
-                offline_variables['logged_time']=datetime.datetime.utcnow()
-                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-
-                #Then save the online event
-                offline_variables['time']=datetime.datetime.utcnow()
-                offline_variables['date_id']=str(datetime.datetime.now().date())
-                offline_variables['reason']='restart'
-                offline_variables['event']='start'
-                offline_variables['related_to']=temp
-                offline_variables['event_id']=uuid.uuid4()
-                offline_variables['logged_time']=datetime.datetime.utcnow()
-                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
+                #Update the offline-table. Log both offline and online event
+                self.EventRegister('crash',source='cassandra',event_time=self.cassandra_death_time)
+                self.EventRegister('restart',reason='restart by PMA',source='cassandra')
                 self.last_seen_dead.pop('cassandra')
                 self.cassandra_death_time=None
-                self.cassandra_death_date=None
 
         #Get agentstats. Also checks if volttron is running
         try:
@@ -358,49 +292,14 @@ class PlatformMonitorAgent(BEMOSSAgent):
             if 'volttron' not in self.last_seen_dead:
                 #Update volttron not running in the log databse
                 self.last_seen_dead['volttron']=datetime.datetime.now()
-                try:
-                    #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                    # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                    #logged_from, node_type and node_name already filled during initialization
-                    offline_variables['agent_id']='volttron'
-                    offline_variables['date_id']=str(datetime.datetime.now().date())
-                    offline_variables['event']='crash'
-                    offline_variables['event_id']=uuid.uuid4()
-                    offline_variables['time']=datetime.datetime.utcnow()
-                    offline_variables['reason']='crash'
-                    offline_variables['related_to']=None
-                    self.crash_id['volttron'] = offline_variables['event_id']
-                    #save offline
-                    offline_variables['logged_time']=datetime.datetime.utcnow()
-                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                except cluster.NoHostAvailable as er:
-                    print er
+                self.EventRegister('crash',source='volttron')
             #If volttron not running, we are done
             return
         else:
             if 'volttron' in self.last_seen_dead:
                 #Update volttron running again in Database
                 self.last_seen_dead.pop('volttron')
-                try:
-                    #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                    # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                    #logged_from, node_type and node_name already filled during initialization
-                    offline_variables['agent_id']='volttron'
-                    offline_variables['date_id']=str(datetime.datetime.now().date())
-                    offline_variables['event']='start'
-                    offline_variables['event_id']=uuid.uuid4()
-                    offline_variables['time']=datetime.datetime.utcnow()
-                    offline_variables['reason']='restart'
-                    if 'volttron' in self.crash_id:
-                        offline_variables['related_to']=self.crash_id.pop('volttron')
-
-                    else:
-                        offline_variables['related_to']=None
-                    #save offline
-                    offline_variables['logged_time']=datetime.datetime.utcnow()
-                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                except cluster.NoHostAvailable as er:
-                    print er
+                self.EventRegister('restart',source='volttron')
 
         #Get #Get list of devices Serves to check if postgress is running
         try:
@@ -421,50 +320,17 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 #Update postgresql down into database
                 #postgresql goes offline; log it into database
                 self.last_seen_dead['postgresql']=datetime.datetime.now()
-                try:
-                    #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                    # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                    #logged_from, node_type and node_name already filled during initialization
-                    offline_variables['agent_id']='postgresql'
-                    offline_variables['date_id']=str(datetime.datetime.now().date())
-                    offline_variables['event']='crash'
-                    offline_variables['event_id']=uuid.uuid4()
-                    offline_variables['time']=datetime.datetime.utcnow()
-                    offline_variables['reason']='crash'
-                    offline_variables['related_to'] = None
-                    if 'postgresql' not in self.crash_id:
-                        self.crash_id['postgresql']=offline_variables['event_id']
-                    #save offline
-                    offline_variables['logged_time']=datetime.datetime.utcnow()
-                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                except cluster.NoHostAvailable as er:
-                    print er
+                self.EventRegister('crash','postgresql')
             #Can't continue to restarting Agents, if prostgress is down. We don't know which agent are crashed, and which are regularly shutdown
             return
         else:
             if 'postgresql' in self.last_seen_dead:
                 #Update postgresql up again into databse
                 self.last_seen_dead.pop('postgresql')
-                try:
-                    offline_variables['agent_id']='postgresql'
-                    offline_variables['date_id']=str(datetime.datetime.now().date())
-                    offline_variables['event']='start'
-                    offline_variables['event_id']=uuid.uuid4()
-                    offline_variables['time']=datetime.datetime.utcnow()
-                    offline_variables['reason']='restart'
-                    if 'postgresql' in self.crash_id:
-                        offline_variables['related_to']=self.crash_id.pop('postgresql')
-                    else:
-                        offline_variables['related_to']=None
-                    #save offline
-                    offline_variables['logged_time']=datetime.datetime.utcnow()
-                    self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                except cluster.NoHostAvailable as er:
-                    print er
+                self.EventRegister('restart',source='postgresql')
 
-        #self.cur contains agent_id,device_type_id, approval_status
-        if self.curcon.rowcount != 0:
-
+        #rows contains rows of agent_id,device_type_id, approval_status
+        if rows:
             command_group = list() #list of commands to send to networkagent
             for row in rows:
                 self.curcon.execute("SELECT assigned_node_id,current_node_id FROM "+db_table_node_device+" WHERE agent_id=%s",
@@ -484,29 +350,12 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         if row[0] in self.last_seen_dead:
                             #Agent back after dead; update db
                             self.last_seen_dead.pop(row[0])
-                            try:
-                                offline_variables['agent_id']=nickname
-                                offline_variables['date_id']=str(datetime.datetime.now().date())
-                                offline_variables['event']='start'
-                                offline_variables['event_id']=uuid.uuid4()
-                                offline_variables['time']=datetime.datetime.utcnow()
-                                offline_variables['reason']='agent-restart'
-                                if row[0] in self.crash_id:
-                                    offline_variables['related_to']=self.crash_id.pop(row[0])
-                                else:
-                                    offline_variables['related_to']=None
-                                #save offline
-                                offline_variables['logged_time']=datetime.datetime.utcnow()
-                                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                            except cluster.NoHostAvailable as er:
-                                    print er
-                                    print 'Cassandra not available.'
+                            self.EventRegister('restart',reason='restart by PMA',source=nickname)
 
                         if row[1].upper() not in ['APR','APPROVED'] or new_node != self.mynode:
                             #Stop the unapproved agent or agent on another node, if it is running
                             print 'Stopping unapproved agent: '+row[0]
                             os.system("volttron-ctl stop --tag " + row[0])
-
                         #Nothing more to do with this agent
                         continue
                     else:
@@ -519,26 +368,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                 if row[0] not in self.last_seen_dead:
                                     #Freshly dead, log in DB
                                     self.last_seen_dead[row[0]]=datetime.datetime.now()
-                                    try:
-                                        #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                                        # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                                        #logged_from, node_type and node_name already filled during initialization
-                                        offline_variables['agent_id']=nickname
-                                        offline_variables['date_id']=str(datetime.datetime.now().date())
-                                        offline_variables['event']='agent-crash'
-                                        offline_variables['event_id']=uuid.uuid4()
-                                        offline_variables['time']=datetime.datetime.utcnow()
-                                        offline_variables['reason']='agent-crash'
-                                        offline_variables['related_to'] = None
-                                        if row[0] not in self.crash_id: #it could be there if we are reattempting to start agents by clearing last_seen_dead dict
-                                            self.crash_id[row[0]]=offline_variables['event_id']
-                                        #save offline
-                                        offline_variables['logged_time']=datetime.datetime.utcnow()
-                                        self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                                    except cluster.NoHostAvailable as er:
-                                        print er
-                                        print 'Cassandra not available.'
-
+                                    self.EventRegister('crash',source=nickname)
                             else:
                                 #was dead before; ignore
                                 print 'This agent is dead beyond resurrection: '+row[0]
@@ -563,39 +393,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                             message[STATUS_CHANGE.NODE] = str(new_node)
                             message[STATUS_CHANGE.AGENT_STATUS] = 'start'
                             message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.PERMANENT
-
                             command_group.append(message)
-
-
-                            #Agent from previous run, packaged and installed. Update log-file that agent is back, and device is online
-                            try:
-                                #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                                # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                                #logged_from, node_type and node_name already filled during initialization
-                                temp = uuid.uuid4()
-                                offline_variables['agent_id']=nickname
-                                offline_variables['date_id']=str(datetime.datetime.now().date())
-                                offline_variables['event']='start'
-                                offline_variables['event_id']=temp
-                                offline_variables['time']=datetime.datetime.utcnow()
-                                offline_variables['reason']='fresh-start'
-                                if row[0] in self.crash_id:
-                                    offline_variables['related_to'] = self.crash_id.pop(row[0])
-                                else:
-                                    offline_variables['related_to'] = None
-                                #save agent just start
-                                offline_variables['logged_time']=datetime.datetime.utcnow()
-                                self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                                #Save device online
-                                # offline_variables['event']='online'
-                                # offline_variables['event_id']=uuid.uuid4()
-                                # offline_variables['reason']='fresh-start'
-                                # offline_variables['related_to'] = temp
-                                # offline_variables['logged_time']=datetime.datetime.utcnow()
-                                # self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-                            except cluster.NoHostAvailable as er:
-                                print er
-                                print 'Cassandra not available.'
                         continue
                     else:
                         #print "Agent from other node found, or agent not approved. Ignore. Agent on other node will be started by platformmonitor agent there"
@@ -613,55 +411,14 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 if agent not in self.last_seen_dead:
                     self.last_seen_dead[agent] = datetime.datetime.now()
                     #Agent Dead. Save in DB
-                    try:
-                        #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                        # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                        #logged_from, node_type and node_name already filled during initialization
-                        temp = uuid.uuid4()
-                        offline_variables['agent_id']=agent
-                        offline_variables['date_id']=str(datetime.datetime.now().date())
-                        offline_variables['event']='crashed'
-                        offline_variables['event_id']=temp
-                        offline_variables['time']=datetime.datetime.utcnow()
-                        offline_variables['reason']='crash'
-                        offline_variables['related_to'] = None
-                        if agent not in self.crash_id:
-                            self.crash_id[agent]=temp
-                        #save agent just start
-                        offline_variables['logged_time']=datetime.datetime.utcnow()
-                        self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-
-                    except cluster.NoHostAvailable as er:
-                        print er
-                        print 'Cassandra not available.'
+                    self.EventRegister('crash',source=agent)
                 else:
                     print 'This agent is dead beyond resurrection: '+agent
             else:
                 if agent in self.last_seen_dead:
                     #Agent just back from dead. Log in DB
                     self.last_seen_dead.pop(agent)
-                    try:
-                        #For reference: vars needed: = {'agent_id':'text','date_id':'text','event_id':'UUID','time':'TIMESTAMP','event':'text',
-                        # 'reason':'text','related_to':'UUID','logged_by':'text','node_type':'text','node_name':'text'}
-                        #logged_from, node_type and node_name already filled during initialization
-                        temp = uuid.uuid4()
-                        offline_variables['agent_id']=agent
-                        offline_variables['date_id']=str(datetime.datetime.now().date())
-                        offline_variables['event']='restart'
-                        offline_variables['event_id']=temp
-                        offline_variables['time']=datetime.datetime.utcnow()
-                        offline_variables['reason']='restart'
-                        if agent in self.crash_id:
-                            offline_variables['related_to'] = self.crash_id.pop(agent)
-                        else:
-                            offline_variables['related_to'] = None
-                        #save agent just start
-                        offline_variables['logged_time']=datetime.datetime.utcnow()
-                        self.TSDCustomInsert(all_vars=offline_variables,log_vars=offline_log_variables,tablename=offline_table)
-
-                    except cluster.NoHostAvailable as er:
-                        print er
-                        print 'Cassandra not available.'
+                    self.EventRegister('restart',source=agent)
         #reset back the retry_resurrection variable to prevent attempting to resurrect repeatedly.
         self.retry_resurrection = False
 
@@ -675,12 +432,12 @@ class PlatformMonitorAgent(BEMOSSAgent):
             if len(email_result) > 0:
                 self.last_event_log_time = email_result[0].last_event_log_time
 
-        offline_vars = ['agent_id','date_id','event_id','time','event','reason','related_to','logged_by','logged_time','node_type','node_name']
+        offline_vars = EVENTS_TABLE_VARS.keys()
 
         if self.last_event_log_time is None:
-            result = cassandraDB.customQuery('SELECT {0} from {1} where date_id=%s ORDER BY logged_time'.format(', '.join(offline_vars),offline_table),(mydate,))
+            result = cassandraDB.customQuery('SELECT {0} from {1} where date_id=%s ORDER BY logged_time'.format(', '.join(offline_vars), EVENTS_TABLE_NAME), (mydate,))
         else:
-            result = cassandraDB.customQuery('SELECT {0} from {1} where date_id=%s and logged_time>%s ORDER BY logged_time'.format(', '.join(offline_vars),offline_table),(mydate,self.last_event_log_time))
+            result = cassandraDB.customQuery('SELECT {0} from {1} where date_id=%s and logged_time>%s ORDER BY logged_time'.format(', '.join(offline_vars), EVENTS_TABLE_NAME), (mydate, self.last_event_log_time))
 
         event_count = 0
         result = list(result)
@@ -772,7 +529,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         for event in eventlist:
                             event_count += 1
                             report_lines += 'On '+str(date_converter.UTCToLocal(event.time).date()) + ', at '\
-                                            +datetime.datetime.strftime(event.time,'%H:%M:%S') + '<b> '+str(event.agent_id) + ' : ' + str(event.event)+'</b> because of ' + str(event.reason)
+                                            +datetime.datetime.strftime(event.time,'%H:%M:%S') + '<b> '+str(event.source) + ' : ' + str(event.event)+'</b> because of ' + str(event.reason)
                             report_lines += '<br/>'
                             self.last_event_log_time = event.logged_time
 
@@ -790,7 +547,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                     elif channeltype.lower() =='text':
                         sms_text = ''
                         for event in eventlist:
-                            sms_text += event.agent_id + ' ' + event.event
+                            sms_text += event.source + ' ' + event.event
                         self.send_sms(address,sms_text)
 
 
