@@ -232,6 +232,7 @@ def charts_device(request, mac):
 
     '''
 
+
 def get_agent_id_from_mac(mac):
     device_metadata = [ob.device_control_page_info() for ob in DeviceMetadata.objects.filter(mac_address=mac)]
     print device_metadata
@@ -286,16 +287,16 @@ def export_time_series_data_spreadsheet(request, mac):
         else:
             weather_agent=False
         if not from_date and not to_date:
-            data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values(),weather_agent=weather_agent)
+            data_points, rs = retrieve_for_export(agent_id,weather_agent=weather_agent)
         elif not to_date and from_date:
             from_date = datetime.datetime.strptime(from_date, '%Y/%m/%d %H:%M')
-            data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values(),
-                                                  from_date,weather_agent=weather_agent)
+            data_points, rs = retrieve_for_export(agent_id,
+                                                  startTime=from_date,weather_agent=weather_agent)
         else:
             from_date = datetime.datetime.strptime(from_date, '%Y/%m/%d %H:%M')
             to_date = datetime.datetime.strptime(to_date, '%Y/%m/%d %H:%M')
-            data_points, rs = retrieve_for_export(agent_id, ['time']+data_variables.values(),
-                                                  from_date, to_date,weather_agent=weather_agent)
+            data_points, rs = retrieve_for_export(agent_id,
+                                                  startTime=from_date, endTime=to_date,weather_agent=weather_agent)
         _data = list()
         single_entry=dict()
         if weather_agent:
@@ -303,6 +304,7 @@ def export_time_series_data_spreadsheet(request, mac):
         for lst in rs:
 
             for variable in data_variables.values():
+                if variable in data_points:
                     single_entry[variable]=lst[data_points.index(variable)]
 
             single_entry["time"] = lst[data_points.index('time')]
