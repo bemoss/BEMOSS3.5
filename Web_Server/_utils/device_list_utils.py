@@ -178,7 +178,7 @@ def get_device_list_and_count(request,get_devices = True):
                         if do in device_list[ao][no]:
                             ordered_device_list[ao][no][do] = device_list[ao][no][do]
 
-    unseen_notifications = Notification.objects.filter(seen=False)
+    unseen_notifications = Notification.objects.filter(seen=False).order_by('-dt_triggered')
     if get_devices:
         return { 'device_list':ordered_device_list, 'device_count': device_count,'node_names': node_names, 'node_list':node_list,
                  'node_count':node_count, 'approval_full_name': APPROVAL_STATUS.full_names, "unseen_notifications":unseen_notifications}
