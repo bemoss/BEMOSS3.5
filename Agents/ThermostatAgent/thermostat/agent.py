@@ -379,14 +379,13 @@ class ThermostatAgent(BasicAgent):
         
         if self.tampered_variables_correction:
             self.Device.setDeviceStatus(self.tampered_variables_correction)
-            self.tampered_variables_values['user'] = 'Tamperer'
-            self.TSDInsert(self.agent_id,self.tampered_variables_values,self.log_variables) #record the tampering in DB
-            self.tampered_variables_values.pop('user')
+            # self.tampered_variables_values['user'] = 'Tamperer'
+            # #self.TSDInsert(self.agent_id,self.tampered_variables_values,self.log_variables) #record the tampering in DB
+            # self.tampered_variables_values.pop('user')
             message = []
             for k,v in self.tampered_variables_values.items():
                 message += [k + " to " + str(v)]
             message = 'Tampered ' + ' and '.join(message)
-
             self.curcon.execute("select nickname from device_info where agent_id=%s",(self.agent_id,))
             nickname = self.curcon.fetchone()[0]
             self.EventRegister('device-tampering',reason=message,source=nickname)
