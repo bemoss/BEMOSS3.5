@@ -121,7 +121,6 @@ class ThermostatAgent(BasicAgent):
         super(ThermostatAgent, self).agent_setup(sender, **kwargs)
         # Do a one time push when we start up so we don't have to wait for the periodic
         # self.timer(1, self.deviceMonitorBehavior)
-        self.core.periodic(self.device_monitor_time, self.deviceMonitorBehavior)
         try:
             self.curcon.execute("SELECT data FROM " + self.db_table_device + " WHERE agent_id=%s", (self.agent_id,))
             data = self.curcon.fetchone()[0]
@@ -324,7 +323,7 @@ class ThermostatAgent(BasicAgent):
                     self.tampered_schedule['scheduleData'] = self.variables['scheduleData']
 
         for v in self.log_variables:
-            if v in self.Device.variables:
+            if v in self.Device.variables and self.Device.variables[v] is not None:
                 if v not in self.variables or self.variables[v] != self.Device.variables[v]:
                     if v in ['cool_setpoint','heat_setpoint','thermostat_mode','fan_mode','hold']:
                         validChange = False
@@ -332,12 +331,13 @@ class ThermostatAgent(BasicAgent):
                         if v in ['cool_setpoint','heat_setpoint']:
                             current_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now())
                             ahead_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now()+datetime.timedelta(minutes=10))
-                            if self.Device.variables[v] in  [current_schedule_setpoints[v], ahead_schedule_setpoints[v]]:
+                            if self.Device.variables[v] in  [current_schedule_setpoints[v], ahead_schedule_setpoints[v]] and self.variables['hold'] in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
                                 validChange = True #the setpoint matches the schedule, so its valid
+                                self.authorized_variables[v] = self.Device.variables[v]
 
-                            if v in self.authorized_variables:
+                            elif v in self.authorized_variables:
                                 diff = self.Device.variables[v] - self.authorized_variables[v]
-                                if abs(diff) <= self.setpoint_tampering_allowance:
+                                if abs(diff) <= self.setpoint_tampering_allowance :
                                     validChange = True #the difference in setpoint is less than tolerance, so we accept it as valid change
                             else:
                                 validChange = True
@@ -346,7 +346,9 @@ class ThermostatAgent(BasicAgent):
                                 else:
                                     self.authorized_variables[v] = self.variables[v]
                         if v == 'hold':
-                            if self.Device.variables[v] == BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE and self.variables[v] == BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY:
+                            if self.Device.variables[v] in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY] and\
+                                    self.variables[v] in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
+                                #changes from NONE to TEMPORARY or vice versa is accepted. It cannot happen without change of set-point.
                                 validChange = True
 
                         if v in self.variables and self.variables[v] is not None and self.variables['anti_tampering']=="ENABLED" and not validChange:
@@ -380,7 +382,6 @@ class ThermostatAgent(BasicAgent):
             self.tampered_variables_values['user'] = 'Tamperer'
             self.TSDInsert(self.agent_id,self.tampered_variables_values,self.log_variables) #record the tampering in DB
             self.tampered_variables_values.pop('user')
-
             message = []
             for k,v in self.tampered_variables_values.items():
                 message += [k + " to " + str(v)]

@@ -57,6 +57,7 @@ from urlparse import urlparse
 from DeviceAPI.BaseAPI import baseAPI
 from bemoss_lib.protocols.discovery.SSDP import SSDP,parseJSONresponse
 from bemoss_lib.utils.BEMOSS_ONTOLOGY import BEMOSS_ONTOLOGY
+import time
 
 class API(baseAPI):
     def __init__(self,**kwargs):
@@ -350,6 +351,7 @@ class API(baseAPI):
 
     def setDeviceSchedule(self, scheduleData):
         _urlData = self.get_variable("address")+'/tstat'
+        self.set_variable('scheduleData',scheduleData)
         if scheduleData['Enabled'] == False:
             msg = {"hold":1}
             _request = urllib2.Request(_urlData)
@@ -401,8 +403,9 @@ class API(baseAPI):
             _request.get_method = lambda: 'POST'
             cool_sch_str = str(cool_sch)
             cool_sch_str = cool_sch_str.replace('\'','"')
+
             try:
-                f = urllib2.urlopen(_request, cool_sch_str, timeout=20)
+                f = urllib2.urlopen(_request, cool_sch_str, timeout=60)
                 if f.getcode() == 200:
                     print('Cool schedule updated!')
                 else:
@@ -415,8 +418,9 @@ class API(baseAPI):
             _request.get_method = lambda: 'POST'
             heat_sch_str = str(heat_sch)
             heat_sch_str = heat_sch_str.replace('\'','"')
+            time.sleep(10)
             try:
-                f = urllib2.urlopen(_request, heat_sch_str, timeout=20)
+                f = urllib2.urlopen(_request, heat_sch_str, timeout=60)
                 if f.getcode() == 200:
                     print('Heat schedule updated!')
                 else:
