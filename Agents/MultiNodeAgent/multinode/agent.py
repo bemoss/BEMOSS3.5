@@ -235,7 +235,8 @@ class MultiNodeAgent(BEMOSSAgent):
             for node_name in node_name_list:
 
                 node_id = self.getNodeId(node_name)
-
+                if self.node_index == node_id:
+                    continue #don't handle self-online
                 self.EventRegister('node-online',reason='communication-restored',source=node_name)
 
                 #get a list of agents that were supposed to be running in that online node
