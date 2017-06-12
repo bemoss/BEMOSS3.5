@@ -63,7 +63,7 @@ class FaultDetectionAgent(BEMOSSAgent):
                 data = self.curcon.fetchone()[0]
                 for key, value in data.items():
                     self.data[key] = value
-            self.curcon.execute("select nickname from device_info where agent_id=%s",(self.agent_id))
+            self.curcon.execute("select nickname from device_info where agent_id=%s",(self.data['thermostat'],))
             if self.curcon.rowcount:
                 self.thermostat_nickname = self.curcon.fetchone()[0]
 
@@ -86,6 +86,10 @@ class FaultDetectionAgent(BEMOSSAgent):
         measurements = []
         weights = []
         n = len(lst_measurement)
+
+        if n == 1:
+            return lst_measurement[0][1]
+
         for i in range(1, n):
             entry = lst_measurement[i]
             if prev[1] is None and entry[1] is None:
@@ -200,9 +204,9 @@ class FaultDetectionAgent(BEMOSSAgent):
         modes = ['heating','cooloff','cooling','heatoff']
 
         heating_points = []  # during forced heating
-        cooloff_points = []  # during natural cool down
+        cooloff_points = []  # during natural cool down when heat is off (temp > heatsetpoint)
         cooling_points = []  # during forced cooling
-        heatoff_points = []  # during natural heat-up
+        heatoff_points = []  # during natural heat-up when cooling is off (temp < coolsetpoint)
 
         heating_slopes = []
         cooling_slopes = []
@@ -219,7 +223,7 @@ class FaultDetectionAgent(BEMOSSAgent):
             if None in [row[0],row[5],row[oindex]]:
                 continue
 
-            if row[3] == 'HEAT':
+            if row[3] in ['HEAT','AUTO']:
                 heat_setpoint = row[2]
                 if heat_setpoint is None:
                     continue
@@ -230,23 +234,23 @@ class FaultDetectionAgent(BEMOSSAgent):
                     heating_points.append([row[0], row[5], row[oindex],heat_setpoint])  # time, temperature, outdoor_temperature, heat_setpoint
                     heating_done = False
 
-                if heat_setpoint < row[5] - 0.5:
+                if heat_setpoint < row[5] - 0.5 and row[3] not in ['AUTO']: #ignore cool_off in AUTO mode;  Only heating and cooling state is of concern during AUTO mode
                     if prev_row is not None and not cooloff_points and prev_row[2] < row[5]-0.5:
                         cooloff_points.append([prev_row[0], prev_row[5], prev_row[oindex], prev_row[2]])
                     cooloff_points.append([row[0], row[5], row[oindex], heat_setpoint])
                     cooloff_done = False
 
-            elif row[3] == 'COOL':
+            if row[3] in ['COOL','AUTO']:
                 cool_setpoint = row[1]
                 if cool_setpoint is None:
                     continue
-                if cool_setpoint < row[5] - 0.5:  # Heating-On
+                if cool_setpoint < row[5] - 0.5:  # Cooling-On
                     if prev_row is not None and not cooling_points and prev_row[2] < row[5]-0.5:
                         cooloff_points.append([prev_row[0], prev_row[5], prev_row[oindex], prev_row[1]])
                     cooling_points.append([row[0], row[5], row[oindex],cool_setpoint])
                     cooling_done = False
 
-                if cool_setpoint > row[5] + 0.5:
+                if cool_setpoint > row[5] + 0.5 and row[3] not in ['AUTO']: #ignore heat off in AUTO mode. Only heating and cooling state is of concern during AUTO mode
                     if prev_row is not None and not heatoff_points and prev_row[2] > row[5]+0.5:
                         heatoff_points.append([prev_row[0], prev_row[5], prev_row[oindex], prev_row[1]])
                     heatoff_points.append([row[0], row[5], row[oindex],cool_setpoint])
@@ -288,12 +292,8 @@ class FaultDetectionAgent(BEMOSSAgent):
                 return False
         return True
 
-    @Core.periodic(300)
     def periodicProcess(self):
-
-
         current_status = []
-
         if not self.check_device_offline(self.data['thermostat']):
             if self.data['temp_high_trigger_enabled']:
                 if self.check_temp_low():
@@ -319,17 +319,25 @@ class FaultDetectionAgent(BEMOSSAgent):
 
 
             if self.data['profile_trigger_enabled']:
-                anamoly, status = self.check_profile_trigger()
-                if anamoly:
-                    if not self.profile_anamoly:
-                        self.profile_anamoly = True
-                        self.add_notification('hvac-fault',  status)
-                    current_status += [status]
-                else:
-                    if self.profile_anamoly:
-                        self.profile_anamoly = False
-                        self.add_notification('hvac-fault-cleared', 'Fault cleared')
-                    current_status +=[status]
+                self.curcon.execute('select data from devicedata where agent_id=%s',(self.data['thermostat'],))
+                if self.curcon.rowcount:
+                    data = self.curcon.fetchone()[0]
+                    thermostat_mode = data['thermostat_mode']
+                    if thermostat_mode != 'OFF':
+                        anamoly, status = self.check_profile_trigger()
+                        if anamoly:
+                            if not self.profile_anamoly:
+                                self.profile_anamoly = True
+                                self.add_notification('hvac-fault',  status)
+                            current_status += [status]
+                        else:
+                            if self.profile_anamoly:
+                                self.profile_anamoly = False
+                                self.add_notification('hvac-fault-cleared', 'Fault cleared')
+                            current_status +=[status]
+                    else:
+                        current_status = ['Thermostat is off']
+
         else:
             current_status = ["Thermostat is offline, can't detect fault"]
 
@@ -397,15 +405,35 @@ class FaultDetectionAgent(BEMOSSAgent):
         else:
             return False
 
-    def checkDeviation(self,temperature_points):
+    def checkDeviation(self,temperature_points,mode):
         temperature_points = np.array(temperature_points)
         # temperature_points is a list of list. OuterList[InnerList[time, temperature, outdoor_temperature, setpoint], ...]
-        diffs = temperature_points[:,3] - temperature_points[:,1]
+        diffs = temperature_points[:,3] - temperature_points[:,1] #setpoint - temperature
         diff_array = np.stack((temperature_points[:, 0], diffs), axis=1)
         avg_diff = self.get_time_avg(diff_array)
+
+        outdoor_diffs = temperature_points[:, 3] - temperature_points[:, 2]
+        outdoor_diff_array = np.stack((temperature_points[:, 0], outdoor_diffs), axis=1)
+        outdoor_avg_diff = self.get_time_avg(outdoor_diff_array)
+
+        # outdoor_temps = np.stack((temperature_points[:, 0], temperature_points[:, 2]), axis=1)
+        # avg_outdoor = self.get_time_avg(outdoor_temps)
+
         time_diff = (temperature_points[-1,0] - temperature_points[0,0])/(1000*60*60.0) #time difference in hours
-        if abs(avg_diff)*time_diff > 9: #Change this 9 degree-hour integrated temperature - setpoint differene if necessary
-            return True
+        if abs(avg_diff)*time_diff > 9: #Change this 9 degree-hour integrated temperature - setpoint difference if necessary
+            if mode.lower() == 'cooling' and avg_diff < 0:
+                return True #It's not being cooled down enough
+                #  ,'heatoff']:
+            if mode.lower() == 'heatoff' and avg_diff > 0 and avg_diff > outdoor_avg_diff:
+                    #it's cooling too much, and it is not because of outdoor temperature
+                    return True
+            if mode.lower() == 'heating' and avg_diff > 0:
+                return True  # It's not being heated u enough
+                #  ,'heatoff']:
+            if mode.lower() == 'cooloff' and avg_diff < 0 and avg_diff < outdoor_avg_diff:
+                # it's heating too much, and it is not because of outdoor temperature
+                return True
+
         return False
 
     def check_profile_trigger(self):
@@ -422,31 +450,46 @@ class FaultDetectionAgent(BEMOSSAgent):
         slopes_and_points = self.getSlopesAndPoints(result,vars)
         anamoly = False
         current_mode = 'Normal setpoint-following'
+
+        #slope based Anamoly detection has been commented out to avoid false positives for now.
         try:
             if slopes_and_points['heating_points']:
                 current_mode = 'heating'
-                if self.checkAnamoly(slopes_and_points['heating_points'],'heating_model'):
+                # if self.checkAnamoly(slopes_and_points['heating_points'],'heating_model'):
+                #     anamoly = True
+                if self.checkDeviation(slopes_and_points['heating_points'],'heating'):
                     anamoly = True
-                if self.checkDeviation(slopes_and_points['heating_points']):
-                    anamoly = True
+                    current_mode = 'Heating Failure'
+                else:
+                    current_mode = 'Normal Heating'
 
             elif slopes_and_points['cooling_points']:
-                current_mode = 'cooling'
-                if self.checkAnamoly(slopes_and_points['cooling_points'], 'cooling_model'):
+                # if self.checkAnamoly(slopes_and_points['cooling_points'], 'cooling_model'):
+                #     anamoly = True
+                if self.checkDeviation(slopes_and_points['cooling_points'],'cooling'):
                     anamoly = True
-                if self.checkDeviation(slopes_and_points['cooling_points']):
-                    anamoly = True
+                    current_mode = 'Cooling Failure'
+                else:
+                    current_mode = 'Normal Cooling'
 
 
             elif slopes_and_points['heatoff_points']:
-                current_mode = 'heat-off'
-                if self.checkAnamoly(slopes_and_points['heatoff_points'], 'heatoff_model'):
+                # if self.checkAnamoly(slopes_and_points['heatoff_points'], 'heatoff_model'):
+                #     anamoly = True
+                if self.checkDeviation(slopes_and_points['heatoff_points'],'heatoff'):
                     anamoly = True
+                    current_mode = 'Too much cooling'
+                else:
+                    current_mode = 'Normal cooling'
 
             elif slopes_and_points['cooloff_points']:
-                current_mode = 'cool-off'
-                if self.checkAnamoly(slopes_and_points['cooloff_points'], 'cooloff_model'):
+                # if self.checkAnamoly(slopes_and_points['cooloff_points'], 'cooloff_model'):
+                #     anamoly = True
+                if self.checkDeviation(slopes_and_points['cooloff_points'],'cooloff'):
                     anamoly = True
+                    current_mode = 'Too much heating'
+                else:
+                    current_mode = 'Normal heating'
 
         except ValueError as er:
             if str(er)=='no-outdoor-temp':

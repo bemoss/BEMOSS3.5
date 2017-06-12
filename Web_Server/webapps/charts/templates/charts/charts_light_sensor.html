@@ -82,8 +82,8 @@ Address all correspondence regarding this license to Virginia Tech's electronic 
 
 <script>
 var _status = [];
-_status = {{ illumination|safe }};
-var mac = "{{ mac }}";
+_status = {{ illumination|safe|list_if_none }};
+var mac = "{{ mac|list_if_none }}";
 </script>
 
 </head>

@@ -86,10 +86,8 @@
 <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <script>
 var _status, _brightness = [];
-_status = {{ status|safe }};
-{% if brightness %}
-_brightness = {{ brightness|safe }};
-{% endif %}
+_status = {{ status|safe|list_if_none }};
+_brightness = {{ brightness|safe|list_if_none }};
 var mac = "{{ mac }}";
 </script>
 
