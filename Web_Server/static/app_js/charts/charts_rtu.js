@@ -141,7 +141,7 @@ $(document).ready(function(){
               _return_temperature  = _data.return_temperature;
               _heat_setpoint = _data.heat_setpoint;
               _cool_setpoint = _data.cool_setpoint;
-              _heating = _data.heating;
+              _heating = _data.heating_level;
               _outside_damper_position = _data.outside_damper_position;
               _bypass_damper_position = _data.bypass_damper_position;
 

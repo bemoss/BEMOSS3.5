@@ -90,7 +90,7 @@ var _supply_temperature, _outside_temperature, _return_temperature,
 
 _heat_setpoint = {{ heat_setpoint|safe|list_if_none }};
 _cool_setpoint = {{ cool_setpoint|safe|list_if_none }};
-_heating = {{ heating|safe|list_if_none }};
+_heating = {{ heating_level|safe|list_if_none }};
 _cooling_mode = {{ cooling_mode|safe|list_if_none }};
 _outside_damper_position = {{ outside_damper_position|safe|list_if_none }};
 _bypass_damper_position = {{ bypass_damper_position|safe|list_if_none }};
@@ -200,7 +200,7 @@ var mac = "{{ mac }}";
     </div>
   </div>
 </div>
-<div class="bottom-nav footer"> 2013 - 2014 &copy; Building Energy Management Open Source Software.  </div>
+<div class="bottom-nav footer"> 2013 - 2017 &copy; Building Energy Management Open Source Software.  </div>
 
 
 
