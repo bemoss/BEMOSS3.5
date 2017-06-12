@@ -117,7 +117,7 @@ a.jqplot-image-container-close {
 
 <script>
 var _status, _brightness = [];
-_status = {{ status|safe }};
+_status = {{ status|safe|list_if_none }};
 var device_info = "{{ device_info }}";
 var mac = "{{ mac }}";
 </script>
