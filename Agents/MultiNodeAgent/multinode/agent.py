@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from datetime import datetime
+import pytz
 import logging
 import sys
 
@@ -218,6 +219,10 @@ class MultiNodeAgent(BEMOSSAgent):
                         message[STATUS_CHANGE.AGENT_STATUS] = 'start'
                         message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.TEMPORARY
                         command_group += [message]
+                        self.curcon.execute("UPDATE " + node_devices_table + " SET current_node_id=(%s), date_move=(%s)"
+                                                                             " WHERE agent_id=(%s)",
+                                            (self.node_index, datetime.now(pytz.UTC), agent_id[0]))
+                        self.curcon.commit()
             print "moving agents from offline node to parent: " + str(node_name_list)
             print command_group
             if command_group:
@@ -249,6 +254,10 @@ class MultiNodeAgent(BEMOSSAgent):
                         message[STATUS_CHANGE.NODE] = str(node_id)
                         message[STATUS_CHANGE.AGENT_STATUS] = 'start' #start in the target node
                         command_group += [message]
+                        #immediately update the multnode device assignment table
+                        self.curcon.execute("UPDATE " + node_devices_table + " SET current_node_id=(%s), date_move=(%s)"
+                                                                             " WHERE agent_id=(%s)", (node_id, datetime.now(pytz.UTC), agent_id[0]))
+                        self.curcon.commit()
 
 
             print "Moving agents back to the online node: " + str(node_name_list)
@@ -473,9 +482,12 @@ class MultiNodeAgent(BEMOSSAgent):
             from_entity = topic_list[from_index]
 
         to_entity = topic_list[to_index]
+
         last_field = topic_list[-1]
         if last_field == 'republished': #it is already a republished message, no need to republish
             return
+        if to_entity in settings.NO_FORWARD_AGENTS:
+            return #no forwarding should be done for these agents
 
         if to_entity in settings.PARENT_NODE_SYSTEM_AGENTS :
             if not self.is_parent:
