@@ -48,6 +48,8 @@
 {% load switch_case %}
 {% load device_count_in_zone %}
 {% load timedelta %}
+{% load user_role %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -174,11 +176,13 @@ var mac = "{{ mac }}";
                 <button class="btn btn-info" id="get_stat" style="width:100%;">Get Statistics</button>
             </div>
         </div>
+            {% if request.user|has_group:'Admin' or request.user|has_group:'Zone Manager'%}
         <div class='col-sm-3'>
             <div class="form-group">
                  <button id="export_data" class="btn btn-success" >Export Data to Spreadsheet</button>
             </div>
         </div>
+            {% endif %}
         </div>
             </form>
     </div>
