@@ -87,8 +87,9 @@ DEVICES = {
     'device_monitor_time': 60,'max_monitor_time':1800
 }
 
-SYSTEM_AGENTS = ['networkagent','platformmonitoragent','multinodeagent','devicediscoveryagent']
-PARENT_NODE_SYSTEM_AGENTS = ['ui']
+SYSTEM_AGENTS = ['networkagent','platformmonitoragent','multinodeagent','devicediscoveryagent'] #
+PARENT_NODE_SYSTEM_AGENTS = ['ui','vipagent'] #message to this agents only be sent to core
+NO_FORWARD_AGENTS = ['tsdagent'] #messages to this agent will not be forwarded
 MULTINODE_PARENT_IP_FILE = PROJECT_DIR + '/parent_ip.txt'
 MULTINODE_DATA_PATH = '/multinode_data.json'
 
