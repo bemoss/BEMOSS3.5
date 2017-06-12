@@ -264,13 +264,14 @@ class NetworkAgent(BEMOSSAgent):
                     pass
             return agent_installed
 
-        if agent_id in settings.SYSTEM_AGENTS + settings.PARENT_NODE_SYSTEM_AGENTS:
+        if agent_id in settings.SYSTEM_AGENTS:
             #find the case-insensetive match for the folder name
             files_and_folders = os.listdir(settings.PROJECT_DIR+'/Agents/')
             folders = [folder for folder in files_and_folders if os.path.isdir(settings.PROJECT_DIR + '/Agents/' + folder)]
             for folder in folders:
                 if agent_id.lower() == folder.lower():
                     agent_folder = folder
+                    agent_path = "/Agents/" + agent_folder
                     break
             else:
                 raise ValueError('no matching agent folder exists for system agent:'+ agent_id)
@@ -303,7 +304,6 @@ class NetworkAgent(BEMOSSAgent):
                 self.curcon.execute("select app_folder from application_registered where application_id=(%s)", (app_type_id,))
                 agent_folder = self.curcon.fetchone()[0]
                 agent_path = "/Applications/code/" + agent_folder
-
         if not installed:
             os.system(#". env/bin/activate"
                           env_path + "volttron-pkg package " + settings.PROJECT_DIR + agent_path+";"+\
