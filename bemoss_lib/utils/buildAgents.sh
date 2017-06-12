@@ -56,8 +56,8 @@ python $1/bemoss_lib/utils/AddBemossUser.py
 volttron-pkg package $1/Agents/BasicAgent
 
 
-#Install discovery Agent
-./scripts/core/pack_install.sh $1/Agents/DeviceDiscoveryAgent $1/Agents/DeviceDiscoveryAgent/devicediscoveryagent.launch.json devicediscoveryagent
+#Install discovery Agent #Discovery agent will be started by multinodeagent on the core
+#./scripts/core/pack_install.sh $1/Agents/DeviceDiscoveryAgent $1/Agents/DeviceDiscoveryAgent/devicediscoveryagent.launch.json devicediscoveryagent
 
 #Install Platform agent
 ./scripts/core/pack_install.sh $1/Agents/PlatformMonitorAgent $1/Agents/PlatformMonitorAgent/platformmonitoragent.launch.json platformmonitoragent
