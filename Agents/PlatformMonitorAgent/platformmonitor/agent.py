@@ -337,11 +337,13 @@ class PlatformMonitorAgent(BEMOSSAgent):
                                  (row[0],))
                 if self.curcon.rowcount == 0:
                     print 'No info found for agent'
-                    continue
-
-                node_info = self.curcon.fetchone()
-                new_node = node_info[1]
-                old_node = node_info[0]
+                    print 'Assume node 0, then'
+                    current_node = 0
+                    assigned_node = 0
+                else:
+                    node_info = self.curcon.fetchone()
+                    current_node = node_info[1]
+                    assigned_node = node_info[0]
                 nickname = db_helper.get_device_nickname(self.curcon,row[0])
                 if row[0] in agentstatusresult:
 
@@ -352,15 +354,16 @@ class PlatformMonitorAgent(BEMOSSAgent):
                             self.last_seen_dead.pop(row[0])
                             self.EventRegister('restart',reason='restart by PMA',source=nickname)
 
-                        if row[1].upper() not in ['APR','APPROVED'] or new_node != self.mynode:
+                        if row[1].upper() not in ['APR','APPROVED'] or current_node != self.mynode:
                             #Stop the unapproved agent or agent on another node, if it is running
                             print 'Stopping unapproved agent: '+row[0]
                             os.system("volttron-ctl stop --tag " + row[0])
+                            os.system("volttron-ctl remove --tag " + row[0])
                         #Nothing more to do with this agent
                         continue
                     else:
                         #device agent has crashed; proceed to start it if it was approved and belong to this node:
-                        if new_node == self.mynode and row[1].upper() in ['APR', 'APPROVED']:
+                        if current_node == self.mynode and row[1].upper() in ['APR', 'APPROVED']:
                             #Agent dead, which was supposed to be alive
                             if row[0] not in self.last_seen_dead or self.retry_resurrection:
                                 print 'Found a dead agent, resurrecting: ' + row[0]
@@ -377,23 +380,14 @@ class PlatformMonitorAgent(BEMOSSAgent):
                 else:
                     #found device that doesn't even have agent installed. Possibly, agent from previous run,
                     # or agent in another the node. Start it if it is on the same node and approved
-                    if new_node == self.mynode and row[1].upper() in ['APR', 'APPROVED']:
+                    if current_node == self.mynode and row[1].upper() in ['APR', 'APPROVED']:
                         #the agent is supposed to be running on this node
-                        _launch_file = os.path.join(Agents_Launch_DIR+row[0]+".launch")
-                        try:
-                            with open(_launch_file, 'r') as infile:
-                                data=json.load(infile)
-                        except Exception as er:
-                            #Launch-File doesn't exist. Wait until it exists
-                            pass
-                        else:
-                            agent_id=data["agent_id"]
-                            message = dict()
-                            message[STATUS_CHANGE.AGENT_ID] = row[0]
-                            message[STATUS_CHANGE.NODE] = str(new_node)
-                            message[STATUS_CHANGE.AGENT_STATUS] = 'start'
-                            message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.PERMANENT
-                            command_group.append(message)
+                        message = dict()
+                        message[STATUS_CHANGE.AGENT_ID] = row[0]
+                        message[STATUS_CHANGE.NODE] = str(current_node)
+                        message[STATUS_CHANGE.AGENT_STATUS] = 'start'
+                        message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.PERMANENT
+                        command_group.append(message)
                         continue
                     else:
                         #print "Agent from other node found, or agent not approved. Ignore. Agent on other node will be started by platformmonitor agent there"
