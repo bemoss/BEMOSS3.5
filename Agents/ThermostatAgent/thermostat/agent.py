@@ -331,7 +331,7 @@ class ThermostatAgent(BasicAgent):
                         if v in ['cool_setpoint','heat_setpoint']:
                             current_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now())
                             ahead_schedule_setpoints = self.getScheduleSetpoint(datetime.datetime.now()+datetime.timedelta(minutes=10))
-                            if self.Device.variables[v] in  [current_schedule_setpoints[v], ahead_schedule_setpoints[v]] and self.variables['hold'] in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
+                            if self.Device.variables[v] in  [current_schedule_setpoints[v], ahead_schedule_setpoints[v]] and self.get_variable('hold') in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
                                 validChange = True #the setpoint matches the schedule, so its valid
                                 self.authorized_variables[v] = self.Device.variables[v]
 
@@ -346,12 +346,12 @@ class ThermostatAgent(BasicAgent):
                                 else:
                                     self.authorized_variables[v] = self.variables[v]
                         if v == 'hold':
-                            if self.Device.variables[v] in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY] and\
-                                    self.variables[v] in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
+                            if self.Device.get_variable(v) in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY] and\
+                                    self.get_variable(v) in [BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.NONE,BEMOSS_ONTOLOGY.HOLD.POSSIBLE_VALUES.TEMPORARY]:
                                 #changes from NONE to TEMPORARY or vice versa is accepted. It cannot happen without change of set-point.
                                 validChange = True
 
-                        if v in self.variables and self.variables[v] is not None and self.variables['anti_tampering']=="ENABLED" and not validChange:
+                        if v in self.variables and self.variables[v] is not None and self.get_variable('anti_tampering')=="ENABLED" and not validChange:
                             #tampering case
                             if v in ['cool_setpoint', 'heat_setpoint']:
                                 sign = 1 if self.Device.variables[v] > self.variables[v] else -1
