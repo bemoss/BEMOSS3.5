@@ -88,12 +88,12 @@
 var _supply_temperature, _outside_temperature, _return_temperature,
         _heat_setpoint, _cool_setpoint, _heating, _cooling_mode, _outside_damper_position, _bypass_damper_position = [];
 
-_heat_setpoint = {{ heat_setpoint|safe }};
-_cool_setpoint = {{ cool_setpoint|safe }};
-_heating = {{ heating|safe }};
-_cooling_mode = {{ cooling_mode|safe }};
-_outside_damper_position = {{ outside_damper_position|safe }};
-_bypass_damper_position = {{ bypass_damper_position|safe }};
+_heat_setpoint = {{ heat_setpoint|safe|list_if_none }};
+_cool_setpoint = {{ cool_setpoint|safe|list_if_none }};
+_heating = {{ heating|safe|list_if_none }};
+_cooling_mode = {{ cooling_mode|safe|list_if_none }};
+_outside_damper_position = {{ outside_damper_position|safe|list_if_none }};
+_bypass_damper_position = {{ bypass_damper_position|safe|list_if_none }};
 var mac = "{{ mac }}";
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>

@@ -86,11 +86,11 @@
 
 <script>
 var _temperature, _supply_temperature, _heat_setpoint, _cool_setpoint, _flap_position = [];
-_temperature = {{ temperature|safe }};
-_supply_temperature = {{ supply_temperature|safe }};
-_heat_setpoint = {{ heat_setpoint|safe }};
-_cool_setpoint = {{ cool_setpoint|safe }};
-_flap_position = {{ flap_position|safe }};
+_temperature = {{ temperature|safe|list_if_none|list_if_none }};
+_supply_temperature = {{ supply_temperature|safe|list_if_none }};
+_heat_setpoint = {{ heat_setpoint|safe|list_if_none }};
+_cool_setpoint = {{ cool_setpoint|safe|list_if_none }};
+_flap_position = {{ flap_position|safe|list_if_none }};
 var mac = "{{ mac }}";
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>

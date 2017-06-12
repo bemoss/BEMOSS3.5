@@ -485,7 +485,7 @@ class ThermostatAgent(BasicAgent):
             # self.updateDBall()
             self.updatePostgresDB()
         #insert the new data into cassandraDB
-        self.TSDInsert(self.agent_id, UIdata, self.log_variables)
+        self.TSDInsert(self.agent_id, self.variables, self.log_variables)
         self.bemoss_publish('update_response', return_entity, message)
 
 

@@ -53,6 +53,12 @@ from datetime import datetime, timedelta
 
 register = template.Library()
 
+@register.filter
+def list_if_none(val):
+    if val=='':
+        return []
+    else:
+        return  val
 
 @register.filter
 def get_item(dictionary, key):

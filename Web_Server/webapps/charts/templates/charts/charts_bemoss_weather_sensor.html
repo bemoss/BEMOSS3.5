@@ -82,10 +82,10 @@ Address all correspondence regarding this license to Virginia Tech's electronic 
 
 <script>
 var _outdoor_humidity, _pressure, _outdoor_temp, _wind = [];
-_wind = {{ v_wind|safe }};
-_pressure = {{ pressure|safe }};
-_outdoor_humidity = {{ humidity|safe }};
-_outdoor_temp = {{ temperature|safe }};
+_wind = {{ v_wind|safe|list_if_none }};
+_pressure = {{ pressure|safe|list_if_none }};
+_outdoor_humidity = {{ humidity|safe|list_if_none }};
+_outdoor_temp = {{ temperature|safe|list_if_none }};
 
 var mac = "{{ mac }}";
 </script>
@@ -134,8 +134,9 @@ var mac = "{{ mac }}";
                  <button id="export_data" class="btn btn-success" >Export Data to Spreadsheet</button>
             </div>
         </div>
-        </div>
             {% endif %}
+        </div>
+
 
       <div class="row">
       <div class="col-lg-9">

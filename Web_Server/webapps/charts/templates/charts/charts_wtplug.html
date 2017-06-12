@@ -86,8 +86,8 @@
 
 <script>
 var _status, _power = [];
-_status = {{ status|safe }};
-_power = {{ power|safe }};
+_status = {{ status|safe|list_if_none }};
+_power = {{ power|safe|list_if_none }};
 var device_info = "{{ device_info }}";
 var mac = "{{ mac }}";
 </script>

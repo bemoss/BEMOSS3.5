@@ -85,14 +85,10 @@
 
 <script>
 var temperature, heat_setpoint, cool_setpoint = [];
-temperature = {{ temperature|safe }};
-heat_setpoint = {{ heat_setpoint|safe }};
-cool_setpoint = {{ cool_setpoint|safe }};
-{% if weather_temperature != None %}
-outdoor_temperature = {{weather_temperature|safe}};
-    {% else %}
-    outdoor_temperature = [];
-{% endif %}
+temperature = {{ temperature|safe|list_if_none }};
+heat_setpoint = {{ heat_setpoint|safe|list_if_none }};
+cool_setpoint = {{ cool_setpoint|safe|list_if_none }};
+outdoor_temperature = {{weather_temperature|safe|list_if_none}};
 //var device_info = "{{ device_info }}";
 var mac = "{{ mac }}";
 
