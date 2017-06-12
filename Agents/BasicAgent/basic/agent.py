@@ -317,7 +317,7 @@ class BasicAgent(BEMOSSAgent):
             message = 'failure'
 
         self.bemoss_publish('update_response',return_entity,message,headers=headers)
-        self.deviceMonitorBehavior()
+        #self.deviceMonitorBehavior()
 
     def isPostmsgValid(self, postmsg):
         # check validity of postmsg, this method will be overwritten by child class method
