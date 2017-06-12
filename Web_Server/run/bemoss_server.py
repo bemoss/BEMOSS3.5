@@ -206,7 +206,7 @@ class MainHandler(websocket.WebSocketHandler):
 
     def zmq_subscribe(self,agent_id):
         #self.sub_socket.setsockopt(zmq.SUBSCRIBE, "")
-        topicfilter = "/to/ui/"
+        topicfilter = "to/ui/"
         self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, "to/ui/from/"+agent_id)
         #self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, u'')
 

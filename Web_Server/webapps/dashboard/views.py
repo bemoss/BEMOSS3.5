@@ -53,6 +53,7 @@ import _utils.defaults as __
 import re
 from _utils.device_list_utils import get_device_list_and_count
 from webapps.deviceinfos.models import Miscellaneous
+import pytz
 from webapps.deviceinfos.models import SupportedDevices
 from webapps.multinode.models import NodeInfo, NodeDeviceStatus
 
@@ -77,7 +78,7 @@ import django_web_server.settings_tornado
 from webapps.device.models import Devicedata
 from webapps.schedule.models import Holiday
 from webapps.discovery.models import PasswordsManager
-from webapps.multinode.models import NodeInfo
+from webapps.multinode.models import NodeInfo, NodeDeviceStatus
 from django.views.decorators.csrf import csrf_protect
 
 import settings
@@ -291,6 +292,15 @@ def change_zones(request):
             device_instance.nickname = row[2]
             device_instance.approval_status = updated_approval_status
             device_instance.save()
+
+            try:
+                device_node_entry = NodeDeviceStatus.objects.get(agent_id=row[0])
+                device_node_entry.assigned_node=node
+                device_node_entry.current_node=node
+                device_node_entry.date_move = datetime.now(pytz.UTC)
+            except NodeDeviceStatus.DoesNotExist:
+                device_node_entry = NodeDeviceStatus(agent_id=row[0],assigned_node=node,current_node=node,date_move=datetime.now(pytz.UTC))
+            device_node_entry.save()
 
         vip_publish(zone_update_send_topic, command_group)
         vip_publish(zone_update_send_topic2,command_group)
