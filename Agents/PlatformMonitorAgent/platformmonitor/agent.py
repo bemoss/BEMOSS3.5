@@ -386,7 +386,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         message[STATUS_CHANGE.AGENT_ID] = row[0]
                         message[STATUS_CHANGE.NODE] = str(current_node)
                         message[STATUS_CHANGE.AGENT_STATUS] = 'start'
-                        message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.PERMANENT
+                        message[STATUS_CHANGE.NODE_ASSIGNMENT_TYPE] = ZONE_ASSIGNMENT_TYPES.TEMPORARY
                         command_group.append(message)
                         continue
                     else:
