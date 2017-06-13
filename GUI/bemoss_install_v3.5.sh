@@ -70,6 +70,7 @@ python bemoss_lib/databases/cassandraAPI/initialize.py
 sudo bemoss_lib/utils/increase_open_file_limit.sh
 rm bemoss_lib/utils/increase_open_file_limit.sh
 deactivate
+python Agents/MultiNodeAgent/generate_certificates.py 2
 # Direct user to post installation configuration
 echo "******************************************************************************"
 echo "*                                                                            *"
