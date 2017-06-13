@@ -65,7 +65,7 @@ mkdir -p ~/.volttron/agents
 mkdir -p .temp
 python bemoss_lib/utils/platform_initiator.py
 # Prompt user for Cassandra Authorization Info
-python bemoss_lib/databases/cassandraAPI/initialize.pys
+python bemoss_lib/databases/cassandraAPI/initialize.py
 # Fix miscellaneaus issues
 sudo bemoss_lib/utils/increase_open_file_limit.sh
 rm bemoss_lib/utils/increase_open_file_limit.sh
