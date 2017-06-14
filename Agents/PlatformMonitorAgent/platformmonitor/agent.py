@@ -523,7 +523,7 @@ class PlatformMonitorAgent(BEMOSSAgent):
                         for event in eventlist:
                             event_count += 1
                             report_lines += 'On '+str(date_converter.UTCToLocal(event.time).date()) + ', at '\
-                                            +datetime.datetime.strftime(event.time,'%H:%M:%S') + '<b> '+str(event.source) + ' : ' + str(event.event)+'</b> because of ' + str(event.reason)
+                                            +datetime.datetime.strftime(date_converter.UTCToLocal(event.time),'%H:%M:%S') + '<b> '+str(event.source) + ' : ' + str(event.event)+'</b> because of ' + str(event.reason)
                             report_lines += '<br/>'
                             self.last_event_log_time = event.logged_time
 
