@@ -25,11 +25,11 @@ def toLocal(user_date):
     return user_date.astimezone(bemoss_tmzone)
 
 def serialize(date):
-    return str(time.mktime(date.timetuple())) + "*" + str(date.tzinfo)
+    return str(date.strftime('%Y-%m-%d %H:%M:%S:%f') + "*" + str(date.tzinfo))
 
 def deserialize(date):
-    timestamp, tz = date.split('*')
-    dt = datetime.datetime.fromtimestamp(float(timestamp))
+    dttimestr, tz = date.split('*')
+    dt = datetime.datetime.strptime(dttimestr,'%Y-%m-%d %H:%M:%S:%f')
     if tz != "None":
         tz = pytz.timezone(tz)
         return tz.localize(dt)
