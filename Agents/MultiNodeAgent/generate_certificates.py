@@ -34,9 +34,7 @@ def generate_certificates(base_dir,number):
 
         # move public keys to appropriate directory
         for key_file in os.listdir(keys_dir):
-            if key_file.startswith('client') and key_file.endswith('.key'): #delete client public keys
-                os.remove(os.path.join(keys_dir, key_file))
-            elif key_file.endswith(".key"): #move server public keys
+            if key_file.endswith(".key"): #move public keys
                 shutil.move(os.path.join(keys_dir, key_file),
                             os.path.join(public_keys_dir, '.'))
 
