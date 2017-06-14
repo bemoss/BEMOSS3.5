@@ -103,7 +103,7 @@ class SchedulerAgent(Agent):
             if self.curcon.rowcount:
                 self.app_data = self.curcon.fetchone()[0]
                 self.device_agent_id = self.app_data['device_agent_id']
-                self.topic_ui_app = '/to/' +self.agent_id + '/update/from/ui'
+                self.topic_ui_app = 'to/' +self.agent_id + '/update/from/ui'
                 self.topic_app_ui = 'to/ui/update/from/' + self.agent_id
 
             else:
