@@ -161,6 +161,8 @@ def bootstrap(dest, prompt='(volttron)', version=None, verbose=None):
                 doap_xml = response.read()
             self.version = re.search(
                 r'<revision>([^<]*)</revision>', doap_xml).group(1)
+            # Temporary fix on April 4th, 2018, hardcoding version number. See Issue #37
+            self.version = '15.1.0'
             return self.version
 
         def download(self, directory):
