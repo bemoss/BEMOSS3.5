@@ -153,15 +153,8 @@ def bootstrap(dest, prompt='(volttron)', version=None, verbose=None):
             return response
 
         def get_version(self):
-            '''Return the latest version from virtualenv DOAP record.'''
-            _log.info('Downloading virtualenv DOAP record')
-            doap_url = ('https://pypi.python.org/pypi'
-                        '?:action=doap&name=virtualenv')
-            with contextlib.closing(self._fetch(doap_url)) as response:
-                doap_xml = response.read()
-            self.version = re.search(
-                r'<revision>([^<]*)</revision>', doap_xml).group(1)
-            # Temporary fix on April 4th, 2018, hardcoding version number. See Issue #37
+            # Update on April 18th, 2018, DOAP of virtualenv is no longer available. See Issue #38
+            # TODO: Hardcode a version number for now.
             self.version = '15.1.0'
             return self.version
 
