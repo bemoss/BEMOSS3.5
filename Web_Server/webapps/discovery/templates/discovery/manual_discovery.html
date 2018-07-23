@@ -85,7 +85,7 @@
 <script src="/static/assets/slider_enhancer/jquery-ui-slider-pips.min.js"></script>
 <script class="include" type="text/javascript" src="/static/app_js/jquery.csrftoken.min.js"></script>
           <script class="include" type="text/javascript" src="/static/app_js/bootstrap-notify.js"></script>
-       <script class="include" type="text/javascript" src=/static/javascript/ui/notify.min.js"></script>
+       <script class="include" type="text/javascript" src="/static/javascript/ui/notify.min.js"></script>
     <style>
         a.disabled_me {
            pointer-events: none;
@@ -126,17 +126,17 @@ var uzone = 9999;
             <div class="widget widget-content text-center">
             {% if discovery_status.value == 'ON' %}
             <h4 class=""
-                         id="pnp_on"><i class="fa fa-spinner fa-spin" id=pnp-spin"></i>
+                         id="pnp_on"><i class="fa fa-spinner fa-spin" id="pnp-spin"></i>
                  Plug and Play Discovery In Progress</h4>
                 <h4 style="display:none;" class=""
-                         id="pnp_off"><i class="icon-search" id=pnp-spin"></i>
+                         id="pnp_off"><i class="icon-search" id="pnp-spin"></i>
                  Plug and Play Discovery Process Complete. Use the widgets below to enable device discovery. </h4>
                 {% else %}
                 <h4 style="display:none;" class=""
-                         id="pnp_on"><i class="fa fa-spinner fa-spin" id=pnp-spin"></i>
+                         id="pnp_on"><i class="fa fa-spinner fa-spin" id="pnp-spin"></i>
                  Plug and Play Discovery In Progress</h4>
                 <h4 style="color: yellow;"
-                         id="pnp_off"><i class="icon-search" id=pnp-spin"></i>
+                         id="pnp_off"><i class="icon-search" id="pnp-spin"></i>
                  Plug and Play Discovery Process Complete. <br> Use the widgets below to enable device discovery.  </h4>
                 {% endif %}
             </div>

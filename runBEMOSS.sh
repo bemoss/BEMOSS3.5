@@ -69,5 +69,5 @@ source bemoss_lib/utils/buildAgents.sh $PROJECT_DIR
 cd $PROJECT_DIR
 source bemoss_lib/utils/runPlatform.sh $PROJECT_DIR
 #Step5: Configure webserver to run on own IP and Bind BACnet with IP
-#source start_webserver.sh
+source start_webserver.sh $PROJECT_DIR
 
