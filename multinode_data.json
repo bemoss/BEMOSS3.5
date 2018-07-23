@@ -6,7 +6,7 @@
             "server_secret_key": "server1.key_secret", 
             "server_key": "server1.key", 
             "name": "Node1", 
-            "address": "tcp://192.168.10.140:9000"
+            "address": "tcp://192.168.1.37:9000"
         } 
         
     ]

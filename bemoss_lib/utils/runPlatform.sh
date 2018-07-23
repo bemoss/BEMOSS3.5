@@ -47,18 +47,18 @@
 
 
 cd $1/
-echo $i > $1/.temp/BEMOSS.pid
-#volttron-ctl start --tag devicediscoveryagent
-#sleep 2
-#volttron-ctl start --tag applauncheragent
+echo $$ > $1/.temp/BEMOSS.pid
+volttron-ctl start --tag devicediscoveryagent
+sleep 2
+volttron-ctl start --tag applauncheragent
 sleep 2
 volttron-ctl start --tag approvalhelperagent
 sleep 2
 volttron-ctl start --tag platformmonitoragent
 sleep 2
 volttron-ctl start --tag bacnetagent
-#sleep 2
-#volttron-ctl start --tag multibuildingagent
+sleep 2
+volttron-ctl start --tag multibuildingagent
 sleep 2
 volttron-ctl start --tag networkagent
 sleep 2
@@ -69,8 +69,8 @@ sleep 10
 #network agent needs to fully start before multinodeagent can be started
 volttron-ctl start --tag multinodeagent
 sleep 2
-#volttron-ctl start --tag openadragent
-#sleep 2
-#volttron-ctl start --tag testdragent
-#volttron-ctl status
+volttron-ctl start --tag openadragent
+sleep 2
+volttron-ctl start --tag testdragent
+volttron-ctl status
 deactivate

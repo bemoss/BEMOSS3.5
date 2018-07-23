@@ -47,7 +47,7 @@
 . env/bin/activate
 echo Got this for address:
 echo $1
-volttron -vv 2>&1 | tee $1/log/volttron.log &
+volttron -vv 2>&1>$1/log/volttron.log & # | tee $1/log/volttron.log &
 
 rm -rf ~/.volttron/packaged/*
 rm -rf ~/.volttron/agents/*
@@ -57,7 +57,7 @@ volttron-pkg package $1/Agents/BasicAgent
 
 
 #Install discovery Agent #Discovery agent will be started by multinodeagent on the core
-#./scripts/core/pack_install.sh $1/Agents/DeviceDiscoveryAgent $1/Agents/DeviceDiscoveryAgent/devicediscoveryagent.launch.json devicediscoveryagent
+./scripts/core/pack_install.sh $1/Agents/DeviceDiscoveryAgent $1/Agents/DeviceDiscoveryAgent/devicediscoveryagent.launch.json devicediscoveryagent
 
 #Install Platform agent
 ./scripts/core/pack_install.sh $1/Agents/PlatformMonitorAgent $1/Agents/PlatformMonitorAgent/platformmonitoragent.launch.json platformmonitoragent
@@ -88,16 +88,20 @@ volttron-pkg package $1/Agents/BasicAgent
 
 #sudo chmod 777 -R ~/.volttron/packaged/
 
+### 
+### Applications fail to install because bemossdb.executable table does not exists...
+###
+
 #Install Apps
-#cd $1/Applications/code/Thermostat_Scheduler
-#sudo python installapp.py
-#cd $1/Applications/code/Lighting_Scheduler
-#python installapp.py
-#cd $1/Applications/code/Plugload_Scheduler
-#python installapp.py
-#cd $1/Applications/code/IlluminanceBasedLightingControl
-#python installapp.py
-#cd $1/Applications/code/Fault_Detection
-#python installapp.py
-#sudo chmod 777 -R ~/workspace
-#echo "BEMOSS App installation complete!"
+# cd $1/Applications/code/Thermostat_Scheduler
+# sudo python installapp.py
+# cd $1/Applications/code/Lighting_Scheduler
+# python installapp.py
+# cd $1/Applications/code/Plugload_Scheduler
+# python installapp.py
+# cd $1/Applications/code/IlluminanceBasedLightingControl
+# python installapp.py
+# cd $1/Applications/code/Fault_Detection
+# python installapp.py
+# sudo chmod 777 -R ~/workspace
+echo "BEMOSS App installation complete!"

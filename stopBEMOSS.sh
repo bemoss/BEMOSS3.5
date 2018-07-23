@@ -46,6 +46,6 @@
 #__lastUpdated__ = "2016-03-14 11:23:33"
 
 sudo killall volttron
-sudo kill $(cat BEMOSS.pid)
+sudo kill $(cat .temp/BEMOSS.pid)
 fuser -n udp -k 47808
-sudo rm BEMOSS.pid
+sudo rm .temp/BEMOSS.pid
