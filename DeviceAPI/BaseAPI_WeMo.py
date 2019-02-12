@@ -36,7 +36,7 @@ expressed herein do not necessarily state or reflect those of the United States 
 VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
 under Contract DE-EE0006352
 
-#__author__ =  "BEMOSS Team"
+#__author__ = "Mengmeng Cai"
 #__credits__ = ""
 #__version__ = "3.5"
 #__maintainer__ = "BEMOSS Team"
@@ -134,7 +134,7 @@ class baseAPI_WeMo(baseAPI):
             SOAPACTION = '"urn:Belkin:service:insight:1#GetInsightParams"'
             body = "<?xml version='1.0' encoding='utf-8'?><s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/' s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'><s:Body><u:GetInsightParams xmlns:u='urn:Belkin:service:insight:1'></u:GetInsightParams></s:Body></s:Envelope>"
             controlUrl = self.get_variable('address') + '/upnp/control/insight1'
-        elif self.get_variable("model") == "Socket" or self.get_variable("model") == "LightSwitch":
+        elif self.get_variable("model") == "Socket" or self.get_variable("model") == "LightSwitch" or self.get_variable("model") == "Dimmer":
             SOAPACTION = '"urn:Belkin:service:basicevent:1#GetBinaryState"'
             body = "<?xml version='1.0' encoding='utf-8'?><s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/' s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'><s:Body><u:GetBinaryState xmlns:u='urn:Belkin:service:basicevent:1'></u:GetBinaryState></s:Body></s:Envelope>"
             controlUrl = self.get_variable('address') + '/upnp/control/basicevent1'
@@ -181,6 +181,14 @@ class baseAPI_WeMo(baseAPI):
                     devicedata['status'] = BEMOSS_ONTOLOGY.STATUS.POSSIBLE_VALUES.OFF
                 elif int(dom.getElementsByTagName('BinaryState')[0].firstChild.data) == 1 | True:
                     devicedata['status'] = BEMOSS_ONTOLOGY.STATUS.POSSIBLE_VALUES.ON
+	    elif self.get_variable("model") == "Dimmer":
+		if int(dom.getElementsByTagName('BinaryState')[0].firstChild.data) == 0 | False:
+                    		devicedata['status'] = BEMOSS_ONTOLOGY.STATUS.POSSIBLE_VALUES.OFF
+				devicedata['brightness'] = dom.getElementsByTagName('brightness')[0].firstChild.data
+                elif int(dom.getElementsByTagName('BinaryState')[0].firstChild.data) == 1 | True:
+                    		devicedata['status'] = BEMOSS_ONTOLOGY.STATUS.POSSIBLE_VALUES.ON
+                    		devicedata['brightness'] = dom.getElementsByTagName('brightness')[0].firstChild.data
+					
 
             else:
                 "{0}Agent : currently Wemo device model {1} is not supported by BEMOSS".format(
@@ -207,13 +215,28 @@ class baseAPI_WeMo(baseAPI):
 
         if _data[BEMOSS_ONTOLOGY.STATUS.NAME] == BEMOSS_ONTOLOGY.STATUS.POSSIBLE_VALUES.OFF:
             newstatus = 0
-        elif _data[BEMOSS_ONTOLOGY.STATUS.NAME] == BEMOSS_ONTOLOGY.STATUS.POSSIBLE_VALUES.ON:
+        else:
             newstatus = 1
+	
+	
 
-        body = "<?xml version='1.0' encoding='utf-8'?><s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/' " \
+	if "brightness" in _data :
+
+		newbrightness = _data[BEMOSS_ONTOLOGY.BRIGHTNESS.NAME]
+
+            	body = "<?xml version='1.0' encoding='utf-8'?><s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/' " \
                "s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'><s:Body><u:SetBinaryState " \
                "xmlns:u='urn:Belkin:service:basicevent:1'><BinaryState>" + str(int(newstatus)) \
-               + "</BinaryState></u:SetBinaryState></s:Body></s:Envelope>"
+	            +"</BinaryState><brightness>" + str(int(newbrightness)) \
+                + "</brightness></u:SetBinaryState></s:Body></s:Envelope>"
+
+
+	else :
+
+            	body = "<?xml version='1.0' encoding='utf-8'?><s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/' " \
+               "s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'><s:Body><u:SetBinaryState " \
+               "xmlns:u='urn:Belkin:service:basicevent:1'><BinaryState>" + str(int(newstatus)) \
+                + "</BinaryState></u:SetBinaryState></s:Body></s:Envelope>"
 
         controlUrl = self.get_variable('address') + '/upnp/control/basicevent1'
         try:
@@ -229,13 +252,12 @@ class baseAPI_WeMo(baseAPI):
             print("ERROR: classAPI_WeMo connection failure! @ setDeviceStatus")
             setDeviceStatusResult = False
         self.getDataFromDevice()
-        self.set_variable('status', self.get_variable('status'))
+        
         return setDeviceStatusResult
 
     def identifyDevice(self):
         identifyDeviceResult = False
         try:
-            self.getDeviceStatus()
             self.toggleDeviceStatus()
             print(self.get_variable("model")+" is being identified with starting status "+str(self.get_variable('status')))
             self.timeDelay(5)
@@ -252,6 +274,30 @@ class baseAPI_WeMo(baseAPI):
             self.setDeviceStatus({"status":"OFF"})
         else:
             self.setDeviceStatus({"status":"ON"})
+    def preidentify_message(self):
+        identifyDeviceResult = False
+        print(" {0}Agent for {1} is identifying itself by doing colorloop. Please observe your lights"
+              .format(self.variables.get('agent_id', None), self.variables.get('model', None)))
+        self.devicewasoff = 0
+        if self.get_variable('status') == "OFF":
+            self.devicewasoff = 1
+            message={"status": "ON"}
+            return message
+        else:
+            return {"status": "OFF"}
+
+
+    def postidentify_message(self):
+        if self.devicewasoff:
+            return {"status": "OFF"}
+        else:
+            message = {"status": "ON"}
+            return message
+
+
+
+
+
 
     def timeDelay(self, time_iden):  # specify time_iden for how long to delay the process
         t0 = time.time()
