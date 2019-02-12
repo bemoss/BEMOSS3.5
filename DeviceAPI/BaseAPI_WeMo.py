@@ -36,7 +36,7 @@ expressed herein do not necessarily state or reflect those of the United States 
 VIRGINIA TECH – ADVANCED RESEARCH INSTITUTE
 under Contract DE-EE0006352
 
-#__author__ = "Mengmeng Cai"
+#__author__ = "Ashraful Haque"
 #__credits__ = ""
 #__version__ = "3.5"
 #__maintainer__ = "BEMOSS Team"
