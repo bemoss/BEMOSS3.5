@@ -103,7 +103,7 @@ def get_weather_info():
     if zipcode == '22203' and ip_zipcode is not None:
         zipcode = ip_zipcode
 
-    rs = {}
+    #rs = {}
     try:
         # Get weather underground service key
         wu_key = settings.WUNDERGROUND_KEY
@@ -117,20 +117,19 @@ def get_weather_info():
     except Exception:
         import traceback
         logger.error('generic exception: ' + traceback.format_exc())
-    print rs
-    print zipcode
+    #print rs
+    #print zipcode
 
-    json_string = rs.read() if rs != {} else {}
+    #json_string = rs.read() if rs != {} else {}
     try:
-        parsed_json = json.loads(json_string)
-        location = parsed_json['current_observation']['display_location']['full']
-        temp_f = parsed_json['current_observation']['temp_f']
-        humidity = parsed_json['current_observation']['relative_humidity']
-        precip = parsed_json['current_observation']['precip_1hr_in']
-        precip = precip if float(precip)>0 else '0.0'
-        winds = parsed_json['current_observation']['wind_mph']
-        icon = str(parsed_json['current_observation']['icon'])
-        weather = parsed_json['current_observation']['weather']
+        #parsed_json = json.loads(json_string)
+        location = 'Arlington, VA (Default, please update settings)'
+        temp_f = '77'
+        humidity = '10%'
+        precip ='0.0'
+        winds = '1.0'
+        icon = 'mostlysunny'
+        weather = 'Sunny'
     except Exception:
         location = 'Arlington, VA (Default, please update settings)'
         temp_f = '77'
@@ -143,7 +142,7 @@ def get_weather_info():
     weather_icon = config_helper.get_weather_icon(icon)
 
     weather_info = {'location':location, 'temp_f':temp_f, 'humidity':humidity, 'precip':precip, 'winds':winds, 'weather':
-        weather, 'weather_icon':weather_icon}
+        weather, 'weather_icon':weather_icon,'zip_code':22311}
 
     return weather_info
 
