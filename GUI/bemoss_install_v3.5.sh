@@ -45,11 +45,11 @@ sudo -u postgres psql -d bemossdb -c "create extension hstore;"
 sudo apt-get install openjdk-8-jre libjna-java --assume-yes
 # Install Cassandra
 cd $projectpath
-wget http://downloads.datastax.com/community/dsc-cassandra-3.0.9-bin.tar.gz
-tar -xzf dsc-cassandra-3.0.9-bin.tar.gz
-sudo rm dsc-cassandra-3.0.9-bin.tar.gz 
+wget https://archive.apache.org/dist/cassandra/3.0.9/apache-cassandra-3.0.9-bin.tar.gz
+tar -xzf apache-cassandra-3.0.9-bin.tar.gz
+sudo rm apache-cassandra-3.0.9-bin.tar.gz
 sudo rm -rf cassandra/
-sudo mv dsc-cassandra-3.0.9 cassandra
+sudo mv apache-cassandra-3.0.9 cassandra
 # Install Cassandra Driver
 # (For better performance of Cassandra, the install-option can be removed but might cause installation failure in some boards.)
 CASS_DRIVER_NO_CYTHON=1 pip install cassandra-driver
