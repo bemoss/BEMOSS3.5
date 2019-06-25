@@ -48,7 +48,7 @@ import re
 import tkMessageBox
 import netifaces
 from PIL import Image
-import ImageTk
+from PIL import ImageTk
 import shutil
 import volttronFunc
 
