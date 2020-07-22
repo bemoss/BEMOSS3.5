@@ -21,23 +21,23 @@ class Historian(BaseHistorian):
 
 
 def prep_config(volttron_home):
-    src_driver = os.getcwd() + '/services/core/MasterDriverAgent/master_driver/test_fakedriver.config'
+    src_driver = os.getcwd() + '/services/core/MainDriverAgent/main_driver/test_fakedriver.config'
     new_driver = volttron_home + '/test_fakedriver.config'
     shutil.copy(src_driver, new_driver)
 
     with open(new_driver, 'r+') as f:
         config = json.load(f)
-        config['registry_config'] = os.getcwd() + '/services/core/MasterDriverAgent/master_driver/fake.csv'
+        config['registry_config'] = os.getcwd() + '/services/core/MainDriverAgent/main_driver/fake.csv'
         f.seek(0)
         f.truncate()
         json.dump(config, f)
 
-    master_config = {
-        "agentid": "master_driver",
+    main_config = {
+        "agentid": "main_driver",
         "driver_config_list": [new_driver]
     }
 
-    return master_config
+    return main_config
 
 
 foundtopic = False
@@ -52,9 +52,9 @@ def test_base_historian(volttron_instance1):
     v1 = volttron_instance1
     assert v1.is_running()
 
-    master_config = prep_config(v1.volttron_home)
-    master_uuid = v1.install_agent(agent_dir="services/core/MasterDriverAgent",
-                                   config_file=master_config)
+    main_config = prep_config(v1.volttron_home)
+    main_uuid = v1.install_agent(agent_dir="services/core/MainDriverAgent",
+                                   config_file=main_config)
     gevent.sleep(2)
 
     db = Historian(address=v1.vip_address[0],

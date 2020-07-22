@@ -89,8 +89,8 @@ def build_configs():
         config_paths.extend(configs)
         command_lines.extend(commands)
         
-    #config_builder.build_master_config(test_settings.master_driver_file, config_dir, config_paths)
-    config_builder.build_master_config(test_settings.master_driver_file,
+    #config_builder.build_main_config(test_settings.main_driver_file, config_dir, config_paths)
+    config_builder.build_main_config(test_settings.main_driver_file,
                                        config_full_path,
                                        config_paths,
                                        True,

@@ -59,7 +59,7 @@ virtual_device_host = 'localhost'
 device_types = {'bacnet': (1, 'device-configs/bacnet_lab.csv'),
                 'modbus': (1, 'device-configs/catalyst371.csv')}
 
-#Output directory for configurations for the master driver agent 
+#Output directory for configurations for the main driver agent 
 # and individual drivers on the local host.
 #Directory will be created if it does not exist.
 config_dir = "configs"
@@ -67,8 +67,8 @@ config_dir = "configs"
 #Volttron installation directory on virtua_device_host.
 volttron_install = "~/volttron"
 
-#Master driver config file name
-master_driver_file = "master-driver.agent"
+#Main driver config file name
+main_driver_file = "main-driver.agent"
 
 #Location of virtual device config files on virtual device host.
 #Directory will be created if it does not exist and will

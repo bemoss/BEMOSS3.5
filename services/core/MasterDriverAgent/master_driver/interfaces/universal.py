@@ -52,7 +52,7 @@
 import random
 
 from volttron.platform.agent import utils
-from master_driver.interfaces import BaseInterface, BaseRegister, BasicRevert
+from main_driver.interfaces import BaseInterface, BaseRegister, BasicRevert
 from csv import DictReader
 from StringIO import StringIO
 import gevent
@@ -117,7 +117,7 @@ class Interface(BasicRevert, BaseInterface):
         return register._value
 
     # this gets called periodically via DriverAgent::periodic_read()
-    #    ( on behalf of MasterDriverAgent )
+    #    ( on behalf of MainDriverAgent )
     def _scrape_all(self):
         result = {}
         read_registers = self.get_registers_by_type("byte", True)

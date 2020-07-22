@@ -53,7 +53,7 @@
 
 #}}}
 
-from master_driver.interfaces.fakedriver import Interface
+from main_driver.interfaces.fakedriver import Interface
 import pytest
 
 registry_config_string = """Point Name,Volttron Point Name,Units,Units Details,Writable,Starting Value,Type,Notes

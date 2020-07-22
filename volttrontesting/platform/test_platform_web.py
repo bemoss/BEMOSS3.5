@@ -66,7 +66,7 @@ def test_register_route(volttron_instance1_web):
 
     webdir, index_html = _build_web_dir(vi.volttron_home)
     agent = vi.build_agent(use_ipc=True)
-    agent.vip.rpc.call('master.web',
+    agent.vip.rpc.call('main.web',
                        'register_path_route', 'volttron.central',
                        '', webdir).get(timeout=5)
     response = requests.get(vi.bind_web_address+"/index.html")

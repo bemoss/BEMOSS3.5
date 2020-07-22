@@ -160,7 +160,7 @@ class FileInterface(BaseInterface):
         except (IOError):
             print ("ERROR: Failed to scrape device at " + 
                    self.ip_address + ":" + str(self.port) + " " + 
-                   "ID: " + str(self.slave_id))
+                   "ID: " + str(self.subordinate_id))
             return None
         
         return result_dict

@@ -70,7 +70,7 @@ utils.setup_logging()
 _log = logging.getLogger(__name__)
 __version__ = '0.1'
 
-def master_driver_agent(config_path, **kwargs):
+def main_driver_agent(config_path, **kwargs):
 
     config = utils.load_config(config_path)
 
@@ -134,14 +134,14 @@ def master_driver_agent(config_path, **kwargs):
     
     staggered_start = get_config('staggered_start', None)
     
-    return MasterDriverAgent(driver_config_list, scalability_test, scalability_test_iterations, staggered_start,
+    return MainDriverAgent(driver_config_list, scalability_test, scalability_test_iterations, staggered_start,
                              identity=vip_identity, heartbeat_autostart=True, **kwargs)
 
-class MasterDriverAgent(Agent):
+class MainDriverAgent(Agent):
     def __init__(self, driver_config_list, scalability_test = False,
                  scalability_test_iterations = 3, staggered_start = None,
                  **kwargs):
-        super(MasterDriverAgent, self).__init__(**kwargs)
+        super(MainDriverAgent, self).__init__(**kwargs)
         self.instances = {}
         self.scalability_test = scalability_test
         self.scalability_test_iterations = scalability_test_iterations
@@ -244,7 +244,7 @@ class MasterDriverAgent(Agent):
 def main(argv=sys.argv):
     '''Main method called to start the agent.'''
     #try:
-    utils.vip_main(master_driver_agent)
+    utils.vip_main(main_driver_agent)
     #except Exception:
     #    _log.exception('unhandled exception')
 

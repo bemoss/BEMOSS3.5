@@ -884,7 +884,7 @@ class BackupDatabase:
             max_storage_bytes = self._backup_storage_limit_gb * 1024 ** 3
             self.max_pages = max_storage_bytes / page_size
 
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' "
+        c.execute("SELECT name FROM sqlite_main WHERE type='table' "
                   "AND name='outstanding';")
 
         if c.fetchone() is None:
@@ -898,7 +898,7 @@ class BackupDatabase:
                                          value_string TEXT NOT NULL,
                                          UNIQUE(ts, topic_id, source))''')
 
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' "
+        c.execute("SELECT name FROM sqlite_main WHERE type='table' "
                   "AND name='metadata';")
 
         if c.fetchone() is None:
@@ -913,7 +913,7 @@ class BackupDatabase:
             for row in c:
                 self._meta_data[(row[0], row[1])][row[2]] = row[3]
 
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' "
+        c.execute("SELECT name FROM sqlite_main WHERE type='table' "
                   "AND name='topics';")
 
         if c.fetchone() is None:

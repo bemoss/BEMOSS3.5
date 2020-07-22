@@ -158,7 +158,7 @@ def publish_agent(request, volttron_instance1):
     """
     Fixture used for setting up the environment.
     1. Creates fake driver configs
-    2. Starts the master driver agent with the created fake driver agents
+    2. Starts the main driver agent with the created fake driver agents
     3. Starts the actuator agent
     4. Creates an instance Agent class for publishing and returns it
 
@@ -168,7 +168,7 @@ def publish_agent(request, volttron_instance1):
     :return: an instance of fake agent used for publishing
     """
     global actuator_uuid, publish_agent_v2
-    # Create master driver config and 4 fake devices each with 6 points
+    # Create main driver config and 4 fake devices each with 6 points
     process = Popen(['python', 'config_builder.py', '--count=4',
                      '--publish-only-depth-all',
                      'fake', 'fake_unit_testing.csv', 'null'],
@@ -179,17 +179,17 @@ def publish_agent(request, volttron_instance1):
     print result
     assert result == 0
 
-    # Start the master driver agent which would intern start the fake driver
+    # Start the main driver agent which would intern start the fake driver
     # using the configs created above
-    master_uuid = volttron_instance1.install_agent(
-        agent_dir="services/core/MasterDriverAgent",
-        config_file="scripts/scalability-testing/configs/master-driver.agent",
+    main_uuid = volttron_instance1.install_agent(
+        agent_dir="services/core/MainDriverAgent",
+        config_file="scripts/scalability-testing/configs/main-driver.agent",
         start=True)
-    print("agent id: ", master_uuid)
+    print("agent id: ", main_uuid)
     gevent.sleep(2)  # wait for the agent to start and start the devices
 
     # Start the actuator agent through which publish agent should communicate
-    # to fake device. Start the master driver agent which would intern start
+    # to fake device. Start the main driver agent which would intern start
     # the fake driver using the configs created above
     actuator_uuid = volttron_instance1.install_agent(
         agent_dir="services/core/ActuatorAgent",
@@ -227,7 +227,7 @@ def publish_agent(request, volttron_instance1):
     def stop_agent():
         print("In teardown method of module")
         volttron_instance1.stop_agent(actuator_uuid)
-        volttron_instance1.stop_agent(master_uuid)
+        volttron_instance1.stop_agent(main_uuid)
         fake_publish_agent.core.stop()
 
     request.addfinalizer(stop_agent)
@@ -1621,7 +1621,7 @@ def test_get_error_invalid_point(publish_agent):
     result_header = publish_agent.callback.call_args[0][4]
     result_message = publish_agent.callback.call_args[0][5]
     assert result_message['type'] == \
-           'master_driver.interfaces.DriverInterfaceError'
+           'main_driver.interfaces.DriverInterfaceError'
     assert result_message['value'] == \
            "['Point not configured on device: SampleWritableFloat12']"
     assert result_header['requesterID'] == TEST_AGENT

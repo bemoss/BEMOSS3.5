@@ -50,12 +50,12 @@
 # operated by BATTELLE for the UNITED STATES DEPARTMENT OF ENERGY
 # under Contract DE-AC05-76RL01830
 
-from services.core.MasterDriverAgent.master_driver.interfaces import BaseInterface, BaseRegister
+from services.core.MainDriverAgent.main_driver.interfaces import BaseInterface, BaseRegister
 from csv import DictReader
 from StringIO import StringIO
 import logging
 from datetime import datetime, timedelta
-from services.core.MasterDriverAgent.master_driver.driver_exceptions import DriverConfigError
+from services.core.MainDriverAgent.main_driver.driver_exceptions import DriverConfigError
 from volttron.platform.vip.agent import errors
 #Logging is completely configured by now.
 _log = logging.getLogger(__name__)
