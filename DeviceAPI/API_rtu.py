@@ -93,7 +93,7 @@ class API(ModbusAPI):
             devicedata = dict()
             client = connection(self.address, port=502)
             client.connect()
-            result = client.read_input_registers(0, 26, unit=self.slave_id)
+            result = client.read_input_registers(0, 26, unit=self.subordinate_id)
             if int(result.registers[18]) == 32767:
                 devicedata['temperature'] = None
             else:
@@ -123,12 +123,12 @@ class API(ModbusAPI):
                 devicedata['fan_state'] = 'ON'
             else:
                 devicedata['fan_state'] = 'OFF'
-            result = client.read_holding_registers(129, 1, unit=self.slave_id)
+            result = client.read_holding_registers(129, 1, unit=self.subordinate_id)
             if int(result.registers[0]) > 100:
                 devicedata['heating'] = 0
             else:
                 devicedata['heating'] = int(result.registers[0])
-            result = client.read_holding_registers(10, 1, unit=self.slave_id)
+            result = client.read_holding_registers(10, 1, unit=self.subordinate_id)
             if int(result.registers[0]) == 0:
                 devicedata['cooling_mode'] = 'None'
                 devicedata['cooling_status'] = 'OFF'
@@ -170,39 +170,39 @@ class API(ModbusAPI):
             client.connect()
             if BEMOSS_ONTOLOGY.HEAT_SETPOINT.NAME in postmsg.keys():
                 client.write_register(187, int(self.far2cel(float(postmsg.get('heat_setpoint'))) * 100.0),
-                                      unit=self.slave_id)
+                                      unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.COOL_SETPOINT.NAME in postmsg.keys():
                 client.write_register(188, int(self.far2cel(float(postmsg.get('cool_setpoint'))) * 100.0),
-                                      unit=self.slave_id)
+                                      unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.OUTSIDE_DAMPER.NAME in postmsg.keys():
                 client.write_register(274, int(postmsg.get('outside_damper_position')),
-                                      unit=self.slave_id)
+                                      unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.DAMPER.NAME in postmsg.keys():
                 client.write_register(275, int(postmsg.get('bypass_damper_position')),
-                                      unit=self.slave_id)
+                                      unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.FAN_STATE.NAME in postmsg.keys():
                 if postmsg.get('fan_state') == 'ON' or postmsg.get('fan_state') == True:
-                    client.write_register(130, 2, unit=self.slave_id)
+                    client.write_register(130, 2, unit=self.subordinate_id)
                 elif postmsg.get('fan_state') == 'OFF' or postmsg.get('fan_state') == False:
-                    client.write_register(130, 1, unit=self.slave_id)
+                    client.write_register(130, 1, unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.COOLING_STATUS.NAME in postmsg.keys():
                 if postmsg.get('cooling_status') == 'ON':
-                    client.write_registers(124, [1, 2, 2, 2], unit=self.slave_id)
+                    client.write_registers(124, [1, 2, 2, 2], unit=self.subordinate_id)
                 elif postmsg.get('cooling_status') == 'OFF':
-                    client.write_registers(124, [0, 1, 1, 1], unit=self.slave_id)
+                    client.write_registers(124, [0, 1, 1, 1], unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.COOLING.NAME in postmsg.keys():
                 if postmsg.get('cooling_mode') == 'None':
-                    client.write_register(10, 0, unit=self.slave_id)
+                    client.write_register(10, 0, unit=self.subordinate_id)
                 elif postmsg.get('cooling_mode') == 'STG1':
-                    client.write_register(10, 1, unit=self.slave_id)
+                    client.write_register(10, 1, unit=self.subordinate_id)
                 elif postmsg.get('cooling_mode') == 'STG2':
-                    client.write_register(10, 2, unit=self.slave_id)
+                    client.write_register(10, 2, unit=self.subordinate_id)
                 elif postmsg.get('cooling_mode') == 'STG3':
-                    client.write_register(10, 3, unit=self.slave_id)
+                    client.write_register(10, 3, unit=self.subordinate_id)
                 elif postmsg.get('cooling_mode') == 'STG4':
-                    client.write_register(10, 4, unit=self.slave_id)
+                    client.write_register(10, 4, unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.HEATING.NAME in postmsg.keys():
-                client.write_register(129, int(postmsg.get('heating')), unit=self.slave_id)
+                client.write_register(129, int(postmsg.get('heating')), unit=self.subordinate_id)
             client.close()
             return True
         except:

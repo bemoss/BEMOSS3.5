@@ -89,7 +89,7 @@ class API(ModbusAPI):
             devicedata=dict()
             client = connection(self.address, port=502)
             client.connect()
-            result = client.read_input_registers(0,8,unit=self.slave_id)
+            result = client.read_input_registers(0,8,unit=self.subordinate_id)
             if int(result.registers[0])==32767:
                 devicedata["temperature"] = None
             else:
@@ -100,7 +100,7 @@ class API(ModbusAPI):
                 devicedata['supply_temperature'] =None
             else:
                 devicedata['supply_temperature']=round(float(self.cel2far(float(int(result.registers[7]))/100.0)),1)
-            result = client.read_holding_registers(159,2,unit=self.slave_id)
+            result = client.read_holding_registers(159,2,unit=self.subordinate_id)
             if (int(result.registers[0])==1):
                 devicedata['override']='ON'
             else:
@@ -118,16 +118,16 @@ class API(ModbusAPI):
             client = connection(self.address,port=502)
             client.connect()
             if BEMOSS_ONTOLOGY.HEAT_SETPOINT.NAME in postmsg.keys():
-                result=client.write_register(6,int(self.far2cel(float(postmsg.get('heat_setpoint'))* 100.0)),unit=self.slave_id)
+                result=client.write_register(6,int(self.far2cel(float(postmsg.get('heat_setpoint'))* 100.0)),unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.COOL_SETPOINT.NAME in postmsg.keys():
-                result2=client.write_register(6,int(self.far2cel(float(postmsg.get('cool_setpoint'))* 100.0)),unit=self.slave_id)
+                result2=client.write_register(6,int(self.far2cel(float(postmsg.get('cool_setpoint'))* 100.0)),unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.OVERRIDE.NAME in postmsg.keys():
                 if postmsg.get('override') == 'ON' or postmsg.get('override') == True:
-                    client.write_register(159,1,unit=self.slave_id)
+                    client.write_register(159,1,unit=self.subordinate_id)
                 elif postmsg.get('override') == 'OFF' or postmsg.get('override') == False:
-                    client.write_register(159,0,unit=self.slave_id)
+                    client.write_register(159,0,unit=self.subordinate_id)
             if BEMOSS_ONTOLOGY.FLAP.NAME in postmsg.keys():
-                 client.write_register(160,int(postmsg.get('flap_position')),unit=self.slave_id)
+                 client.write_register(160,int(postmsg.get('flap_position')),unit=self.subordinate_id)
             client.close()
             return True
         except:

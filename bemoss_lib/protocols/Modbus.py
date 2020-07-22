@@ -58,18 +58,18 @@ class Modbuscommon():
                         client = connection(ip, port=502)
                         client.connect()
                         result2=None
-                        possible_slave_ids = self.slavelist
-                        for slave_id in possible_slave_ids:
-                            slave_id=int(slave_id)
-                            result = client.read_device_info(slave_id, object_id=0x00)
+                        possible_subordinate_ids = self.subordinatelist
+                        for subordinate_id in possible_subordinate_ids:
+                            subordinate_id=int(subordinate_id)
+                            result = client.read_device_info(subordinate_id, object_id=0x00)
                             if result is None:
-                                result2 = client.read_input_registers(0, 10, unit=slave_id)
+                                result2 = client.read_input_registers(0, 10, unit=subordinate_id)
                                 if result2 is None:
-                                    result2 = client.read_holding_registers(999, 1, unit=slave_id)
+                                    result2 = client.read_holding_registers(999, 1, unit=subordinate_id)
                                     if result2 is None:
-                                        result2=client.read_discrete_inputs(0,10, unit=slave_id)
+                                        result2=client.read_discrete_inputs(0,10, unit=subordinate_id)
                                         if result2 is None:
-                                            result2 = client.read_coils(0, 10, unit=slave_id)
+                                            result2 = client.read_coils(0, 10, unit=subordinate_id)
                             if result or result2 is not None:
                               str_Result = str(result)
                               str_Result2=str(result2)
@@ -77,27 +77,27 @@ class Modbuscommon():
                                     match=re.search('Response', str_Result2)
                                     match2 = re.search('IllegalFunction', str_Result)
                                     if match2 or match:
-                                        device_list.append(ip + ':' + str(slave_id))
+                                        device_list.append(ip + ':' + str(subordinate_id))
                                         continue
                                     else:##reading registers of Result
                                         try:
                                             Vendor=result.information[0]
                                         except:
                                             Vendor="unknown device"
-                                        mac=client.read_device_info(slave_id, object_id=0x01)
+                                        mac=client.read_device_info(subordinate_id, object_id=0x01)
                                         if mac is not None:
                                             mac=mac.information[0]
                                         else:
-                                            mac=slave_id
-                                        ModelName= client.read_device_info(slave_id, object_id=0x05)
+                                            mac=subordinate_id
+                                        ModelName= client.read_device_info(subordinate_id, object_id=0x05)
                                         if ModelName is not None:
                                             ModelName=ModelName.information[0]
                                         else:
                                             ModelName="unknown device"
-                                    device_list.append({'address': ip + ':' + str(slave_id), 'mac': mac,
+                                    device_list.append({'address': ip + ':' + str(subordinate_id), 'mac': mac,
                                                         'model': ModelName, 'vendor': Vendor})
                               except Exception as er:
-                                     print ("problem with slave id " + str(slave_id))
+                                     print ("problem with subordinate id " + str(subordinate_id))
                                      print er
                             else:
                                 pass
@@ -111,26 +111,26 @@ class Modbuscommon():
             print "Modbus discovery failed: Couldn't find IP subnet of network!"
         return device_list
 
-    def getDevicedetails(self, slave_id):
+    def getDevicedetails(self, subordinate_id):
 
             deviceinfo = list()
-            if slave_id == 7:
+            if subordinate_id == 7:
                 macaddress = '30168D000129'
                 model='VC1000'
                 vendor='Prolon'
-            elif slave_id == 1:
+            elif subordinate_id == 1:
                 macaddress = '30168D000262'
                 model = 'VC1000'
                 vendor = 'Prolon'
-            elif slave_id == 2:
+            elif subordinate_id == 2:
                 macaddress = '30168D000263'
                 model = 'VC1000'
                 vendor = 'Prolon'
-            elif slave_id == 15:
+            elif subordinate_id == 15:
                 macaddress = '30168D000130'
                 model='M1000'
                 vendor='Prolon'
-            elif slave_id == 20:
+            elif subordinate_id == 20:
                 macaddress = '30168D000264'
                 model = 'M1000'
                 vendor = 'Prolon'
@@ -143,8 +143,8 @@ class Modbuscommon():
 
 class connection(ModbusTcpClient):
 
-    def read_device_info(self,slave,object_id):
+    def read_device_info(self,subordinate,object_id):
 
         request = ReadDeviceInformationRequest(object_id)
-        request.unit_id = slave
+        request.unit_id = subordinate
         return self.execute(request)

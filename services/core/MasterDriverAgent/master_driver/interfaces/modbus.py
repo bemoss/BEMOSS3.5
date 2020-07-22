@@ -57,7 +57,7 @@ from pymodbus.pdu import ExceptionResponse
 from pymodbus.constants import Defaults
 from volttron.platform.agent import utils
 
-from master_driver.interfaces import BaseInterface, BaseRegister, BasicRevert, DriverInterfaceError
+from main_driver.interfaces import BaseInterface, BaseRegister, BasicRevert, DriverInterfaceError
 
 import struct
 import logging
@@ -66,7 +66,7 @@ from StringIO import StringIO
 import os.path
 
 from contextlib import contextmanager, closing
-from master_driver.driver_locks import socket_lock
+from main_driver.driver_locks import socket_lock
 
 @contextmanager
 def modbus_client(address, port):
@@ -92,15 +92,15 @@ class ModbusInterfaceException(ModbusException):
     pass
 
 class ModbusRegisterBase(BaseRegister):
-    def __init__(self, address, register_type, read_only, pointName, units, description = '', slave_id=0):
+    def __init__(self, address, register_type, read_only, pointName, units, description = '', subordinate_id=0):
         super(ModbusRegisterBase, self).__init__(register_type, read_only, pointName, units, description = '')
         self.address = address
-        self.slave_id = slave_id
+        self.subordinate_id = subordinate_id
 
 class ModbusBitRegister(ModbusRegisterBase):
-    def __init__(self, address, type_string, pointName, units, read_only, description = '', slave_id=0):
+    def __init__(self, address, type_string, pointName, units, read_only, description = '', subordinate_id=0):
         super(ModbusBitRegister, self).__init__(address, "bit", read_only, pointName, units, 
-                                                description = description, slave_id=slave_id)        
+                                                description = description, subordinate_id=subordinate_id)        
         
         self.python_type = bool
     
@@ -113,14 +113,14 @@ class ModbusBitRegister(ModbusRegisterBase):
         return 1
     
     def get_state(self, client):
-        response_bits = client.read_discrete_inputs(self.address, unit=self.slave_id) if self.read_only else client.read_coils(self.address, unit=self.slave_id)
+        response_bits = client.read_discrete_inputs(self.address, unit=self.subordinate_id) if self.read_only else client.read_coils(self.address, unit=self.subordinate_id)
         if response_bits is None:
             raise ModbusInterfaceException("pymodbus returned None")
         return response_bits.bits[0]
     
     def set_state(self, client, value):
         if not self.read_only:   
-            response = client.write_coil(self.address, value, unit=self.slave_id)
+            response = client.write_coil(self.address, value, unit=self.subordinate_id)
             if response is None:
                 raise ModbusInterfaceException("pymodbus returned None")
             if isinstance(response, ExceptionResponse):
@@ -129,9 +129,9 @@ class ModbusBitRegister(ModbusRegisterBase):
         return None
 
 class ModbusByteRegister(ModbusRegisterBase):
-    def __init__(self, address, type_string, pointName, units, read_only, description = '', slave_id=0):
+    def __init__(self, address, type_string, pointName, units, read_only, description = '', subordinate_id=0):
         super(ModbusByteRegister, self).__init__(address, "byte", read_only, 
-                                                 pointName, units, description = description, slave_id=slave_id)
+                                                 pointName, units, description = description, subordinate_id=subordinate_id)
         
         try:
             self.parse_struct = struct.Struct(type_string)
@@ -162,9 +162,9 @@ class ModbusByteRegister(ModbusRegisterBase):
    
     def get_state(self, client):
         if self.read_only:
-            response = client.read_input_registers(self.address, count=self.get_register_count(), unit=self.slave_id)
+            response = client.read_input_registers(self.address, count=self.get_register_count(), unit=self.subordinate_id)
         else:
-            response = client.read_holding_registers(self.address, count=self.get_register_count(), unit=self.slave_id)
+            response = client.read_holding_registers(self.address, count=self.get_register_count(), unit=self.subordinate_id)
             
         if response is None:
             raise ModbusInterfaceException("pymodbus returned None")
@@ -177,7 +177,7 @@ class ModbusByteRegister(ModbusRegisterBase):
         if not self.read_only:   
             value_bytes = self.parse_struct.pack(value)
             register_values = PYMODBUS_REGISTER_STRUCT.unpack_from(value_bytes)
-            client.write_registers(self.address, register_values, unit=self.slave_id)
+            client.write_registers(self.address, register_values, unit=self.subordinate_id)
             return self.get_state(client)
         return None
     
@@ -188,7 +188,7 @@ class Interface(BasicRevert, BaseInterface):
         self.build_ranges_map()
         
     def configure(self, config_dict, registry_config_str):
-        self.slave_id=config_dict.get("slave_id", 0)
+        self.subordinate_id=config_dict.get("subordinate_id", 0)
         self.ip_address = config_dict["device_address"]
         self.port = config_dict.get("port", Defaults.Port)
         self.parse_config(registry_config_str) 
@@ -247,7 +247,7 @@ class Interface(BasicRevert, BaseInterface):
         
         for group in xrange(start, end + 1, MODBUS_READ_MAX):
             count = min(end - group + 1, MODBUS_READ_MAX)            
-            response = client.read_input_registers(group, count, unit=self.slave_id) if read_only else client.read_holding_registers(group, count, unit=self.slave_id)
+            response = client.read_input_registers(group, count, unit=self.subordinate_id) if read_only else client.read_holding_registers(group, count, unit=self.subordinate_id)
             if response is None:
                 raise ModbusInterfaceException("pymodbus returned None")
             response_bytes = response.encode()
@@ -272,7 +272,7 @@ class Interface(BasicRevert, BaseInterface):
         
         for group in xrange(start, end + 1, MODBUS_READ_MAX):
             count = min(end - group + 1, MODBUS_READ_MAX)            
-            response = client.read_discrete_inputs(group, count, unit=self.slave_id) if read_only else client.read_coils(group, count, unit=self.slave_id)
+            response = client.read_discrete_inputs(group, count, unit=self.subordinate_id) if read_only else client.read_coils(group, count, unit=self.subordinate_id)
             if response is None:
                 raise ModbusInterfaceException("pymodbus returned None")
             result += response.bits
@@ -297,7 +297,7 @@ class Interface(BasicRevert, BaseInterface):
             except (ConnectionException, ModbusIOException, ModbusInterfaceException) as e:
                 raise DriverInterfaceError ("Failed to scrape device at " + 
                            self.ip_address + ":" + str(self.port) + " " + 
-                           "ID: " + str(self.slave_id) + str(e))
+                           "ID: " + str(self.subordinate_id) + str(e))
                 
         return result_dict
     
@@ -323,7 +323,7 @@ class Interface(BasicRevert, BaseInterface):
                 default_value = None  
                 
             klass = ModbusBitRegister if bit_register else ModbusByteRegister
-            register = klass(address, io_type, point_path, units, read_only, description = description, slave_id=self.slave_id)
+            register = klass(address, io_type, point_path, units, read_only, description = description, subordinate_id=self.subordinate_id)
             
             self.insert_register(register)
             

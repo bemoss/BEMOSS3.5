@@ -61,7 +61,7 @@ import abc
 import argparse
 import itertools
 from test_settings import (virtual_device_host, device_types, config_dir, 
-                           volttron_install, master_driver_file,
+                           volttron_install, main_driver_file,
                            host_config_location)
 
 class DeviceConfig(object):
@@ -195,15 +195,15 @@ def build_all_configs(agent_config, device_type, host_address, count, reg_config
     
     config_list, command_lines = build_device_configs(device_type, host_address, count, reg_config, config_dir, interval, publish_only_depth_all, campus, building)
     
-    build_master_config(agent_config, config_dir, config_list, 
+    build_main_config(agent_config, config_dir, config_list, 
                         scalability_test, scalability_test_iterations,
                         stagger_driver_startup)
         
     
-def build_master_config(agent_config, config_dir, config_list, 
+def build_main_config(agent_config, config_dir, config_list, 
                         scalability_test, scalability_test_iterations,
                         stagger_driver_startup):
-    """Takes the input from multiple called to build_device_configs and create the master config."""
+    """Takes the input from multiple called to build_device_configs and create the main config."""
     configuration = {"driver_config_list": config_list}
     configuration['scalability_test'] = scalability_test
     configuration['scalability_test_iterations'] = scalability_test_iterations
@@ -219,20 +219,20 @@ def build_master_config(agent_config, config_dir, config_list,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create driver configuration files for scalability test.")
     parser.add_argument('--agent-config', metavar='CONFIG_NAME', 
-                        help='name of the master driver config file',
-                        default=master_driver_file)
+                        help='name of the main driver config file',
+                        default=main_driver_file)
     
     parser.add_argument('--count', type=int, default=1, 
                         help='number of devices to configure')
     
     parser.add_argument('--scalability-test', action='store_true', 
-                        help='Configure master driver for a scalability test')
+                        help='Configure main driver for a scalability test')
     
     parser.add_argument('--publish-only-depth-all', action='store_true', 
                         help='Configure drivers to only publish depth first all.')
     
     parser.add_argument('--stagger-driver-startup', type=float, 
-                        help='Configure master driver to stagger driver startup over N seconds.')
+                        help='Configure main driver to stagger driver startup over N seconds.')
     
     parser.add_argument('--scalability-test-iterations', type=int, default=5, 
                         help='Scalability test iterations')

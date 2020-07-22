@@ -42,7 +42,7 @@ import sys
 import time
 import ast
 import csv
-from master_driver.interfaces import BaseInterface, BaseRegister, DriverInterfaceError
+from main_driver.interfaces import BaseInterface, BaseRegister, DriverInterfaceError
 from csv import DictReader
 from StringIO import StringIO
 from datetime import datetime

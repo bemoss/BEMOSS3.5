@@ -19,10 +19,10 @@ def _iterdump(connection):
     cu = connection.cursor()
     yield('BEGIN TRANSACTION;')
 
-    # sqlite_master table contains the SQL CREATE statements for the database.
+    # sqlite_main table contains the SQL CREATE statements for the database.
     q = """
         SELECT "name", "type", "sql"
-        FROM "sqlite_master"
+        FROM "sqlite_main"
             WHERE "sql" NOT NULL AND
             "type" == 'table'
         """
@@ -31,13 +31,13 @@ def _iterdump(connection):
         if table_name == 'sqlite_sequence':
             yield('DELETE FROM "sqlite_sequence";')
         elif table_name == 'sqlite_stat1':
-            yield('ANALYZE "sqlite_master";')
+            yield('ANALYZE "sqlite_main";')
         elif table_name.startswith('sqlite_'):
             continue
         # NOTE: Virtual table support not implemented
         #elif sql.startswith('CREATE VIRTUAL TABLE'):
         #    qtable = table_name.replace("'", "''")
-        #    yield("INSERT INTO sqlite_master(type,name,tbl_name,rootpage,sql)"\
+        #    yield("INSERT INTO sqlite_main(type,name,tbl_name,rootpage,sql)"\
         #        "VALUES('table','{0}','{0}',0,'{1}');".format(
         #        qtable,
         #        sql.replace("''")))
@@ -58,7 +58,7 @@ def _iterdump(connection):
     # Now when the type is 'index', 'trigger', or 'view'
     q = """
         SELECT "name", "type", "sql"
-        FROM "sqlite_master"
+        FROM "sqlite_main"
             WHERE "sql" NOT NULL AND
             "type" IN ('index', 'trigger', 'view')
         """

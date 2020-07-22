@@ -93,15 +93,15 @@ class ModbusInterfaceException(ModbusException):
     pass
 
 class ModbusRegisterBase(BaseRegister):
-    def __init__(self, address, register_type, read_only, pointName, units, description = '', slave_id=0):
+    def __init__(self, address, register_type, read_only, pointName, units, description = '', subordinate_id=0):
         super(ModbusRegisterBase, self).__init__(register_type, read_only, pointName, units, description = '')
         self.address = address
-        self.slave_id = slave_id
+        self.subordinate_id = subordinate_id
 
 class ModbusBitRegister(ModbusRegisterBase):
-    def __init__(self, address, type_string, pointName, units, read_only, description = '', slave_id=0):
+    def __init__(self, address, type_string, pointName, units, read_only, description = '', subordinate_id=0):
         super(ModbusBitRegister, self).__init__(address, "bit", read_only, pointName, units, 
-                                                description = description, slave_id=slave_id)        
+                                                description = description, subordinate_id=subordinate_id)        
         
         self.python_type = bool
     
@@ -119,12 +119,12 @@ class ModbusBitRegister(ModbusRegisterBase):
         return response_bits.bits[0]
     
     def get_state_async(self, client):
-        d = client.read_discrete_inputs(self.address, unit=self.slave_id) if self.read_only else client.read_coils(self.address, unit=self.slave_id)
+        d = client.read_discrete_inputs(self.address, unit=self.subordinate_id) if self.read_only else client.read_coils(self.address, unit=self.subordinate_id)
         d.addCallback(self.get_state_callback)
         return d    
     
     def get_state_sync(self, client):
-        response_bits = client.read_discrete_inputs(self.address, unit=self.slave_id) if self.read_only else client.read_coils(self.address, unit=self.slave_id)
+        response_bits = client.read_discrete_inputs(self.address, unit=self.subordinate_id) if self.read_only else client.read_coils(self.address, unit=self.subordinate_id)
         return self.get_state_callback(response_bits)
     
     def set_state_callback(self, response):
@@ -136,21 +136,21 @@ class ModbusBitRegister(ModbusRegisterBase):
     
     def set_state_sync(self, client, value):
         if not self.read_only:   
-            r = client.write_coil(self.address, value, unit=self.slave_id)
+            r = client.write_coil(self.address, value, unit=self.subordinate_id)
             return self.set_state_callback(r)
         return None
     
     def set_state_async(self, client, value):
         if not self.read_only:   
-            r = client.write_coil(self.address, value, unit=self.slave_id)
+            r = client.write_coil(self.address, value, unit=self.subordinate_id)
             r.addCallback(self.set_state_callback)
             return r
         return None
 
 class ModbusByteRegister(ModbusRegisterBase):
-    def __init__(self, address, type_string, pointName, units, read_only, description = '', slave_id=0):
+    def __init__(self, address, type_string, pointName, units, read_only, description = '', subordinate_id=0):
         super(ModbusByteRegister, self).__init__(address, "byte", read_only, 
-                                                 pointName, units, description = description, slave_id=slave_id)
+                                                 pointName, units, description = description, subordinate_id=subordinate_id)
         
         try:
             self.parse_struct = struct.Struct(type_string)
@@ -187,17 +187,17 @@ class ModbusByteRegister(ModbusRegisterBase):
     
     def get_state_async(self, client):
         if self.read_only:
-            d = client.read_input_registers(self.address, count=self.get_register_count(), unit=self.slave_id)
+            d = client.read_input_registers(self.address, count=self.get_register_count(), unit=self.subordinate_id)
         else:
-            d = client.read_holding_registers(self.address, count=self.get_register_count(), unit=self.slave_id)
+            d = client.read_holding_registers(self.address, count=self.get_register_count(), unit=self.subordinate_id)
         d.addCallback(self.get_state_callback)
         return d  
     
     def get_state_sync(self, client):
         if self.read_only:
-            response = client.read_input_registers(self.address, count=self.get_register_count(), unit=self.slave_id)
+            response = client.read_input_registers(self.address, count=self.get_register_count(), unit=self.subordinate_id)
         else:
-            response = client.read_holding_registers(self.address, count=self.get_register_count(), unit=self.slave_id)
+            response = client.read_holding_registers(self.address, count=self.get_register_count(), unit=self.subordinate_id)
             
         return self.get_state_callback(response)
     
@@ -205,7 +205,7 @@ class ModbusByteRegister(ModbusRegisterBase):
         if not self.read_only:   
             value_bytes = self.parse_struct.pack(value)
             register_values = PYMODBUS_REGISTER_STRUCT.unpack_from(value_bytes)
-            client.write_registers(self.address, register_values, unit=self.slave_id)
+            client.write_registers(self.address, register_values, unit=self.subordinate_id)
             return self.get_state_sync(client)
         return None
     
@@ -216,16 +216,16 @@ class ModbusByteRegister(ModbusRegisterBase):
         if not self.read_only:   
             value_bytes = self.parse_struct.pack(value)
             register_values = PYMODBUS_REGISTER_STRUCT.unpack_from(value_bytes)
-            r = client.write_registers(self.address, register_values, unit=self.slave_id)
+            r = client.write_registers(self.address, register_values, unit=self.subordinate_id)
             r.addCallback(self.set_state_callback, client)
             return r
         return None
         
 class ModbusInterface(BaseInterface):
-    def __init__(self, ip_address, port=Defaults.Port, slave_id=0, config_file=configFile, **kwargs):
+    def __init__(self, ip_address, port=Defaults.Port, subordinate_id=0, config_file=configFile, **kwargs):
         super(ModbusInterface, self).__init__(**kwargs)
         
-        self.slave_id=slave_id
+        self.subordinate_id=subordinate_id
         self.ip_address = ip_address
         self.port = port
         self.build_ranges_map()
@@ -312,7 +312,7 @@ class ModbusInterface(BaseInterface):
         
         for group in xrange(start, end + 1, MODBUS_READ_MAX):
             count = min(end - group + 1, MODBUS_READ_MAX)            
-            response = client.read_input_registers(group, count, unit=self.slave_id) if read_only else client.read_holding_registers(group, count, unit=self.slave_id)
+            response = client.read_input_registers(group, count, unit=self.subordinate_id) if read_only else client.read_holding_registers(group, count, unit=self.subordinate_id)
             if response is None:
                 raise ModbusInterfaceException("pymodbus returned None")
             response_bytes = response.encode()
@@ -337,7 +337,7 @@ class ModbusInterface(BaseInterface):
         
         for group in xrange(start, end + 1, MODBUS_READ_MAX):
             count = min(end - group + 1, MODBUS_READ_MAX)            
-            response = client.read_discrete_inputs(group, count, unit=self.slave_id) if read_only else client.read_coils(group, count, unit=self.slave_id)
+            response = client.read_discrete_inputs(group, count, unit=self.subordinate_id) if read_only else client.read_coils(group, count, unit=self.subordinate_id)
             if response is None:
                 raise ModbusInterfaceException("pymodbus returned None")
             result += response.bits
@@ -362,7 +362,7 @@ class ModbusInterface(BaseInterface):
         except (ConnectionException, ModbusIOException, ModbusInterfaceException) as e:
             print ("ERROR: Failed to scrape device at " + 
                    self.ip_address + ":" + str(self.port) + " " + 
-                   "ID: " + str(self.slave_id) + str(e))
+                   "ID: " + str(self.subordinate_id) + str(e))
             return None
         finally:
             client.close()
@@ -390,7 +390,7 @@ class ModbusInterface(BaseInterface):
                 units = regDef['Units']         
                             
                 klass = ModbusBitRegister if bit_register else ModbusByteRegister
-                register = klass(address, io_type, point_path, units, read_only, description = description, slave_id=self.slave_id)
+                register = klass(address, io_type, point_path, units, read_only, description = description, subordinate_id=self.subordinate_id)
                     
                 self.insert_register(register)
 
@@ -403,11 +403,11 @@ class Modbus(BaseSmapVolttron):
              
     def get_interface(self, opts):
         ip_address = opts['ip_address']
-        slave_id = int(opts.get('slave_id',0))
+        subordinate_id = int(opts.get('subordinate_id',0))
         port = int(opts.get('port',502))
         catalyst_config = opts.get('register_config', configFile)
         
-        return ModbusInterface(ip_address, slave_id=slave_id, port=port, config_file=catalyst_config)
+        return ModbusInterface(ip_address, subordinate_id=subordinate_id, port=port, config_file=catalyst_config)
 
 if __name__ == "__main__":
     from pprint import pprint

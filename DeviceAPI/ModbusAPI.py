@@ -59,7 +59,7 @@ class ModbusAPI(baseAPI):
         if 'address' in self.variables.keys():
             address_parts = self.get_variable("address").split(':')
             self.address = address_parts[0]
-            self.slave_id =int(address_parts[1])
+            self.subordinate_id =int(address_parts[1])
         self._debug = True
 
     def discover(self):
@@ -77,15 +77,15 @@ class ModbusAPI(baseAPI):
                         data[header].append(value)
                     except KeyError:
                         data[header] = [value]
-        client.slavelist=data["Slave_id"]
+        client.subordinatelist=data["Subordinate_id"]
         device_list=client.discovery()
         for address in device_list:
              if isinstance(address, dict):
                  break
              else:
-                slave_id=address.split(':')[1]
-                for idx, val in enumerate(data["Slave_id"]):
-                    if slave_id==val:
+                subordinate_id=address.split(':')[1]
+                for idx, val in enumerate(data["Subordinate_id"]):
+                    if subordinate_id==val:
                         macaddress = data["MacAddress"][idx]
                         model = data["ModelName"][idx]
                         vendor = data["VendorName"][idx]

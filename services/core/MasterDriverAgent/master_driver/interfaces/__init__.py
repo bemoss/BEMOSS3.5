@@ -56,7 +56,7 @@ New drivers are implemented by subclassing :py:class:`BaseInterface`.
 
 While it is possible to create an Agent which handles communication with a new device
 it will miss out on the benefits of creating a proper interface for the
-Master Driver Agent.
+Main Driver Agent.
 
 Creating an Interface for a device allows users of the device to automatically benefit
 from the following platform features:
@@ -76,7 +76,7 @@ Creating a New Interface
 ------------------------
 
 To create a new device driver create a new module in the
-:py:mod:`MasterDriverAgent.master_driver.interfaces` package. The name of
+:py:mod:`MainDriverAgent.main_driver.interfaces` package. The name of
 this module will be the name to use in the "driver_type" setting in
 a :ref:`driver configuration file <driver-configuration-file>` in order to
 load the new driver.
@@ -105,10 +105,10 @@ Interface Configuration and Startup
 -----------------------------------
 
 When processing a :ref:`driver configuration file <driver-configuration-file>`
-the Master Driver Agent will use the "driver_type" setting to automatically find and load the
+the Main Driver Agent will use the "driver_type" setting to automatically find and load the
 appropriate ``Interface`` class for the desired driver.
 
-After loading the class the Master Driver Agent will call :py:meth:`BaseInterface.configure`
+After loading the class the Main Driver Agent will call :py:meth:`BaseInterface.configure`
 with the contents of the "driver_config" section of the
 :ref:`driver configuration file <driver-configuration-file>`
 parsed into a python dictionary and the contents of the file referenced in
@@ -118,14 +118,14 @@ parsed into a python dictionary and the contents of the file referenced in
 on a device by creating instances of :py:class:`BaseRegister` (or a subclass) and adding them
 to the Interface with :py:meth:`BaseInterface.insert_register`.
 
-After calling :py:meth:`BaseInterface.configure` the Master Driver Agent
+After calling :py:meth:`BaseInterface.configure` the Main Driver Agent
 will use the created registers to create meta data for each point on the device.
 
 Device Scraping
 ---------------
 
 The work scheduling and publish periodic device scrapes is handled by
-the Master Driver Agent. When a scrape starts the Master Driver Agent calls the
+the Main Driver Agent. When a scrape starts the Main Driver Agent calls the
 :py:meth:`BaseInterface.scrape_all`. It will take the results of the
 call and attach meta data and and publish as needed.
 
@@ -133,11 +133,11 @@ Device Interaction
 ------------------
 
 Requests to interact with the device via any method supported by the platform
-are routed to the correct Interface instance by the Master Driver Agent.
+are routed to the correct Interface instance by the Main Driver Agent.
 
 Most commands originate from RPC calls to the
 :py:class:`Actuator Agent<ActuatorAgent.actuator.agent>` and are forwarded
-to the Master Driver Agent.
+to the Main Driver Agent.
 
 - A command to set the value of a point on a device results in a call to
     :py:meth:`BaseInterface.set_point`.
@@ -155,7 +155,7 @@ to the Master Driver Agent.
 Registers
 ---------
 
-The Master Driver Agent uses the :py:meth:`BaseInterface.get_register_names` and
+The Main Driver Agent uses the :py:meth:`BaseInterface.get_register_names` and
 :py:meth:`BaseInterface.get_register_by_name` methods to get registers to setup meta data.
 
 This means that its a requirement to use the BaseRegister class to store
@@ -208,7 +208,7 @@ class BaseRegister(object):
     :type units: str
     :type description: str
 
-    The Master Driver Agent will use :py:meth:`BaseRegister.get_units` to populate metadata for
+    The Main Driver Agent will use :py:meth:`BaseRegister.get_units` to populate metadata for
     publishing. When instantiating register instances be sure to provide a useful
     string for the units argument.
     """
@@ -254,7 +254,7 @@ class BaseInterface(object):
 
     All interfaces *must* subclass this.
 
-    :param vip: A reference to the MasterDriverAgent vip subsystem.
+    :param vip: A reference to the MainDriverAgent vip subsystem.
     :param core: A reference to the parent driver agent's core subsystem.
 
     """
@@ -373,7 +373,7 @@ class BaseInterface(object):
     @abc.abstractmethod        
     def scrape_all(self):
         """
-        Method the Master Driver Agent calls to get the current state
+        Method the Main Driver Agent calls to get the current state
         of a device for publication.
 
         :return: Point names to values for device.
@@ -586,7 +586,7 @@ class BasicRevert(object):
     @abc.abstractmethod    
     def _scrape_all(self):
         """
-        Method the Master Driver Agent calls to get the current state
+        Method the Main Driver Agent calls to get the current state
         of a device for publication.
 
         If using this mixin you must override this method
