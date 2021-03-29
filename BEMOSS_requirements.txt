@@ -4,7 +4,7 @@ decorator==4.0.9
 dnspython==1.12.0
 django==1.11
 django-filter
-djangorestframework==3.5.4
+djangorestframework==3.11.2
 futures==3.0.5
 lxml==4.2.4
 netifaces==0.10.4
